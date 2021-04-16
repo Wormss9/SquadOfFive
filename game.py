@@ -3,7 +3,6 @@ import random
 
 class Card:
     """Card having a suit and a number."""
-
     def __init__(self, suit, number):
         # __init__ je konstruktor => on vytvara instanciu objektu
         self.suit = suit
@@ -36,10 +35,3 @@ class Deck:
     def pull_card(self):
         """Takes a card from the deck and returns it"""
         return self.deck.pop()
-
-
-deck = Deck()
-deck.fill_poker()
-deck.shuffle()
-for card in deck.deck:
-    print(card.number + " of " + card.suit + "s")
