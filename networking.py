@@ -1,41 +1,67 @@
 import socket
 from _thread import *
-import sys
 
 
 class Server:
-    def __init__(self, serverName="GameServer", port=5910,connects=4):
-        self.serverName = serverName
-        self.port = port
-        self.connects=connects
+    def __init__(self, server="192.168.137.78", port=5910):
+        self.conn = ""
+        self.addr = ""
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            self.s.bind((self.serverName, self.port))
+            self.s.bind((server, port))
         except socket.error as e:
             str(e)
-        server.s.listen(self.connects)
+        self.s.listen(5)
+        print("Waiting for connection")
 
-    def threaded_client(self):
+    def threaded_client(self, conn):
+        conn.send(str.encode("Connected"))
+        reply = ""
         while True:
             try:
-                data = conn.recv(1024).decode("utf-8")
+                data = self.conn.recv(1024 * 2)
                 reply = data.decode("utf-8")
-
                 if not data:
-                    print("Disconnected")
+                    print(str(self.addr), " disconected.")
                     break
                 else:
                     print("Received: ", reply)
-                conn.sendall(str.encode(reply))
+                self.conn.sendall(str.encode(reply))
             except:
                 break
+        print("Connection lost.")
+        self.conn.close()
+
+    def accept(self):
+        self.conn, self.addr = self.s.accept()
+        print("Connected to :", self.addr)
+        start_new_thread(self.threaded_client, (self.conn,))
+        # self.threaded_client()
 
 
-server = Server()
+class Client:
+    def __init__(self, server="192.168.137.78", port=3910):
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.port = port
+        self.server = server
+        self.addr = (self.server, self.port)
+        self.id = self.connect()
+        print(self.id)
 
-while True:
-    server.s.listen(4)
-    conn, addr = server.s.accept()
-    print("Connect to:", addr)
+    def connect(self):
+        try:
+            self.client.connect(self.addr)
+            return self.client.recv(1024 * 2).decode()
+        except error as e:
+            str(e)
 
-    start_new_thread(server.threaded_client, (conn,))
+    def send(self, data):
+        try:
+            self.client.send(str.encode(data))
+            return self.client.recv(1024 * 2).decode()
+        except socket.error as e:
+            print(e)
+
+
+
+
