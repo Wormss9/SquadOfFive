@@ -1,6 +1,6 @@
 from game import *
+from networking import *
 
-# from graphics import *
 
 # to do => napisat hru
 

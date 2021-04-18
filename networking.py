@@ -1,9 +1,12 @@
 import socket
 from _thread import *
 
+server = "127.0.0.1"
+port = 5910
+
 
 class Server:
-    def __init__(self, server="192.168.137.78", port=5910):
+    def __init__(self, server=server, port=port):
         self.conn = ""
         self.addr = ""
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -40,13 +43,15 @@ class Server:
 
 
 class Client:
-    def __init__(self, server="192.168.137.78", port=3910):
+    def __init__(self, server=server, port=port):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.port = port
         self.server = server
         self.addr = (self.server, self.port)
-        self.id = self.connect()
-        print(self.id)
+        self.pos = self.connect()
+
+    def getPos(self):
+        return self.pos
 
     def connect(self):
         try:
@@ -61,7 +66,3 @@ class Client:
             return self.client.recv(1024 * 2).decode()
         except socket.error as e:
             print(e)
-
-
-
-

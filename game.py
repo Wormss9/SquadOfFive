@@ -96,24 +96,24 @@ class Deck:
 
 
 class Play:
-    def __init__(self,cards:[Card]):
-        self.cards=cards
+    def __init__(self, cards: [Card]):
+        self.cards = cards
 
     def value(self):
-        #single
-        if len(self.cards)==1:
-            return [self.cards[0].number,0,self.cards[0].color,0,1]
-        #pair
-        if len(self.cards)==2 and self.cards[0].number == self.cards[1].number:
-            return [card.number,0,1]
+        # single
+        if len(self.cards) == 1:
+            return [self.cards[0].number, 0, self.cards[0].color, 0, 1]
+        # pair
+        if len(self.cards) == 2 and self.cards[0].number == self.cards[1].number:
+            return [card.number, 0, 1]
         #
         return False
 
     def __gt__(self, other):
         if power(self.cards) and power(other.cards):
-            if len(self.cards)==len(other.cards):
-                if len(self.cards)==1:
-                    return self.cards[0]>other.cards[0]
+            if len(self.cards) == len(other.cards):
+                if len(self.cards) == 1:
+                    return self.cards[0] > other.cards[0]
         return False
 
 
