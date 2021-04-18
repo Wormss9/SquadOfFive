@@ -1,25 +1,51 @@
 from tkinter import *
 from main import *
+from networking import *
+
+"""n = Client()
+print(n.send("Hello"))
+print(n.send("word"))"""
+
+gameState = GameState()
+gameServer= GameServer()
 
 
 def open_login_window():
-    # Toplevel object which will
-    # be treated as a new window
-    newWindow = Toplevel(master)
+    def commandButton(ip, window):
+        statusBarText.set(gameState.connect(ip, window))
 
-    # sets the title of the
-    # Toplevel widget
-    newWindow.title("Connect")
+    global gameState
+    statusBarText = StringVar()
+    loginWindow = Toplevel(master)
+    loginWindow.title("Connect")
+    Label(loginWindow, text="Enter host adress:").grid(row=1, column=1)
+    adress = Entry(loginWindow)
+    adress.grid(row=1, column=2)
+    loginButton = Button(loginWindow, text="Connect")
+    loginButton['command'] = lambda: commandButton(adress.get(), loginWindow)
+    loginButton.grid(row=2, column=1, columnspan=2)
+    statusBar = Label(loginWindow, textvariable=statusBarText, relief='sunken')
+    statusBar.grid(row=3, column=1, columnspan=2, sticky='we')
 
-    # sets the geometry of toplevel
-    newWindow.geometry("200x200")
 
-    # A Label widget to show in toplevel
-    Label(newWindow,
-          text="Select server or host").pack()
+def open_name_window():
+    def commandButton(name, window):
+        statusBarText.set(gameState.set_name(name, window))
+
+    global gameState
+    statusBarText = StringVar()
+    nameWindow = Toplevel(master)
+    nameWindow.title("Connect")
+    Label(nameWindow, text="Enter nickname:").grid(row=1, column=1)
+    adress = Entry(nameWindow)
+    adress.grid(row=1, column=2)
+    nameButton = Button(nameWindow, text="Change")
+    nameButton['command'] = lambda: commandButton(adress.get(), nameWindow)
+    nameButton.grid(row=2, column=1, columnspan=2)
+    statusBar = Label(nameWindow, textvariable=statusBarText, relief='sunken')
+    statusBar.grid(row=3, column=1, columnspan=2, sticky='we')
 
 
-# Creating window
 master = Tk()
 master.title("Squad of Five")
 master.configure(bg='grey')
@@ -30,7 +56,7 @@ master.config(menu=menu)
 subMenu = Menu(menu)
 menu.add_cascade(label="Game", menu=subMenu)
 subMenu.add_command(label="Connect", command=open_login_window)
-subMenu.add_command(label="Host")
+subMenu.add_command(label="Change nickname", command=open_name_window)
 
 table = [Card(4, 1)]
 # region=Main Zone
@@ -112,7 +138,6 @@ chatSendButton.grid()
 
 
 # endregion=Main Zone
-
 
 
 # mainloop, runs infinitely
