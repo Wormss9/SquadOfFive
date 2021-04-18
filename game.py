@@ -1,17 +1,17 @@
 import random
 
-playPowerDic={1:"single",
-              2:"pair",
-              3:"three of a kind",
-              4:"straight suite",
-              5:"flash",
-              6:"full house",
-              7:"straight flush",
-              8:"gang of four",
-              9:"gang of five",
-              10:"gang of six",
-              11:"gang of seven"
-              }
+playPowerDic = {1: "single",
+                2: "pair",
+                3: "three of a kind",
+                4: "straight suite",
+                5: "flash",
+                6: "full house",
+                7: "straight flush",
+                8: "gang of four",
+                9: "gang of five",
+                10: "gang of six",
+                11: "gang of seven"
+                }
 
 
 class Card:
