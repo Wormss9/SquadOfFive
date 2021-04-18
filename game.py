@@ -34,12 +34,12 @@ class Card:
 
 
 class Player:
-    def __init__(self, number):
-        self.number = number
+    def __init__(self, name: str):
+        self.name = name
         self.hand = []
 
     def __str__(self):
-        return "Player" + str(self.number)
+        return "Player" + self.name
 
     def add_card(self, card: Card):
         self.hand.append(card)
