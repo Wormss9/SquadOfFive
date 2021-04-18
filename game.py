@@ -1,4 +1,7 @@
 import random
+import struct
+
+from networking import *
 
 playPowerDic = {1: "single",
                 2: "pair",
@@ -47,12 +50,18 @@ class Card:
 
 
 class Player:
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, conn="local"):
+        self.name = ""
         self.hand = []
+        self.conn = conn
+        self.connected = False
 
     def __str__(self):
         return "Player" + self.name
+
+    def connect(self,name:str):
+        self.name = name
+        self.connected = True
 
     def add_card(self, card: Card):
         self.hand.append(card)
@@ -116,6 +125,41 @@ class Play:
                     return self.cards[0] > other.cards[0]
         return False
 
+class GameState:
+    def __init__(self):
+        self.ip=""
+        self.name=""
+    def connect(self,ip,window):
+        try:
+            self.connection = Client(server=ip)
+            self.connection.send(str.encode({"name":self.name}))
+            self.ip=ip
+        except:
+            return "Connection failed"
+        window.destroy()
+        return "Connected"
+    def set_name(self,name,window):
+        self.name=name
+        window.destroy()
+        return "Name changed to "+name
+
+class GameServer:
+    def __init__(self):
+        self.ip=""
+        self.name=""
+        self.players=[Player(),Player(),Player(),Player()]
+    def connect(self,ip,window):
+        try:
+            self.connection = Client(server=ip)
+            self.ip=ip
+        except:
+            return "Connection failed"
+        window.destroy()
+        return "Connected"
+    def set_name(self,name,window):
+        self.name=name
+        window.destroy()
+        return "Name changed to "+name
 
 def create_players(number: int):
     players = []
