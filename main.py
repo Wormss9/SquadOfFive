@@ -14,6 +14,5 @@ players = create_players(4)
 # Deal cards
 deal(players, deck)
 
-players[0].hand.sort()
-for card in players[0].hand:
-    print(str(card))
+for player in players:
+    player.hand.sort()
