@@ -1,7 +1,7 @@
 import socket
 from _thread import *
 
-server = "127.0.0.1"
+server = "25.96.228.106"
 port = 5910
 
 
