@@ -1,5 +1,6 @@
 import random
 import struct
+import json
 
 from networking import *
 
@@ -59,7 +60,7 @@ class Player:
     def __str__(self):
         return "Player" + self.name
 
-    def connect(self,name:str):
+    def connect(self, name: str):
         self.name = name
         self.connected = True
 
@@ -125,41 +126,52 @@ class Play:
                     return self.cards[0] > other.cards[0]
         return False
 
+
 class GameState:
     def __init__(self):
-        self.ip=""
-        self.name=""
-    def connect(self,ip,window):
+        self.ip = ""
+        self.name = ""
+
+    def connect(self, ip, window):
         try:
             self.connection = Client(server=ip)
-            self.connection.send(str.encode({"name":self.name}))
-            self.ip=ip
+            print(json.dumps({"name": self.name}))
+            self.connection.send(json.dumps({"name": self.name}))
+            self.ip = ip
         except:
             return "Connection failed"
         window.destroy()
         return "Connected"
-    def set_name(self,name,window):
-        self.name=name
+
+    def set_name(self, name, window):
+        self.name = name
         window.destroy()
-        return "Name changed to "+name
+        return "Name changed to " + name
+
 
 class GameServer:
     def __init__(self):
-        self.ip=""
-        self.name=""
-        self.players=[Player(),Player(),Player(),Player()]
-    def connect(self,ip,window):
+        self.ip = ""
+        self.name = ""
+        self.players = [Player(), Player(), Player(), Player()]
+
+    def connect(self, ip, window):
         try:
             self.connection = Client(server=ip)
-            self.ip=ip
+            self.ip = ip
         except:
             return "Connection failed"
         window.destroy()
         return "Connected"
-    def set_name(self,name,window):
-        self.name=name
+
+    def set_name(self, name, window):
+        self.name = name
         window.destroy()
-        return "Name changed to "+name
+        return "Name changed to " + name
+
+    def reply(self, data):
+        received = json.loads(data)
+
 
 def create_players(number: int):
     players = []
