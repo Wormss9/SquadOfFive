@@ -1,5 +1,7 @@
 from networking import *
+from game import *
 
-server = Server()
+game=GameServer()
+server = Server(game=game)
 while True:
     server.accept()
