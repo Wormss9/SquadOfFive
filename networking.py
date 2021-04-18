@@ -6,10 +6,11 @@ port = 5910
 
 
 class Server:
-    def __init__(self, server=server, port=port):
+    def __init__(self, game, server=server, port=port):
         self.conn = ""
         self.addr = ""
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.game = game
         try:
             self.s.bind((server, port))
         except socket.error as e:
@@ -23,6 +24,8 @@ class Server:
         while True:
             try:
                 data = self.conn.recv(1024 * 2)
+                self.game.reply(data)
+                print(data)
                 reply = data.decode("utf-8")
                 if not data:
                     print(str(self.addr), " disconected.")
