@@ -13,6 +13,7 @@ playPowerDic={1:"single",
               11:"gang of seven"
               }
 
+
 class Card:
     """Card having a suit and a number."""
     suitdict = {1: "Green", 2: "Yellow", 3: "Red", 4: "Rainbow"}
