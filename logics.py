@@ -131,7 +131,8 @@ class GameState:
         self.ip = ""
         self.name = ""
         self.settings = Settings()
-        self.hand=[]
+        self.hand = []
+        self.chat=""
 
     def connect(self, ip, window):
         try:
