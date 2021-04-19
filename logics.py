@@ -1,7 +1,7 @@
 import random
 import struct
 
-from networking import *
+from network import *
 
 playPowerDic = {1: "single",
                 2: "pair",
@@ -131,6 +131,7 @@ class GameState:
         self.ip = ""
         self.name = ""
         self.settings = Settings()
+        self.hand=[]
 
     def connect(self, ip, window):
         try:

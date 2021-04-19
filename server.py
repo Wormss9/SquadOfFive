@@ -1,5 +1,5 @@
 #from networking import *
-from gameLogics import *
+from logics import *
 
 game = GameServer()
 server = Server(game=game)

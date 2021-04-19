@@ -1,4 +1,5 @@
 import socket
+import json
 from _thread import *
 
 server = "25.96.228.106"
@@ -24,9 +25,7 @@ class Server:
         while True:
             try:
                 data = self.conn.recv(1024 * 2)
-                self.game.reply(data)
-                print(data)
-                reply = data.decode("utf-8")
+                reply = json.dump(self.game.reply(json.loads(data)))
                 if not data:
                     print(str(self.addr), " disconected.")
                     break

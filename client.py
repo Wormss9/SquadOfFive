@@ -1,13 +1,13 @@
 from tkinter import *
-from graphicTestPlaceholder import *
-#from networking import *
+from gameLogics import *
+
+# from networking import *
 
 """n = Client()
 print(n.send("Hello"))
 print(n.send("word"))"""
 
 gameState = GameState()
-gameServer = GameServer()
 
 
 def open_login_window():
@@ -40,7 +40,7 @@ def open_name_window():
     global gameState
     statusBarText = StringVar()
     nameWindow = Toplevel(master)
-    nameWindow.title("Connect")
+    nameWindow.title("Nick")
     Label(nameWindow, text="Enter nickname:").grid(row=1, column=1)
     adress = Entry(nameWindow)
     adress.insert(END, str(gameState.settings.name))
@@ -71,12 +71,12 @@ playerZone = Label(master, bg="darkGrey")
 playerZone.grid(row=1, column=1)
 # region=Player Zone
 
-player1 = Label(playerZone, text=players[0].name)
-player2 = Label(playerZone, text=players[1].name)
-player3 = Label(playerZone, text=players[2].name)
-cardCount1 = Label(playerZone, text=len(players[0].hand))
-cardCount2 = Label(playerZone, text=len(players[1].hand))
-cardCount3 = Label(playerZone, text=len(players[2].hand))
+player1 = Label(playerZone, text="Player1")
+player2 = Label(playerZone, text="Player2")
+player3 = Label(playerZone, text="Player3")
+cardCount1 = Label(playerZone, text=16)
+cardCount2 = Label(playerZone, text=16)
+cardCount3 = Label(playerZone, text=16)
 
 player1.grid(column=1, row=2, sticky=E)
 player2.grid(column=2, row=2)
@@ -109,14 +109,20 @@ deckZone.grid(row=3, column=1)
 
 cardsOnHand = []
 cardsOnHandChkBtn = []
-for card in players[3].hand:
-    cardsOnHand.append(Checkbutton(deckZone, text=str(card)))
-x = 1
-for cardLabel in cardsOnHand:
-    cardLabel.grid(column=x, row=1)
-    x += 1
+
+
+def showCards():
+    global gameState
+    for card in gameState.hand:
+        cardsOnHand.append(Checkbutton(deckZone, text=str(card)))
+    x = 1
+    for cardLabel in cardsOnHand:
+        cardLabel.grid(column=x, row=1)
+        x += 1
+
+
 deckZonePlay = Button(deckZone, text="   OK   ")
-deckZonePlay.grid(columnspan=len(players[3].hand))
+deckZonePlay.grid(columnspan=max(1, len(gameState.hand)))
 # endregion=Deck Zone
 
 
