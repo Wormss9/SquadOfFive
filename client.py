@@ -1,55 +1,51 @@
 from tkinter import *
-from gameLogics import *
+from logics import *
 
 # from networking import *
-
-"""n = Client()
-print(n.send("Hello"))
-print(n.send("word"))"""
 
 gameState = GameState()
 
 
 def open_login_window():
-    def commandButton(ip, window):
+    def command_button(ip, window):
         gameState.settings.save_adress(ip)
         if not gameState.settings.name:
             open_name_window()
-        statusBarText.set(gameState.connect(ip, window))
+        status_bar_text.set(gameState.connect(ip, window))
 
     global gameState
-    statusBarText = StringVar()
-    loginWindow = Toplevel(master)
-    loginWindow.title("Connect")
-    Label(loginWindow, text="Enter host adress:").grid(row=1, column=1)
-    adress = Entry(loginWindow)
-    adress.insert(END, str(gameState.settings.adress))
-    adress.grid(row=1, column=2)
-    loginButton = Button(loginWindow, text="Connect")
-    loginButton['command'] = lambda: commandButton(adress.get(), loginWindow)
-    loginButton.grid(row=2, column=1, columnspan=2)
-    statusBar = Label(loginWindow, textvariable=statusBarText, relief='sunken')
-    statusBar.grid(row=3, column=1, columnspan=2, sticky='we')
+    status_bar_text = StringVar()
+    login_window = Toplevel(master)
+    login_window.title("Connect")
+    Label(login_window, text="Enter host address:").grid(row=1, column=1)
+    address = Entry(login_window)
+    address.insert(END, str(gameState.settings.adress))
+    address.grid(row=1, column=2)
+    login_button = Button(login_window, text="Connect")
+    login_button['command'] = lambda: command_button(address.get(), login_window)
+    login_button.grid(row=2, column=1, columnspan=2)
+    status_bar = Label(login_window, textvariable=status_bar_text, relief='sunken')
+    status_bar.grid(row=3, column=1, columnspan=2, sticky='we')
 
 
 def open_name_window():
-    def commandButton(name, window):
+    def command_button(name, window):
         gameState.settings.save_name(name)
-        statusBarText.set(gameState.set_name(name, window))
+        status_bar_text.set(gameState.set_name(name, window))
 
     global gameState
-    statusBarText = StringVar()
-    nameWindow = Toplevel(master)
-    nameWindow.title("Nick")
-    Label(nameWindow, text="Enter nickname:").grid(row=1, column=1)
-    adress = Entry(nameWindow)
-    adress.insert(END, str(gameState.settings.name))
-    adress.grid(row=1, column=2)
-    nameButton = Button(nameWindow, text="Change")
-    nameButton['command'] = lambda: commandButton(adress.get(), nameWindow)
-    nameButton.grid(row=2, column=1, columnspan=2)
-    statusBar = Label(nameWindow, textvariable=statusBarText, relief='sunken')
-    statusBar.grid(row=3, column=1, columnspan=2, sticky='we')
+    status_bar_text = StringVar()
+    name_window = Toplevel(master)
+    name_window.title("Nick")
+    Label(name_window, text="Enter nickname:").grid(row=1, column=1)
+    address = Entry(name_window)
+    address.insert(END, str(gameState.settings.name))
+    address.grid(row=1, column=2)
+    name_button = Button(name_window, text="Change")
+    name_button['command'] = lambda: command_button(address.get(), name_window)
+    name_button.grid(row=2, column=1, columnspan=2)
+    status_bar = Label(name_window, textvariable=status_bar_text, relief='sunken')
+    status_bar.grid(row=3, column=1, columnspan=2, sticky='we')
 
 
 master = Tk()
@@ -110,16 +106,12 @@ deckZone.grid(row=3, column=1)
 cardsOnHand = []
 cardsOnHandChkBtn = []
 
-
-def showCards():
-    global gameState
-    for card in gameState.hand:
-        cardsOnHand.append(Checkbutton(deckZone, text=str(card)))
-    x = 1
-    for cardLabel in cardsOnHand:
-        cardLabel.grid(column=x, row=1)
-        x += 1
-
+for card in gameState.hand:
+    cardsOnHand.append(Checkbutton(deckZone, text=str(card)))
+x = 1
+for cardLabel in cardsOnHand:
+    cardLabel.grid(column=x, row=1)
+    x += 1
 
 deckZonePlay = Button(deckZone, text="   OK   ")
 deckZonePlay.grid(columnspan=max(1, len(gameState.hand)))
@@ -136,7 +128,7 @@ chatZone = Label(master)
 chatZone.grid(column=2, row=1, rowspan=4)
 # region=Chat Zone
 
-chatText = Label(chatZone, text="God: Test message\nGod: Test message2")
+chatText = Label(chatZone, text=gameState.chat)
 chatInput = Label(chatZone)
 chatReadText = Entry(chatInput)
 chatSendButton = Button(chatInput, text="Send")
