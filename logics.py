@@ -193,8 +193,8 @@ class Settings:
                 setting = json.load(file)
                 self.name = setting['name']
                 self.adress = setting['adress']
-        except error:
-            print(str(error))
+        except:
+            pass
 
     def save_adress(self, adress):
         self.adress = adress
