@@ -8,7 +8,8 @@ defPort = 5910
 
 class Server:
     """Class responsible for what the server communicates"""
-    def __init__(self, game, server=defServer, port=defPort):
+
+    def __init__(self, game, port=defPort):
         """Initializes a server listening to 5 connections"""
         self.conn = ""
         self.address = ""
@@ -28,14 +29,19 @@ class Server:
         while True:
             try:
                 data = self.conn.recv(1024 * 2)
-                print("Data: ",str(data))
-                #reply = self.game.reply(json.loads(data))
-                reply="Test reply"
+                print(type(data), " ", data)
+                try:
+                    data_as_json = json.loads(json.loads(data))
+                except:
+                    pass
+                print("To reply", type(data_as_json), "", data_as_json, " ", type(self.address[1]), " ",
+                      self.address[1])
+                reply = self.game.reply(data_as_json, self.address[1])
                 if not data:
                     print(str(self.address), " disconnected.")
                     break
                 else:
-                    print("Received: ", reply)
+                    print("Sent: '", reply, "' To:", self.address[1])
                 self.conn.sendall(str.encode(json.dumps(reply)))
             except error:
                 print(str(error))
@@ -53,6 +59,7 @@ class Server:
 
 class Client:
     """Class responsible for what the client communicates"""
+
     def __init__(self, server=defServer, port=defPort):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.port = port
@@ -72,6 +79,13 @@ class Client:
             data = {"info", data}
         try:
             self.client.send(str.encode(json.dumps(data)))
-            return self.client.recv(1024 * 2)
+            x = self.client.recv(1024 * 2)
+            try:
+                data_as_json = json.loads(x)
+            except:
+                pass
+            # todo
+            print(str(data_as_json))
+            return x
         except error as e:
             print(e)
