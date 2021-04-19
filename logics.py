@@ -137,8 +137,8 @@ class GameState:
     def connect(self, ip, window):
         try:
             self.connection = Client(server=ip)
-            print(json.dumps({"name": self.name}))
-            self.connection.send(json.dumps({"name": self.name}))
+            print(json.dumps({'name': self.name}))
+            self.connection.send(json.dumps({'name': self.name}))
             self.ip = ip
         except:
             return "Connection failed"
@@ -172,17 +172,22 @@ class GameServer:
         return "Name changed to " + name
 
     def reply(self, data):
-        print(str(data)+" is: "+str(type(data)))
-        if 'name' in data:
-            for player in self.players:
+        for key in data:
+            self.switcher.answer(data,data.get(key))
+
+    def answer(self, key,word):
+        if key=="name":
+            for player in gameState.players:
                 if player.connected == False:
                     player.connected = True
-                    player.name = data.get('name')
-                    return {"connection": True,
-                            "reply": data.get('name') + " connected"}
+                    player.name = word
+                    return {'connection': True,
+                            'reply': word + ' connected'}
             return {connection: False,
-                    "reply": data.name + "Game is full"}
-
+                    'reply': data.name + 'Game is full'}
+        elif key=='chat':
+            self.gameState.chat+='\n'+word
+            return {}
 
 class Settings:
     def __init__(self):
