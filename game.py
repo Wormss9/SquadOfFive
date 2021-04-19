@@ -131,6 +131,7 @@ class GameState:
     def __init__(self):
         self.ip = ""
         self.name = ""
+        self.settings = Settings()
 
     def connect(self, ip, window):
         try:
@@ -170,7 +171,42 @@ class GameServer:
         return "Name changed to " + name
 
     def reply(self, data):
-        received = json.loads(data)
+        if 'name' in data:
+            for player in self.players():
+                if player.connected == False:
+                    player.connected = True
+                    player.name = data[1]
+                    return {"connection": True,
+                            "reply": data.name + " connected"}
+            return {connection: False,
+                    "reply": data.name + "Game is full"}
+
+
+class Settings:
+    def __init__(self):
+        self.name = ""
+        self.adress = ""
+        try:
+            with open('settings.txt') as file:
+                setting = json.load(file)
+                self.name = setting['name']
+                self.adress = setting['adress']
+        except error:
+            print(str(error))
+
+    def save_adress(self, adress):
+        self.adress = adress
+        self.saveToFile()
+
+    def save_name(self, name):
+        self.name = name
+        self.saveToFile()
+
+    def saveToFile(self):
+        data = {"name": self.name,
+                "adress": self.adress}
+        with open('settings.txt', 'w') as outfile:
+            json.dump(data, outfile)
 
 
 def create_players(number: int):

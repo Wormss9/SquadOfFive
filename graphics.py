@@ -7,11 +7,12 @@ print(n.send("Hello"))
 print(n.send("word"))"""
 
 gameState = GameState()
-gameServer= GameServer()
+gameServer = GameServer()
 
 
 def open_login_window():
     def commandButton(ip, window):
+        gameState.settings.save_adress(ip)
         statusBarText.set(gameState.connect(ip, window))
 
     global gameState
@@ -20,6 +21,7 @@ def open_login_window():
     loginWindow.title("Connect")
     Label(loginWindow, text="Enter host adress:").grid(row=1, column=1)
     adress = Entry(loginWindow)
+    adress.insert(END, str(gameState.settings.adress))
     adress.grid(row=1, column=2)
     loginButton = Button(loginWindow, text="Connect")
     loginButton['command'] = lambda: commandButton(adress.get(), loginWindow)
@@ -30,6 +32,7 @@ def open_login_window():
 
 def open_name_window():
     def commandButton(name, window):
+        gameState.settings.save_name(name)
         statusBarText.set(gameState.set_name(name, window))
 
     global gameState
@@ -38,6 +41,7 @@ def open_name_window():
     nameWindow.title("Connect")
     Label(nameWindow, text="Enter nickname:").grid(row=1, column=1)
     adress = Entry(nameWindow)
+    adress.insert(END, str(gameState.settings.name))
     adress.grid(row=1, column=2)
     nameButton = Button(nameWindow, text="Change")
     nameButton['command'] = lambda: commandButton(adress.get(), nameWindow)
