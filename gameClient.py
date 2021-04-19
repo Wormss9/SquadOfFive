@@ -13,6 +13,8 @@ gameServer = GameServer()
 def open_login_window():
     def commandButton(ip, window):
         gameState.settings.save_adress(ip)
+        if not gameState.settings.name:
+            open_name_window()
         statusBarText.set(gameState.connect(ip, window))
 
     global gameState
