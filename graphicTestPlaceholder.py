@@ -1,5 +1,5 @@
-from game import *
-from networking import *
+from gameLogics import *
+#from networking import *
 
 
 # to do => napisat hru

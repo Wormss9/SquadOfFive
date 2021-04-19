@@ -1,6 +1,6 @@
 from tkinter import *
-from main import *
-from networking import *
+from graphicTestPlaceholder import *
+#from networking import *
 
 """n = Client()
 print(n.send("Hello"))

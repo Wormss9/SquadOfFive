@@ -1,6 +1,5 @@
 import random
 import struct
-import json
 
 from networking import *
 
