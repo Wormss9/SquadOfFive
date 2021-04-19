@@ -3,23 +3,23 @@ from logics import *
 
 # from networking import *
 
-gameState = GameState()
+gameClient = GameClient()
 
 
 def open_login_window():
     def command_button(ip, window):
-        gameState.settings.save_adress(ip)
-        if not gameState.settings.name:
+        gameClient.settings.save_adress(ip)
+        if not gameClient.settings.name:
             open_name_window()
-        status_bar_text.set(gameState.connect(ip, window))
+        status_bar_text.set(gameClient.connect(ip, window))
 
-    global gameState
+    global gameClient
     status_bar_text = StringVar()
     login_window = Toplevel(master)
     login_window.title("Connect")
     Label(login_window, text="Enter host address:").grid(row=1, column=1)
     address = Entry(login_window)
-    address.insert(END, str(gameState.settings.adress))
+    address.insert(END, str(gameClient.settings.adress))
     address.grid(row=1, column=2)
     login_button = Button(login_window, text="Connect")
     login_button['command'] = lambda: command_button(address.get(), login_window)
@@ -30,16 +30,16 @@ def open_login_window():
 
 def open_name_window():
     def command_button(name, window):
-        gameState.settings.save_name(name)
-        status_bar_text.set(gameState.set_name(name, window))
+        gameClient.settings.save_name(name)
+        status_bar_text.set(gameClient.set_name(name, window))
 
-    global gameState
+    global gameClient
     status_bar_text = StringVar()
     name_window = Toplevel(master)
     name_window.title("Nick")
     Label(name_window, text="Enter nickname:").grid(row=1, column=1)
     address = Entry(name_window)
-    address.insert(END, str(gameState.settings.name))
+    address.insert(END, str(gameClient.settings.name))
     address.grid(row=1, column=2)
     name_button = Button(name_window, text="Change")
     name_button['command'] = lambda: command_button(address.get(), name_window)
@@ -106,7 +106,7 @@ deckZone.grid(row=3, column=1)
 cardsOnHand = []
 cardsOnHandChkBtn = []
 
-for card in gameState.hand:
+for card in gameClient.hand:
     cardsOnHand.append(Checkbutton(deckZone, text=str(card)))
 x = 1
 for cardLabel in cardsOnHand:
@@ -114,7 +114,7 @@ for cardLabel in cardsOnHand:
     x += 1
 
 deckZonePlay = Button(deckZone, text="   OK   ")
-deckZonePlay.grid(columnspan=max(1, len(gameState.hand)))
+deckZonePlay.grid(columnspan=max(1, len(gameClient.hand)))
 # endregion=Deck Zone
 
 
@@ -128,10 +128,16 @@ chatZone = Label(master)
 chatZone.grid(column=2, row=1, rowspan=4)
 # region=Chat Zone
 
-chatText = Label(chatZone, text=gameState.chat)
+chatText = Label(chatZone, text="")
+gameClient.chatTextArea = chatText
 chatInput = Label(chatZone)
 chatReadText = Entry(chatInput)
-chatSendButton = Button(chatInput, text="Send")
+def sendMessage():
+    gameClient.send({"chat": chatReadText.get()})
+chatSendButton = Button(chatInput, text="Send", command=sendMessage)
+
+
+
 
 chatText.grid()
 chatInput.grid()

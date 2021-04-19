@@ -29,14 +29,19 @@ class Server:
         while True:
             try:
                 data = self.conn.recv(1024 * 2)
-                print(type(data), " ", data)
+                print("Received ",type(data), " ", data)
+                if type(data) is bytes:
+                    data = data.decode()
+                    print("Received ", type(data), " ", data)
+                    data_as_json=json.loads(data)
+
                 try:
                     data_as_json = json.loads(json.loads(data))
                 except:
                     pass
                 print("To reply", type(data_as_json), "", data_as_json, " ", type(self.address[1]), " ",
                       self.address[1])
-                reply = self.game.reply(data_as_json, self.address[1])
+                reply = self.game.reply(data_as_json, conn)
                 if not data:
                     print(str(self.address), " disconnected.")
                     break

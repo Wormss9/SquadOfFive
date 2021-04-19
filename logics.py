@@ -55,7 +55,7 @@ class Player:
         self.hand = []
         self.conn = conn
         self.connected = False
-        self.clientId=""
+        self.client=""
 
     def __str__(self):
         return "Player" + self.name
@@ -127,13 +127,15 @@ class Play:
         return False
 
 
-class GameState:
+class GameClient:
     def __init__(self):
         self.settings = Settings()
         self.ip = Settings().adress
         self.name = Settings().name
         self.hand = []
-        self.chat = ""
+        self.chatTextArea=""
+        self.client=""
+        self.connection=""
 
     def connect(self, ip, window):
         try:
@@ -146,17 +148,41 @@ class GameState:
         window.destroy()
         return "Connected"
 
+    def send(self,message):
+        print("Sending: ",str(message))
+        self.connection.send(message)
+
     def set_name(self, name, window):
         self.name = name
         window.destroy()
         return "Name changed to " + name
 
+    def reply(self, data):
+        reply={}
+        for key in data:
+            value=self.answer(key, data.get(key), self.client)
+            printt(value)
+            reply.update(value)
+        print("Final reply ",str(reply))
+        return reply
+
+    def answer(self, key, word, client):
+        print("answer ",key,word)
+        if key == "chat":
+            self.chatTextArea['text'] = word
+            return {""}
+        elif key == 'connection':
+            if word:
+                self.client=client
+        else:
+            return {}
 
 class GameServer:
     def __init__(self):
         self.ip = ""
         self.name = ""
         self.players = [Player(), Player(), Player(), Player()]
+        self.chat=""
 
     def connect(self, ip, window):
         try:
@@ -187,13 +213,16 @@ class GameServer:
                 if player.connected == False:
                     player.connected = True
                     player.name = word
-                    player.clientId=client
+                    player.client=client
                     return {'connection': True,
                             'reply': word + ' connected'}
             return {connection: False,
                     'reply': data.name + 'Game is full'}
         elif key == 'chat':
-            self.gameState.chat += '\n' + word
+            self.chat += word +'\n'
+            for player in self.players:
+                if player.client:
+                    player.client.sendall(json.dumps({"chat":self.chat}).encode())
             return {}
         else:
             return {}
