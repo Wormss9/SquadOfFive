@@ -128,9 +128,9 @@ class Play:
 
 class GameState:
     def __init__(self):
-        self.ip = ""
-        self.name = ""
         self.settings = Settings()
+        self.ip = Settings().adress
+        self.name = Settings().name
         self.hand = []
         self.chat=""
 
@@ -172,13 +172,14 @@ class GameServer:
         return "Name changed to " + name
 
     def reply(self, data):
+        print(str(data)+" is: "+str(type(data)))
         if 'name' in data:
-            for player in self.players():
+            for player in self.players:
                 if player.connected == False:
                     player.connected = True
-                    player.name = data[1]
+                    player.name = data.get('name')
                     return {"connection": True,
-                            "reply": data.name + " connected"}
+                            "reply": data.get('name') + " connected"}
             return {connection: False,
                     "reply": data.name + "Game is full"}
 
