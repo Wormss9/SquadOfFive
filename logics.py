@@ -55,6 +55,7 @@ class Player:
         self.hand = []
         self.conn = conn
         self.connected = False
+        self.clientId=""
 
     def __str__(self):
         return "Player" + self.name
@@ -132,7 +133,7 @@ class GameState:
         self.ip = Settings().adress
         self.name = Settings().name
         self.hand = []
-        self.chat=""
+        self.chat = ""
 
     def connect(self, ip, window):
         try:
@@ -171,23 +172,32 @@ class GameServer:
         window.destroy()
         return "Name changed to " + name
 
-    def reply(self, data):
+    def reply(self, data, client):
+        reply={}
         for key in data:
-            self.switcher.answer(data,data.get(key))
-
-    def answer(self, key,word):
-        if key=="name":
-            for player in gameState.players:
+            value=self.answer(key, data.get(key), client)
+            printt(value)
+            reply.update(value)
+        print("Final reply ",str(reply))
+        return reply
+    def answer(self, key, word, client):
+        print("answer ",key,word,client)
+        if key == "name":
+            for player in self.players:
                 if player.connected == False:
                     player.connected = True
                     player.name = word
+                    player.clientId=client
                     return {'connection': True,
                             'reply': word + ' connected'}
             return {connection: False,
                     'reply': data.name + 'Game is full'}
-        elif key=='chat':
-            self.gameState.chat+='\n'+word
+        elif key == 'chat':
+            self.gameState.chat += '\n' + word
             return {}
+        else:
+            return {}
+
 
 class Settings:
     def __init__(self):
@@ -227,3 +237,6 @@ def deal(players: [Player], deck: Deck):
     for x in range(int(len(deck.deck) / len(players))):
         for player in players:
             player.add_card(deck.pull_card())
+
+def printt(x):
+    print(type(x)," ",str(x))
