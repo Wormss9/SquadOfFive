@@ -24,16 +24,16 @@ class Server:
 
     def threaded_client(self, conn):
         """Starts connection"""
-        conn.send(str.encode("Connected"))
+        conn.sendall(str.encode("Connected"))
         # reply = ""
         while True:
             try:
                 data = self.conn.recv(1024 * 2)
-                print("Received ",type(data), " ", data)
+                print("Received ", type(data), " ", data)
                 if type(data) is bytes:
                     data = data.decode()
                     print("Received ", type(data), " ", data)
-                    data_as_json=json.loads(data)
+                    data_as_json = json.loads(data)
 
                 try:
                     data_as_json = json.loads(json.loads(data))
@@ -71,6 +71,7 @@ class Client:
         self.server = server
         self.address = (self.server, self.port)
         self.pos = self.connect()
+        self.gameClient = ""
 
     def connect(self):
         try:
@@ -83,14 +84,16 @@ class Client:
         if data is str:
             data = {"info", data}
         try:
-            self.client.send(str.encode(json.dumps(data)))
+            self.client.sendall(str.encode(json.dumps(data)))
             x = self.client.recv(1024 * 2)
             try:
                 data_as_json = json.loads(x)
             except:
                 pass
             # todo
-            print(str(data_as_json))
+            print(type(data_as_json), str(data_as_json))
+            for key in data_as_json:
+                self.gameClient.answer(key, data_as_json[key], self.client)
             return x
         except error as e:
             print(e)

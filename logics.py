@@ -169,6 +169,7 @@ class GameClient:
     def answer(self, key, word, client):
         print("answer ",key,word)
         if key == "chat":
+            print("Chat got: ",word)
             self.chatTextArea['text'] = word
             return {""}
         elif key == 'connection':
@@ -222,8 +223,9 @@ class GameServer:
             self.chat += word +'\n'
             for player in self.players:
                 if player.client:
-                    player.client.sendall(json.dumps({"chat":self.chat}).encode())
-            return {}
+                    print("sending: ",self.chat,", to ",player.name)
+                    #player.client.sendall(json.dumps({"chat":self.chat}).encode())
+            return {"chat":self.chat}
         else:
             return {}
 
