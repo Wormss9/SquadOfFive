@@ -161,13 +161,13 @@ class GameClient:
         reply = {}
         for key in data:
             value = self.answer(key, data.get(key), self.client)
-            printt(value)
+            #printt(value)
             reply.update(value)
-        print("Final reply ", str(reply))
+        #print("Final reply ", str(reply))
         return reply
 
     def answer(self, key, word, client):
-        print("answer ", key, word)
+        print("Answering: ", key, word)
         if key == "chat":
             print("Chat got: ", word)
             self.chatTextArea['text'] = word
@@ -207,11 +207,12 @@ class GameServer:
             value = self.answer(key, data.get(key), client)
             printt(value)
             reply.update(value)
-        print("Final reply ", str(reply))
+        if len(reply)>0:
+            print("Final reply ", str(reply))
         return reply
 
     def answer(self, key, word, client):
-        print("answer ", key, word, client)
+        print("Server answering: ", key, word, client)
         if key == "name":
             for player in self.players:
                 if player.connected == False:
@@ -230,9 +231,9 @@ class GameServer:
             self.chat += name + ": " + word + '\n'
             for player in self.players:
                 if player.client:
-                    print("sending: ", self.chat, ", to ", player.name)
-                    # player.client.sendall(json.dumps({"chat":self.chat}).encode())
-            return {"chat": self.chat}
+                    print("Sending to: ",player.name," ; ", self.chat.replace('\n', ' '))
+                    player.client.sendall(json_to_bytes(toDict("chat",self.chat)))
+            return {}
         else:
             return {}
 
