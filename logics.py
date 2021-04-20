@@ -169,7 +169,7 @@ class GameClient:
     def answer(self, key, word, client):
         print("Answering: ", key, word)
         if key == "chat":
-            print("Chat got: ", word)
+            print("Chat got: ", word.replace('\n', ' '))
             self.chatTextArea['text'] = word
             return {}
         elif key == 'connected':
@@ -212,7 +212,7 @@ class GameServer:
         return reply
 
     def answer(self, key, word, client):
-        print("Server answering: ", key, word, client)
+        print("Server answering: ", key, word.replace('\n', ' '), client)
         if key == "name":
             for player in self.players:
                 if player.connected == False:
