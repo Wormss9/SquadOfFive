@@ -55,7 +55,7 @@ class Player:
         self.hand = []
         self.conn = conn
         self.connected = False
-        self.client=""
+        self.client = ""
 
     def __str__(self):
         return "Player" + self.name
@@ -133,22 +133,23 @@ class GameClient:
         self.ip = Settings().adress
         self.name = Settings().name
         self.hand = []
-        self.chatTextArea=""
-        self.connection=""
+        self.chatTextArea = ""
+        self.connection = ""
 
     def connect(self, ip, window):
         try:
             self.connection = Client(server=ip)
-            self.connection.connect()
+            self.connection.connect(self)
             print(json.dumps({'name': self.name}))
             self.connection.send({'name': self.name})
-        except:
+        except error as e:
+            print(e)
             return "Connection failed"
         window.destroy()
         return "Connected"
 
-    def send(self,message):
-        print("Sending: ",str(message))
+    def send(self, message):
+        print("Sending: ", str(message))
         self.connection.send(message)
 
     def set_name(self, name, window):
@@ -157,32 +158,34 @@ class GameClient:
         return "Name changed to " + name
 
     def reply(self, data):
-        reply={}
+        reply = {}
         for key in data:
-            value=self.answer(key, data.get(key), self.client)
+            value = self.answer(key, data.get(key), self.client)
             printt(value)
             reply.update(value)
-        print("Final reply ",str(reply))
+        print("Final reply ", str(reply))
         return reply
 
     def answer(self, key, word, client):
-        print("answer ",key,word)
+        print("answer ", key, word)
         if key == "chat":
-            print("Chat got: ",word)
+            print("Chat got: ", word)
             self.chatTextArea['text'] = word
-            return {""}
-        elif key == 'connection':
+            return {}
+        elif key == 'connected':
             if word:
-                self.client=client
+                self.client = client
+            return {}
         else:
             return {}
+
 
 class GameServer:
     def __init__(self):
         self.ip = ""
         self.name = ""
         self.players = [Player(), Player(), Player(), Player()]
-        self.chat=""
+        self.chat = ""
 
     def connect(self, ip, window):
         try:
@@ -199,32 +202,37 @@ class GameServer:
         return "Name changed to " + name
 
     def reply(self, data, client):
-        reply={}
+        reply = {}
         for key in data:
-            value=self.answer(key, data.get(key), client)
+            value = self.answer(key, data.get(key), client)
             printt(value)
             reply.update(value)
-        print("Final reply ",str(reply))
+        print("Final reply ", str(reply))
         return reply
+
     def answer(self, key, word, client):
-        print("answer ",key,word,client)
+        print("answer ", key, word, client)
         if key == "name":
             for player in self.players:
                 if player.connected == False:
                     player.connected = True
                     player.name = word
-                    player.client=client
+                    player.client = client
                     return {'connection': True,
                             'reply': word + ' connected'}
             return {connection: False,
                     'reply': data.name + 'Game is full'}
         elif key == 'chat':
-            self.chat += word +'\n'
+            name = "Anon"
+            for player in self.players:
+                if player.client == client:
+                    name = player.name
+            self.chat += name + ": " + word + '\n'
             for player in self.players:
                 if player.client:
-                    print("sending: ",self.chat,", to ",player.name)
-                    #player.client.sendall(json.dumps({"chat":self.chat}).encode())
-            return {"chat":self.chat}
+                    print("sending: ", self.chat, ", to ", player.name)
+                    # player.client.sendall(json.dumps({"chat":self.chat}).encode())
+            return {"chat": self.chat}
         else:
             return {}
 
@@ -268,5 +276,6 @@ def deal(players: [Player], deck: Deck):
         for player in players:
             player.add_card(deck.pull_card())
 
+
 def printt(x):
-    print(type(x)," ",str(x))
+    print(type(x), " ", str(x))

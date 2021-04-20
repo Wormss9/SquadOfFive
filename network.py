@@ -13,10 +13,12 @@ def print_type(text: str, data):
 def bytes_to_json(received):
     try:
         received = json.loads(received.decode())
+
     except:
         print_type("Bad translation", received)
         return {"error": 400}
     if type(received) == dict:
+        # print_type("Decoded bytes to json:", received)
         return received
     else:
         print_type("Bad translation", received)
@@ -24,7 +26,12 @@ def bytes_to_json(received):
 
 
 def json_to_bytes(to_send):
-    return json.dumps(to_send).encode('utf-8')
+    if type(to_send) == dict:
+        x = json.dumps(to_send).encode('utf-8')
+        # print_type("translated: ", x)
+        return x
+    else:
+        print_type("For som reason trying to send: ", to_send)
 
 
 class Server:
@@ -41,11 +48,11 @@ class Server:
         except socket.error as e:
             str(e)
         self.s.listen(5)
-        print("Waiting for connection")
+        print("Server started.")
 
     def threaded_client(self, conn):
         """Starts connection"""
-        conn.sendall(json_to_bytes({"connected": True}))
+        conn.sendall(json_to_bytes({"connected": "True"}))
         print(str(self.address), " connected.")
         while True:
             try:
@@ -59,7 +66,10 @@ class Server:
                 else:
                     print("Sent: '", reply, "' To:", self.address[1])
                 # Send reply to client
-                self.conn.sendall(json_to_bytes(reply))
+                for key in reply:
+                    sending = dict({str(key): str(reply[key])})
+                    # print_type("Sendall:", sending)
+                    self.conn.sendall(json_to_bytes(sending))
             except error:
                 print(str(error))
                 break
@@ -84,26 +94,31 @@ class Client:
         self.address = (self.server, self.port)
         self.gameClient = ""
 
-    def connect(self):
+    def connect(self, gameClient):
+        self.gameClient = gameClient
         try:
-            print("Client connecting: ",self.address)
+            print("Client connecting: ", self.address)
             self.client.connect(self.address)
             answer = bytes_to_json(self.client.recv(1024 * 2))
             for key in answer:
                 self.gameClient.answer(key, answer[key], self.client)
-            print("Connected to: ")
+            print("Connected to: ", self.address)
         except error as e:
             str(e)
 
     def send(self, data: dict):
+        print_type("Client sending answer to: ", data)
         if data is str:
             data = {"info", data}
+        if type(data) != dict:
+            print_type("Can't send:", data)
+            return
         try:
+            print_type("Trying to send: ", json_to_bytes(data))
             self.client.sendall(json_to_bytes(data))
             answer = bytes_to_json(self.client.recv(1024 * 2))
-            # todo
-            print_type("Answer:",answer)
+            print_type("Answer:", answer)
             for key in answer:
                 self.gameClient.answer(key, answer[key], self.client)
         except error as e:
-            print(e)
+            print("Failed", e)
