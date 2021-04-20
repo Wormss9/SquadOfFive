@@ -6,15 +6,36 @@ defServer = "25.96.228.106"
 defPort = 5910
 
 
+def print_type(text: str, data):
+    print(text, " ", type(data), " ", data)
+
+
+def bytes_to_json(received):
+    try:
+        received = json.loads(received.decode())
+    except:
+        print_type("Bad translation", received)
+        return {"error": 400}
+    if type(received) == dict:
+        return received
+    else:
+        print_type("Bad translation", received)
+        return {"error": 400}
+
+
+def json_to_bytes(to_send):
+    return json.dumps(to_send).encode('utf-8')
+
+
 class Server:
     """Class responsible for what the server communicates"""
 
-    def __init__(self, game, port=defPort):
+    def __init__(self, game_server_logic, port=defPort):
         """Initializes a server listening to 5 connections"""
         self.conn = ""
         self.address = ""
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.game = game
+        self.game_server_logic = game_server_logic
         try:
             self.s.bind(("", port))
         except socket.error as e:
@@ -24,30 +45,21 @@ class Server:
 
     def threaded_client(self, conn):
         """Starts connection"""
-        conn.sendall(str.encode("Connected"))
-        # reply = ""
+        conn.sendall(json_to_bytes({"connected": True}))
+        print(str(self.address), " connected.")
         while True:
             try:
                 data = self.conn.recv(1024 * 2)
-                print("Received ", type(data), " ", data)
-                if type(data) is bytes:
-                    data = data.decode()
-                    print("Received ", type(data), " ", data)
-                    data_as_json = json.loads(data)
-
-                try:
-                    data_as_json = json.loads(json.loads(data))
-                except:
-                    pass
-                print("To reply", type(data_as_json), "", data_as_json, " ", type(self.address[1]), " ",
-                      self.address[1])
-                reply = self.game.reply(data_as_json, conn)
+                print_type("Received: ", data)
+                # Sends json to reply
+                reply = self.game_server_logic.reply(bytes_to_json(data), conn)
                 if not data:
                     print(str(self.address), " disconnected.")
                     break
                 else:
                     print("Sent: '", reply, "' To:", self.address[1])
-                self.conn.sendall(str.encode(json.dumps(reply)))
+                # Send reply to client
+                self.conn.sendall(json_to_bytes(reply))
             except error:
                 print(str(error))
                 break
@@ -70,13 +82,16 @@ class Client:
         self.port = port
         self.server = server
         self.address = (self.server, self.port)
-        self.pos = self.connect()
         self.gameClient = ""
 
     def connect(self):
         try:
+            print("Client connecting: ",self.address)
             self.client.connect(self.address)
-            return self.client.recv(1024 * 2).decode()
+            answer = bytes_to_json(self.client.recv(1024 * 2))
+            for key in answer:
+                self.gameClient.answer(key, answer[key], self.client)
+            print("Connected to: ")
         except error as e:
             str(e)
 
@@ -84,16 +99,11 @@ class Client:
         if data is str:
             data = {"info", data}
         try:
-            self.client.sendall(str.encode(json.dumps(data)))
-            x = self.client.recv(1024 * 2)
-            try:
-                data_as_json = json.loads(x)
-            except:
-                pass
+            self.client.sendall(json_to_bytes(data))
+            answer = bytes_to_json(self.client.recv(1024 * 2))
             # todo
-            print(type(data_as_json), str(data_as_json))
-            for key in data_as_json:
-                self.gameClient.answer(key, data_as_json[key], self.client)
-            return x
+            print_type("Answer:",answer)
+            for key in answer:
+                self.gameClient.answer(key, answer[key], self.client)
         except error as e:
             print(e)
