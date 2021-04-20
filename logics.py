@@ -134,15 +134,14 @@ class GameClient:
         self.name = Settings().name
         self.hand = []
         self.chatTextArea=""
-        self.client=""
         self.connection=""
 
     def connect(self, ip, window):
         try:
             self.connection = Client(server=ip)
+            self.connection.connect()
             print(json.dumps({'name': self.name}))
-            self.connection.send(json.dumps({'name': self.name}))
-            self.ip = ip
+            self.connection.send({'name': self.name})
         except:
             return "Connection failed"
         window.destroy()
