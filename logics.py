@@ -167,7 +167,7 @@ class GameClient:
         return reply
 
     def answer(self, key, word, client):
-        print("Answering: ", key, word)
+        print("Answering: ", key, word.replace('\n', ' '))
         if key == "chat":
             print("Chat got: ", word.replace('\n', ' '))
             self.chatTextArea['text'] = word
