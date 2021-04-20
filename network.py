@@ -34,6 +34,10 @@ def json_to_bytes(to_send):
         print_type("For som reason trying to send: ", to_send)
 
 
+def toDict(key, value):
+    return dict({str(key): str(value)})
+
+
 class Server:
     """Class responsible for what the server communicates"""
 
@@ -53,7 +57,7 @@ class Server:
     def threaded_client(self, conn):
         """Starts connection"""
         conn.sendall(json_to_bytes({"connected": "True"}))
-        print(str(self.address), " connected.")
+        print("Connected: ", str(self.address))
         while True:
             try:
                 data = self.conn.recv(1024 * 2)
@@ -61,15 +65,16 @@ class Server:
                 # Sends json to reply
                 reply = self.game_server_logic.reply(bytes_to_json(data), conn)
                 if not data:
-                    print(str(self.address), " disconnected.")
+                    print("Disconnected: ", str(self.address))
                     break
                 else:
-                    print("Sent: '", reply, "' To:", self.address[1])
-                # Send reply to client
-                for key in reply:
-                    sending = dict({str(key): str(reply[key])})
-                    # print_type("Sendall:", sending)
-                    self.conn.sendall(json_to_bytes(sending))
+                    #print("Sent: '", reply, "' To:", self.address[1])
+                    # Send reply to client
+                    for key in reply:
+                        sending = toDict(key, reply[key])
+                        # print_type("Sendall:", sending)
+                        print("Sent: '", sending, "' To:", self.address[1])
+                        self.conn.sendall(json_to_bytes(sending))
             except error:
                 print(str(error))
                 break
