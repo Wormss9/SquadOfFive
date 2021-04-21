@@ -2,128 +2,138 @@ import socket
 import json
 from _thread import *
 
-defServer = "25.96.228.106"
-defPort = 5910
-
 
 def print_type(text: str, data):
-    print(text, " ", type(data), " ", data)
+    """
+    Prints text,type(data),data
+    """
+    print(text, ": ", type(data), " ", str(data))
 
 
-def bytes_to_json(received):
+def bytes_to_dict(received):
+    """
+    Converts bytes object to dict.
+
+    :param received: bytes
+    :return: dict
+    """
+
+    def return_error(er):
+        print_type("bytes_to_dict", received)
+        return to_dict("error", er)
+
     try:
-        received = json.loads(received.decode())
-
-    except:
-        print_type("Bad translation", received)
-        return {"error": 400}
-    if type(received) == dict:
-        # print_type("Decoded bytes to json:", received)
-        return received
-    else:
-        print_type("Bad translation", received)
-        return {"error": 400}
+        translated = json.loads(received.decode())
+    except error as e:
+        return return_error(e)
+    if type(translated) != dict:
+        return return_error(400)
+    return translated
 
 
-def json_to_bytes(to_send):
-    if type(to_send) == dict:
-        x = json.dumps(to_send).encode('utf-8')
-        # print_type("translated: ", x)
-        return x
-    else:
-        print_type("For som reason trying to send: ", to_send)
+def dict_to_bytes(to_send):
+    """
+    Converts dict to bytes
+
+    :param to_send:dict
+    :return: bytes
+    """
+    if type(to_send) != dict:
+        print_type("dict_to_bytes", to_send)
+        return None
+    return json.dumps(to_send).encode('utf-8')
 
 
-def toDict(key, value):
+def to_dict(key, value):
+    """
+    Returns dictionary from key and value
+
+    :param key:
+    :param value:
+    :return: {key:value}
+    """
     return dict({str(key): str(value)})
 
 
-class Server:
+class NetworkServer:
     """Class responsible for what the server communicates"""
 
-    def __init__(self, game_server_logic, port=defPort):
+    def __init__(self, player_list, server_response_function, port=5910):
         """Initializes a server listening to 5 connections"""
-        self.conn = ""
-        self.address = ""
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.game_server_logic = game_server_logic
+        # self.socket_connection: socket.socket
+        # self.ip_address: str
+        self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.player_list = player_list
         try:
-            self.s.bind(("", port))
+            self.listening_socket.bind(("", port))
         except socket.error as e:
-            str(e)
-        self.s.listen(5)
+            print_type("Port error", e)
+        self.listening_socket.listen(5)
         print("Server started.")
 
-    def threaded_client(self, conn):
+    def threaded_client(self, socket_connection, ip_address):
         """Starts connection"""
-        conn.sendall(json_to_bytes({"connected": "True"}))
-        print("Connected: ", str(self.address))
+        print("Connected: ", ip_address)
         while True:
             try:
-                data = self.conn.recv(1024 * 2)
-                print_type("Received: ", data)
-                # Sends json to reply
-                reply = self.game_server_logic.reply(bytes_to_json(data), conn)
-                if not data:
-                    print("Disconnected: ", str(self.address))
-                    break
+                client_response = socket_connection.recv(1024 * 2)
+                if client_response:
+                    print_type("Received", client_response)
+                    self.server_response_function(bytes_to_dict(client_response), socket_connection.sendall)
                 else:
-                    #print("Sent: '", reply, "' To:", self.address[1])
-                    # Send reply to client
-                    for key in reply:
-                        sending = toDict(key, reply[key])
-                        # print_type("Sendall:", sending)
-                        print("Sent: '", sending, "' To:", self.address[1])
-                        self.conn.sendall(json_to_bytes(sending))
+                    print("Disconnected: ", ip_address)
+                    break
             except error:
                 print(str(error))
                 break
         print("Connection lost.")
-        self.conn.close()
+        socket_connection.close()
 
-    def accept(self):
+    def accept_connection(self):
         """Starts connection as new thread """
-        self.conn, self.address = self.s.accept()
-        print("Connected to :", self.address)
-        start_new_thread(self.threaded_client, (self.conn,))
-        # self.threaded_client()
+        socket_connection, ip_address = self.listening_socket.accept()
+        print("Connected to :", ip_address)
+        start_new_thread(self.threaded_client, (socket_connection, ip_address,))
 
 
-class Client:
-    """Class responsible for what the client communicates"""
+class NetworkClient:
+    """
+    Network client responsible for communicating with server.
+    """
 
-    def __init__(self, server=defServer, port=defPort):
-        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.port = port
-        self.server = server
-        self.address = (self.server, self.port)
-        self.gameClient = ""
+    def __init__(self, response_function, server_ip, server_port=5910, packet_size=2):
+        self.response_function = response_function
+        self.server_address = (server_ip, server_port)
+        self.connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.packet_size = packet_size
 
-    def connect(self, gameClient):
-        self.gameClient = gameClient
+    def connect(self):
         try:
-            print("Client connecting: ", self.address)
-            self.client.connect(self.address)
-            answer = bytes_to_json(self.client.recv(1024 * 2))
-            for key in answer:
-                self.gameClient.answer(key, answer[key], self.client)
-            print("Connected to: ", self.address)
+            print("Client connecting: ", self.server_address)
+            self.connection_socket.connect(self.server_address)
+            print("Connected to: ", self.server_address)
+            start_new_thread(self.listen(), (self.connection_socket,))
         except error as e:
-            str(e)
+            print_type("NetworkClient.connect", e)
 
-    def send(self, data: dict):
-        print_type("Client sending answer to: ", data)
-        if data is str:
-            data = {"info", data}
-        if type(data) != dict:
-            print_type("Can't send:", data)
-            return
+    def send(self, response: dict):
         try:
-            print_type("Trying to send: ", json_to_bytes(data))
-            self.client.sendall(json_to_bytes(data))
-            answer = bytes_to_json(self.client.recv(1024 * 2))
-            print_type("Answer:", answer)
-            for key in answer:
-                self.gameClient.answer(key, answer[key], self.client)
+            self.connection_socket.sendall(dict_to_bytes(response))
+            print_type("Sent", response)
         except error as e:
-            print("Failed", e)
+            print_type("NetworkClient.send", e)
+
+    def listen(self):
+        while True:
+            try:
+                data = self.connection_socket.recv(1024 * 2)
+                print_type("Listened to1", data)
+                if data:
+                    print_type("Listened to2", data)
+                    self.response_function(bytes_to_dict(data))
+                else:
+                    print("Disconnected: ", str(self.server_address))
+                    break
+            except error as e:
+                print_type("NetworkClient.listen", e)
+                break
