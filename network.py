@@ -62,6 +62,7 @@ class NetworkServer:
         """Initializes a server listening to 5 connections"""
         # self.socket_connection: socket.socket
         # self.ip_address: str
+        self.server_response_function = server_response_function
         self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.player_list = player_list
         try:
