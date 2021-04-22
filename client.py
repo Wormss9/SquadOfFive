@@ -1,10 +1,39 @@
 from tkinter import *
 from logics import *
+from pathlib import Path
 
 
 class ClientHolder:
     chatTextArea: Label
     status_bar: Label
+    chat = ""
+    card_zone: Label
+    cards_on_hand: Label
+    hand = []
+    table = []
+
+    def show_cards(self, location):
+        print("location " + location)
+        if location == "hand":
+            label = self.cards_on_hand
+            cards = self.hand
+        elif location == "table":
+            label = self.cards_on_hand
+            cards = self.table
+        else:
+            print("show cards: ", location)
+            return
+        for child in label.winfo_children():
+            child.destroy()
+        counter = 1
+        for card_p in cards:
+            card_image = Label(label)
+            card_image.grid(row=1, column=counter)
+            counter += 1
+            photo = PhotoImage(file=Path("graphics/cards/" + card_p.image))
+            # .resize((450, 350), Image. ANTIALIAS)
+            card_image.configure(image=photo)
+            card_image.image = photo
 
 
 def open_login_window():
@@ -108,33 +137,18 @@ cardCount3.grid(column=3, row=3, sticky=E)
 
 
 cardZone = Label(master)
+client_holder.card_zone = cardZone
 cardZone.grid(row=2, column=1)
 # region=Card Zone
 
-cardsOnTable = []
-for card in table:
-    cardsOnTable.append(Label(cardZone, text=str(card)))
-x = 1
-for cardLabel in cardsOnTable:
-    cardLabel.grid(column=x, row=1)
-    x += 1
 
 # endregion=Card Zone
 
 
 deckZone = Label(master, bg="lightGrey")
+client_holder.cards_on_hand = deckZone
 deckZone.grid(row=3, column=1)
 # region=Deck Zone
-
-cardsOnHand = []
-cardsOnHandChkBtn = []
-
-for card in gameClient.hand:
-    cardsOnHand.append(Checkbutton(deckZone, text=str(card)))
-x = 1
-for cardLabel in cardsOnHand:
-    cardLabel.grid(column=x, row=1)
-    x += 1
 
 deckZonePlay = Button(deckZone, text="   OK   ")
 deckZonePlay.grid(columnspan=max(1, len(gameClient.hand)))
