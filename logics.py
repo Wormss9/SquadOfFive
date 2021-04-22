@@ -222,6 +222,8 @@ class GameClient:
         if key == "chat":
             self.client_holder.chatTextArea['text'] = word
             return {}
+        if key == 'reply':
+            self.client_holder.status_bar['text']=word
         else:
             return {}
 
@@ -246,10 +248,13 @@ class GameServer:
         print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
         if key == "name":
             for player in self.players:
-                if not player.connected and (not hasattr(player, 'name') or player.name==word):
+                if not player.connected and hasattr(player, 'name') and player.name==word:
                     player.connect(word,connection_to_player)
-                    return {'connection': True,
-                            'reply': word + ' connected'}
+                    return {'connection': True,'reply': word + ' connected'}
+            for player in self.players:
+                if not player.connected and not hasattr(player, 'name'):
+                    player.connect(word,connection_to_player)
+                    return {'connection': True,'reply': word + ' reconnected'}
             return {connection: False,
                     'reply': data.name + 'Game is full'}
         elif key == 'chat':
