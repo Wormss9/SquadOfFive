@@ -29,5 +29,5 @@ jobs:
         pip install pyinstaller
     - name: Build with pyinstaller
       run: |
-        pyinstaller --icon graphics/icon.ico --noconsole client.py
+        pyinstaller --icon "graphics/icon.ico" --noconsole client.py
 
