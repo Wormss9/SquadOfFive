@@ -24,7 +24,6 @@ class Card:
         self.suit = suit
         self.number = number
         self.image = self.suitDict[self.suit] + str(number).zfill(2) + ".png"
-        print(self.image)
 
     def __str__(self):
         """Returns name of card"""
@@ -75,6 +74,12 @@ class Player:
 
     def sort_cards(self):
         self.hand.sort()
+
+    def hand_to_list(self):
+        hand_list=[]
+        for card in self.hand:
+            hand_list.append([card.suit,card.number])
+        return  hand_list
 
 
 class Deck:
@@ -243,21 +248,27 @@ class GameServer:
         reply = {}
         for key in data:
             reply.update(self.process_respondable(key, data.get(key), connection_to_player))
+            print("respond returning: ",reply)
         return reply
 
     def process_respondable(self, key, word, connection_to_player):
         print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
+
+
         if key == "name":
             for player in self.players:
                 if not player.connected and hasattr(player, 'name') and player.name==word:
                     player.connect(word,connection_to_player)
-                    return {'connection': True,'reply': word + ' connected'}
+                    return {'connection': True,'reply': word + ' reconnected to ' + self.name,'chat': self.chat,'cards':player.hand_to_list()}
             for player in self.players:
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word,connection_to_player)
-                    return {'connection': True,'reply': word + ' reconnected'}
+                    print(word + " connected.")
+                    return {'connection': True,'reply': word + ' connected to ' + self.name,'chat': self.chat,'cards':player.hand_to_list()}
             return {connection: False,
                     'reply': data.name + 'Game is full'}
+
+
         elif key == 'chat':
             name = "Anon"
             for player in self.players:
@@ -269,11 +280,16 @@ class GameServer:
                     print("Sending to: ", player.name, " ; ",player.connection,";", self.chat.replace('\n', ' '))
                     self.network.send(to_dict("chat", self.chat), player.connection)
             return {}
+
+
         elif key == 'disconnected':
             for player in self.players:
                 if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
                     player.disconnect()
+
+
         else:
+            print("unknown ",key," ",word)
             return {}
 
 
