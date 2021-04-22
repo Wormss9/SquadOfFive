@@ -1,5 +1,4 @@
 import random
-import struct
 from network import *
 
 playPowerDic = {1: "single",
@@ -18,12 +17,14 @@ playPowerDic = {1: "single",
 
 class Card:
     """Card having a suit and a number."""
-    suitDict = {1: "Red", 2: "Green", 3: "Blue", 4: "White"}
+    suitDict = {1: "r", 2: "g", 3: "b", 4: "w"}
 
     def __init__(self, suit: int, number: int):
         # __init__ je konstruktor => on vytvara instanciu objektu premenna = Card()
         self.suit = suit
         self.number = number
+        self.image = self.suitDict[self.suit] + str(number).zfill(2) + ".png"
+        print(self.image)
 
     def __str__(self):
         """Returns name of card"""
@@ -265,7 +266,7 @@ class GameServer:
             self.chat += name + ": " + str(word).replace('\n', '    \n') + '\n'
             for player in self.players:
                 if hasattr(player, 'connection') and player.connected:
-                    print("Sending to: ", player.name, " ; ", self.chat.replace('\n', ' '))
+                    print("Sending to: ", player.name, " ; ",player.connection,";", self.chat.replace('\n', ' '))
                     self.network.send(to_dict("chat", self.chat), player.connection)
             return {}
         elif key == 'disconnected':
