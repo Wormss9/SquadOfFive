@@ -57,7 +57,6 @@ class Player:
         self.hand = []
         self.connection: socket.socket
         self.connected = False
-        self.client: str
 
     def __str__(self):
         return self.name
@@ -193,7 +192,7 @@ class GameClient:
         self.name = self.settings.name
         self.hand = []
         self.connection: NetworkClient
-        self.client_holder=client_holder
+        self.client_holder = client_holder
 
     def connect(self, ip):
         try:
@@ -228,44 +227,29 @@ class GameClient:
 
 
 class GameServer:
-    def __init__(self):
-        self.ip = ""
-        self.name = ""
+    def __init__(self, name):
+        self.network = NetworkServer(server_response_function=self.respond)
+        self.name = name
         self.players = [Player(), Player(), Player(), Player()]
         self.chat = ""
+        Deck(self.players)
+        for player in self.players:
+            player.sort_cards()
 
-    def connect(self, ip, window):
-        try:
-            self.connection = Client(server=ip)
-            self.ip = ip
-        except:
-            return "Connection failed"
-        window.destroy()
-        return "Connected"
-
-    def set_name(self, name, window):
-        self.name = name
-        window.destroy()
-        return "Name changed to " + name
-
-    def reply(self, data, client):
+    def respond(self, data, connection_to_player):
         reply = {}
         for key in data:
-            value = self.answer(key, data.get(key), client)
-            printt(value)
-            reply.update(value)
-        if len(reply)>0:
-            print("Final reply ", str(reply))
+            reply.update(self.process_respondable(key, data.get(key), connection_to_player))
         return reply
 
-    def answer(self, key, word, client):
-        print("Processing: ", key, str(word).replace('\n', ' '), client)
+    def process_respondable(self, key, word, connection_to_player):
+        print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
         if key == "name":
             for player in self.players:
                 if player.connected == False:
                     player.connected = True
                     player.name = word
-                    player.client = client
+                    player.connection = connection_to_player
                     return {'connection': True,
                             'reply': word + ' connected'}
             return {connection: False,
@@ -273,14 +257,18 @@ class GameServer:
         elif key == 'chat':
             name = "Anon"
             for player in self.players:
-                if player.client == client:
+                if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
                     name = player.name
-            self.chat += name + ": " + str(word).replace('\n','    \n') + '\n'
+            self.chat += name + ": " + str(word).replace('\n', '    \n') + '\n'
             for player in self.players:
-                if player.client:
-                    print("Sending to: ",player.name," ; ", self.chat.replace('\n', ' '))
-                    player.client.sendall(json_to_bytes(toDict("chat",self.chat)))
+                if hasattr(player, 'connection') and player.connected:
+                    print("Sending to: ", player.name, " ; ", self.chat.replace('\n', ' '))
+                    self.network.send(to_dict("chat", self.chat), player.connection)
             return {}
+        elif key == 'disconnected':
+            for player in self.players:
+                if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
+                    player.connected = False
         else:
             return {}
 
@@ -293,7 +281,7 @@ class Settings:
             with open('settings.txt') as file:
                 setting = json.load(file)
                 self.name = setting['name']
-                self.adress = setting['adress']
+                self.adress = setting['address']
         except:
             pass
 
@@ -307,6 +295,6 @@ class Settings:
 
     def saveToFile(self):
         data = {"name": self.name,
-                "adress": self.adress}
+                "address": self.adress}
         with open('settings.txt', 'w') as outfile:
             json.dump(data, outfile)
