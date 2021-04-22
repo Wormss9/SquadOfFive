@@ -2,6 +2,6 @@
 from logics import *
 
 game = GameServer()
-server = Server(game_server_logic=game)
+network = NetworkServer(player_list=game.players, server_response_function=game.respond)
 while True:
-    server.accept()
+    network.accept_connection()
