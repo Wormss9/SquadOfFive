@@ -33,5 +33,5 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: CardGame
-        path: dist/client
+        path: build/client
 
