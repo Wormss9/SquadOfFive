@@ -1,9 +1,9 @@
 from tkinter import *
 from logics import *
 
-# from networking import *
 
-gameClient = GameClient()
+class ClientHolder:
+    chatTextArea: Label
 
 
 def open_login_window():
@@ -11,13 +11,16 @@ def open_login_window():
         gameClient.settings.save_adress(ip)
         if not gameClient.settings.name:
             open_name_window()
-        status_bar_text.set(gameClient.connect(ip, window))
+        response = gameClient.connect(ip)
+        status_bar_text.set(response[1])
+        if not response[0]:
+            window.close()
 
     global gameClient
     status_bar_text = StringVar()
     login_window = Toplevel(master)
     login_window.title("Connect")
-    Label(login_window, text="Enter host address:").grid(row=1, column=1)
+    Label(login_window, text="Enter host ip_address:").grid(row=1, column=1)
     address = Entry(login_window)
     address.insert(END, str(gameClient.settings.adress))
     address.grid(row=1, column=2)
@@ -48,9 +51,27 @@ def open_name_window():
     status_bar.grid(row=3, column=1, columnspan=2, sticky='we')
 
 
+def host_game():
+    game_server = GameServer("Hosted server")
+    start_new_thread(start_server, (game_server,))
+    gameClient.connect("127.0.0.1")
+
+
+def start_server(game_server):
+    while True:
+        game_server.network.accept_connection()
+
+
+def send_message():
+    gameClient.send({"chat": chatReadText.get()})
+
+
 master = Tk()
 master.title("Squad of Five")
 master.configure(bg='grey')
+
+client_holder = ClientHolder()
+gameClient = GameClient(client_holder)
 
 # Adding menu
 menu = Menu(master)
@@ -59,6 +80,7 @@ subMenu = Menu(menu)
 menu.add_cascade(label="Game", menu=subMenu)
 subMenu.add_command(label="Connect", command=open_login_window)
 subMenu.add_command(label="Change nickname", command=open_name_window)
+subMenu.add_command(label="Host", command=host_game)
 
 table = [Card(4, 1)]
 # region=Main Zone
@@ -129,15 +151,11 @@ chatZone.grid(column=2, row=1, rowspan=4)
 # region=Chat Zone
 
 chatText = Label(chatZone, text="")
-gameClient.chatTextArea = chatText
+client_holder.chatTextArea = chatText
 chatInput = Label(chatZone)
 chatReadText = Entry(chatInput)
-def sendMessage():
-    gameClient.send({"chat": chatReadText.get()})
-chatSendButton = Button(chatInput, text="Send", command=sendMessage)
 
-
-
+chatSendButton = Button(chatInput, text="Send", command=send_message)
 
 chatText.grid()
 chatInput.grid()
