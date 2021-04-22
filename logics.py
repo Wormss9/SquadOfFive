@@ -61,12 +61,12 @@ class Player:
     def __str__(self):
         return self.name
 
-    def connect(self, name: str):
+    def connect(self, name: str,connection:socket.socket):
         self.name = name
+        self.connection=connection
         self.connected = True
 
     def disconnect(self):
-        # todo Actually call this function
         self.connected = False
 
     def add_card(self, card: Card):
@@ -246,10 +246,8 @@ class GameServer:
         print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
         if key == "name":
             for player in self.players:
-                if player.connected == False:
-                    player.connected = True
-                    player.name = word
-                    player.connection = connection_to_player
+                if not player.connected and (not hasattr(player, 'name') or player.name==word):
+                    player.connect(word,connection_to_player)
                     return {'connection': True,
                             'reply': word + ' connected'}
             return {connection: False,
@@ -268,7 +266,7 @@ class GameServer:
         elif key == 'disconnected':
             for player in self.players:
                 if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
-                    player.connected = False
+                    player.disconnect()
         else:
             return {}
 
