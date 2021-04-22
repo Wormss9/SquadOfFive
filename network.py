@@ -10,6 +10,10 @@ def print_type(text: str, data):
     print(text, ": ", type(data), " ", str(data))
 
 
+def print_info(text: str, data):
+    print(text, ": ", str(data).replace('\n', ' '))
+
+
 def bytes_to_dict(received):
     """
     Converts bytes object to dict.
@@ -74,15 +78,16 @@ class NetworkServer:
 
     def threaded_client(self, socket_connection, ip_address):
         """Starts connection"""
-        print("Connected: ", ip_address)
+        print_info("Connected to", ip_address)
         while True:
             try:
                 client_response = socket_connection.recv(1024 * 2)
                 if client_response:
                     print_type("Received", client_response)
+                    print_type("threaded_client", (bytes_to_dict(client_response), socket_connection.sendall))
                     self.server_response_function(bytes_to_dict(client_response), socket_connection.sendall)
                 else:
-                    print("Disconnected: ", ip_address)
+                    print_info("Disconnected from", ip_address)
                     break
             except error:
                 print(str(error))
@@ -93,7 +98,6 @@ class NetworkServer:
     def accept_connection(self):
         """Starts connection as new thread """
         socket_connection, ip_address = self.listening_socket.accept()
-        print("Connected to :", ip_address)
         start_new_thread(self.threaded_client, (socket_connection, ip_address,))
 
 
@@ -113,18 +117,20 @@ class NetworkClient:
             print("Client connecting: ", self.server_address)
             self.connection_socket.connect(self.server_address)
             print("Connected to: ", self.server_address)
-            start_new_thread(self.listen(), (self.connection_socket,))
+            start_new_thread(self.listen, ())
         except error as e:
             print_type("NetworkClient.connect", e)
 
     def send(self, response: dict):
         try:
+            print_type("ClientNetwork.send", response)
             self.connection_socket.sendall(dict_to_bytes(response))
             print_type("Sent", response)
         except error as e:
             print_type("NetworkClient.send", e)
 
     def listen(self):
+        self.send(to_dict("ok", "ok"))
         while True:
             try:
                 data = self.connection_socket.recv(1024 * 2)
