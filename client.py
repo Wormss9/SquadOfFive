@@ -4,6 +4,7 @@ from logics import *
 
 class ClientHolder:
     chatTextArea: Label
+    status_bar: Label
 
 
 def open_login_window():
@@ -32,9 +33,9 @@ def open_login_window():
 
 
 def open_name_window():
-    def command_button(name, window):
+    def command_button(name):
         gameClient.settings.save_name(name)
-        status_bar_text.set(gameClient.set_name(name, window))
+        status_bar_text.set(gameClient.set_name(name))
 
     global gameClient
     status_bar_text = StringVar()
@@ -45,7 +46,7 @@ def open_name_window():
     address.insert(END, str(gameClient.settings.name))
     address.grid(row=1, column=2)
     name_button = Button(name_window, text="Change")
-    name_button['command'] = lambda: command_button(address.get(), name_window)
+    name_button['command'] = lambda: command_button(address.get())
     name_button.grid(row=2, column=1, columnspan=2)
     status_bar = Label(name_window, textvariable=status_bar_text, relief='sunken')
     status_bar.grid(row=3, column=1, columnspan=2, sticky='we')
@@ -140,7 +141,8 @@ deckZonePlay.grid(columnspan=max(1, len(gameClient.hand)))
 # endregion=Deck Zone
 
 
-statusBar = Label(master, text="This is a status bar", relief='sunken')
+statusBar = Label(master, text="Welcome", relief='sunken')
+client_holder.status_bar = statusBar
 statusBar.grid(row=4, column=1, sticky='we')
 # region=Status Bar
 # endregion=Status Bar
