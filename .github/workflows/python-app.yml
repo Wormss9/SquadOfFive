@@ -30,4 +30,8 @@ jobs:
     - name: Build with pyinstaller
       run: |
         pyinstaller --icon "graphics/icon.ico" --noconsole client.py
+    - uses: actions/upload-artifact@v2
+      with:
+        name: CardGame
+        path: dist/client
 
