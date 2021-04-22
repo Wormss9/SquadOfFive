@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -29,7 +29,7 @@ jobs:
         pip install pyinstaller
     - name: Build with pyinstaller
       run: |
-        pyinstaller --icon "graphics/icon.ico" --noconsole client.py
+        pyinstaller --icon graphics/icon.ico --noconsole client.py
     - uses: actions/upload-artifact@v2
       with:
         name: CardGame
