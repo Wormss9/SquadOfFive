@@ -62,13 +62,17 @@ def to_dict(key, value):
 class NetworkServer:
     """Class responsible for what the server communicates"""
 
-    def __init__(self, player_list, server_response_function, port=5910):
-        """Initializes a server listening to 5 connections"""
+    def __init__(self, server_response_function, port=5910):
+        """
+        Initializes a server listening to 5 connections
+        
+        :param server_response_function:    Response function receiving parameters (dict,socket) 
+        :param port:  Server port: int default: 5910
+        """""
         # self.socket_connection: socket.socket
         # self.ip_address: str
         self.server_response_function = server_response_function
         self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.player_list = player_list
         try:
             self.listening_socket.bind(("", port))
         except socket.error as e:
@@ -92,6 +96,7 @@ class NetworkServer:
             except error:
                 print(str(error))
                 break
+        self.server_response_function({"disconnected", ""}, socket_connection.sendall)
         print("Connection lost.")
         socket_connection.close()
 
@@ -100,6 +105,14 @@ class NetworkServer:
         socket_connection, ip_address = self.listening_socket.accept()
         start_new_thread(self.threaded_client, (socket_connection, ip_address,))
 
+    def send(self, response: dict, connection_socket):
+        try:
+            print_type("ServerNetwork.send", response)
+            connection_socket(dict_to_bytes(response))
+            print_type("Sent", response)
+        except error as e:
+            print_type("NetworkClient.send", e)
+
 
 class NetworkClient:
     """
@@ -107,6 +120,13 @@ class NetworkClient:
     """
 
     def __init__(self, response_function, server_ip, server_port=5910, packet_size=2):
+        """
+        Initializes Network client
+        :param response_function:   Function accepting dictionary as parameter.
+        :param server_ip:           Server ip   :str
+        :param server_port:         Server port :int default:5910
+        :param packet_size:         Size of packet in kilobytes:int default:2
+        """
         self.response_function = response_function
         self.server_address = (server_ip, server_port)
         self.connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -130,7 +150,6 @@ class NetworkClient:
             print_type("NetworkClient.send", e)
 
     def listen(self):
-        self.send(to_dict("ok", "ok"))
         while True:
             try:
                 data = self.connection_socket.recv(1024 * 2)
