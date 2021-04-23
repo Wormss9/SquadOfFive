@@ -26,10 +26,10 @@ jobs:
         pip install pyinstaller
     - name: Build with pyinstaller
       run: |
-        pyinstaller --icon graphics/icon.ico --noconsole SquandOfFive.py
+        pyinstaller --icon graphics/icon.ico --noconsole SquadOfFive.py
     - name: Copy graphics
       run: |
-        cp -r graphics dist/SquandOfFive/graphics
+        cp -r graphics dist/SquadOfFive/graphics
     - uses: actions/upload-artifact@v2
       with:
         name: SquadOfFive
