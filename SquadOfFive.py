@@ -38,18 +38,18 @@ class ClientHolder:
             card_image.configure(image=photo)
             card_image.image = photo
             """
-
-            self.selected_cards.append(IntVar(value=0))
-            photo_off = ImageTk.PhotoImage(Image.open("graphics/cards/" + card_p.image + ".png").resize((50, 70)))
-            photo_on = ImageTk.PhotoImage(Image.open("graphics/cards/" + card_p.image + "s.png").resize((50, 70)))
-            card_image = Checkbutton(label,
-                                     image=photo_off,
-                                     selectimage=photo_on,
-                                     indicatoron=False,
-                                     onvalue=1,
-                                     offvalue=0,
-                                     variable=self.selected_cards[counter - 1])
-            card_image.grid(row=1, column=counter)
+            card_with_picture = [card_p, IntVar(value=0), ImageTk.PhotoImage(
+                Image.open("graphics/cards/" + card_p.image + ".png").resize((70, 100))), ImageTk.PhotoImage(
+                Image.open("graphics/cards/" + card_p.image + "s.png").resize((70, 100)))]
+            self.selected_cards.append(card_with_picture)
+            self.selected_cards[counter - 1].append(Checkbutton(label,
+                                                                image=self.selected_cards[counter - 1][2],
+                                                                selectimage=self.selected_cards[counter - 1][3],
+                                                                indicatoron=False,
+                                                                onvalue=self.selected_cards[counter - 1][0],
+                                                                offvalue=0,
+                                                                variable=self.selected_cards[counter - 1][1]))
+            self.selected_cards[counter - 1][4].grid(row=1, column=counter)
             counter += 1
 
 
