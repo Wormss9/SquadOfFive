@@ -13,6 +13,7 @@ class ClientHolder:
     hand = []
     table = []
     add_line_to_chat = ""
+    selected_cards = []
 
     def show_cards(self, location):
         print("location " + location)
