@@ -218,20 +218,28 @@ class GameClient:
         return (True, "Name changed to " + name)
 
     def respond(self, data):
-        reply = {}
         for key in data:
-            reply.update(self.process_respondable(key, data.get(key)))
-        return reply
+            self.process_respondable(key, data.get(key))
 
     def process_respondable(self, key, word):
         print("Processing: ", key, str(word).replace('\n', ' '))
-        if key == "chat":
-            self.client_holder.chatTextArea['text'] = word
-            return {}
+
+        if key == 'chat':
+            self.client_holder.chat += word
+            self.client_holder.add_line_to_chat(word)
+
         if key == 'reply':
-            self.client_holder.status_bar['text'] = word
+            self.client_holder.add_line_to_chat(word)
+
+        if key == 'hand' or key == 'table':
+            self.client_holder.hand = []
+            for card_list in word:
+                self.client_holder.hand.append(Card(card_list[0], card_list[1]))
+            self.client_holder.show_cards(key)
+
+
         else:
-            return {}
+            print('Unknown: "', key, '"')
 
 
 class GameServer:
@@ -245,34 +253,32 @@ class GameServer:
             player.sort_cards()
 
     def respond(self, data, connection_to_player):
-        reply = {}
         for key in data:
-            reply.update(self.process_respondable(key, data.get(key), connection_to_player))
-            print("respond returning: ", reply)
-        return reply
+            self.process_respondable(key, data.get(key), connection_to_player)
 
     def process_respondable(self, key, word, connection_to_player):
         print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
 
         if key == 'name':
+            # todo Fix reconnecting
             for player in self.players:
                 if not player.connected and hasattr(player, 'name') and player.name == word:
                     player.connect(word, connection_to_player)
                     print(word + " reconnected.")
                     self.network.send(
                         {'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
-                         'cards': player.hand_to_list()}, player.connection)
-                    break
+                         'hand': player.hand_to_list()}, player.connection)
+                    return
             for player in self.players:
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word, connection_to_player)
                     print(word + " connected.")
                     self.network.send(
                         {'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
-                         'cards': player.hand_to_list()}, player.connection)
-                    break
-            return {connection: False,
-                    'reply': data.name + 'Game is full'}
+                         'hand': player.hand_to_list()}, player.connection)
+                    return
+            self.network.send({connection: False,
+                               'reply': data.name + ' is full'})
 
 
         elif key == 'chat':
@@ -283,8 +289,7 @@ class GameServer:
             self.chat += name + ": " + str(word).replace('\n', '    \n') + '\n'
             for player in self.players:
                 if hasattr(player, 'connection') and player.connected:
-                    print("Sending to: ", player.name, " ; ", player.connection, ";", self.chat.replace('\n', ' '))
-                    self.network.send(to_dict("chat", self.chat), player.connection)
+                    self.network.send(to_dict("chat", "\n" + name + ": " + word), player.connection)
 
 
         elif key == 'disconnected':

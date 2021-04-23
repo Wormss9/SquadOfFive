@@ -11,6 +11,7 @@ class ClientHolder:
     cards_on_hand: Label
     hand = []
     table = []
+    add_line_to_chat = ""
 
     def show_cards(self, location):
         print("location " + location)
@@ -161,22 +162,44 @@ statusBar.grid(row=4, column=1, sticky='we')
 # region=Status Bar
 # endregion=Status Bar
 
+class Example(Frame):
+    def __init__(self, parent):
+        Frame.__init__(self, parent)
+        self.canvas = Canvas(self, borderwidth=0, background="#ffffff")
+        self.frame = Frame(self.canvas, background="#ffffff")
+        self.vsb = Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.vsb.set)
+
+        self.vsb.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.create_window((4, 3), window=self.frame, anchor="nw",
+                                  tags="self.frame")
+
+        self.frame.bind("<Configure>", self.on_frame_configure)
+        self.textArea = Label(self.frame)
+        self.textArea.grid()
+
+    def add_line_to_chat(self, text):
+        self.textArea['text'] += text
+
+    def on_frame_configure(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
 
 chatZone = Label(master)
+example = Example(chatZone)
+client_holder.add_line_to_chat = example.add_line_to_chat
+example.pack(side="top", fill="both", expand=True)
 chatZone.grid(column=2, row=1, rowspan=4)
-# region=Chat Zone
-
-chatText = Label(chatZone, text="")
-client_holder.chatTextArea = chatText
 chatInput = Label(chatZone)
 chatReadText = Entry(chatInput)
 
 chatSendButton = Button(chatInput, text="Send", command=send_message)
 
-chatText.grid()
-chatInput.grid()
+chatInput.pack(side="bottom")
 chatReadText.grid()
 chatSendButton.grid()
+# region=Chat Zone
 
 # endregion=Chat Zone
 
