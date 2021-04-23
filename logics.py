@@ -81,6 +81,13 @@ class Player:
             hand_list.append([card.suit, card.number])
         return hand_list
 
+    def is_connected(self,connection_to_player=False):
+        if hasattr(self, 'connection') and self.connected:
+            if connection_to_player:
+                return connection_to_player==self.connection
+            return True
+        return False
+
 
 class Deck:
     """A random card deck."""
@@ -229,7 +236,7 @@ class GameClient:
             self.client_holder.add_line_to_chat(word)
 
         if key == 'reply':
-            self.client_holder.add_line_to_chat(word)
+            self.client_holder.status_bar['text'] = word
 
         if key == 'hand' or key == 'table':
             self.client_holder.hand = []
@@ -284,11 +291,11 @@ class GameServer:
         elif key == 'chat':
             name = "Anon"
             for player in self.players:
-                if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
+                if player.is_connected(connection_to_player):
                     name = player.name
             self.chat += name + ": " + str(word).replace('\n', '    \n') + '\n'
             for player in self.players:
-                if hasattr(player, 'connection') and player.connected:
+                if player.is_connected():
                     self.network.send(to_dict("chat", "\n" + name + ": " + word), player.connection)
 
 
@@ -297,7 +304,13 @@ class GameServer:
                 if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
                     player.disconnect()
 
-
+        elif key == 'report':
+            for player in self.players:
+                if player.is_connected(connection_to_player):
+                    name = player.name
+                for player in self.players:
+                    if player.is_connected():
+                        self.network.send(to_dict("reply", name + " reported himself"), player.connection)
         else:
             print("unknown ", key, " ", word)
 
