@@ -32,7 +32,7 @@ jobs:
         pyinstaller --icon graphics/icon.ico --noconsole client.py
     - name: Copy graphics
       run: |
-        cp -r /graphics /dist/client/graphics
+        cp -r graphics dist/client/graphics
     - uses: actions/upload-artifact@v2
       with:
         name: CardGame
