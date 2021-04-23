@@ -26,12 +26,12 @@ jobs:
         pip install pyinstaller
     - name: Build with pyinstaller
       run: |
-        pyinstaller --icon graphics/icon.ico --noconsole client.py
+        pyinstaller --icon graphics/icon.ico --noconsole SquandOfFive.py
     - name: Copy graphics
       run: |
-        cp -r graphics dist/client/graphics
+        cp -r graphics dist/SquandOfFive/graphics
     - uses: actions/upload-artifact@v2
       with:
-        name: CardGame
+        name: SquandOfFive
         path: dist
 
