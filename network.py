@@ -1,6 +1,6 @@
 import socket
 import json
-from _thread import *
+from _thread import error, start_new_thread
 
 
 def print_type(text: str, data):
