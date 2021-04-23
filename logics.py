@@ -1,8 +1,7 @@
 import json
 import random
-from network import NetworkServer,NetworkClient,to_dict
-from _thread import start_new_thread,error
-
+from network import NetworkServer, NetworkClient, to_dict
+from _thread import start_new_thread, error
 
 playPowerDic = {1: "single",
                 2: "pair",
@@ -84,10 +83,10 @@ class Player:
             hand_list.append([card.suit, card.number])
         return hand_list
 
-    def is_connected(self,connection_to_player=False):
+    def is_connected(self, connection_to_player=False):
         if hasattr(self, 'connection') and self.connected:
             if connection_to_player:
-                return connection_to_player==self.connection
+                return connection_to_player == self.connection
             return True
         return False
 

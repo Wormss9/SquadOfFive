@@ -1,5 +1,6 @@
 from tkinter import *
-from logics import *
+from logics import GameServer, GameClient, Card
+from _thread import start_new_thread
 from PIL import Image, ImageTk
 
 
@@ -103,6 +104,7 @@ def send_report():
 master = Tk()
 master.title("Squad of Five")
 master.configure(bg='grey')
+master.iconbitmap('graphics/icon.ico')
 
 client_holder = ClientHolder()
 gameClient = GameClient(client_holder)
