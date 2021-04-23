@@ -49,6 +49,8 @@ class Card:
                 return True
             return False
         return NotImplemented
+    def to_list(self):
+        return [self.suit,self.number]
 
 
 class Player:
