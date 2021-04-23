@@ -267,7 +267,6 @@ class GameServer:
         print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
 
         if key == 'name':
-            # todo Fix reconnecting
             for player in self.players:
                 if not player.connected and hasattr(player, 'name') and player.name == word:
                     player.connect(word, connection_to_player)
