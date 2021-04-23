@@ -97,6 +97,10 @@ def send_message():
     gameClient.send({"chat": chatReadText.get()})
 
 
+def send_report():
+    gameClient.send({"report": ""})
+
+
 master = Tk()
 master.title("Squad of Five")
 master.configure(bg='grey')
@@ -159,6 +163,8 @@ deckZonePlay.grid(columnspan=max(1, len(gameClient.hand)))
 statusBar = Label(master, text="Welcome", relief='sunken')
 client_holder.status_bar = statusBar
 statusBar.grid(row=4, column=1, sticky='we')
+
+
 # region=Status Bar
 # endregion=Status Bar
 
@@ -195,10 +201,12 @@ chatInput = Label(chatZone)
 chatReadText = Entry(chatInput)
 
 chatSendButton = Button(chatInput, text="Send", command=send_message)
+chatReportButton = Button(chatInput, text="Report", command=send_report)
 
 chatInput.pack(side="bottom")
 chatReadText.grid()
 chatSendButton.grid()
+chatReportButton.grid()
 # region=Chat Zone
 
 # endregion=Chat Zone
