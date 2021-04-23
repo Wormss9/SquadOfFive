@@ -1,6 +1,6 @@
 from tkinter import *
 from logics import *
-from pathlib import Path
+from PIL import Image, ImageTk
 
 
 class ClientHolder:
@@ -31,8 +31,7 @@ class ClientHolder:
             card_image = Label(label)
             card_image.grid(row=1, column=counter)
             counter += 1
-            photo = PhotoImage(file=Path("graphics/cards/" + card_p.image))
-            # .resize((450, 350), Image. ANTIALIAS)
+            photo = ImageTk.PhotoImage(Image.open("graphics/cards/" + card_p.image).resize((50, 70)))
             card_image.configure(image=photo)
             card_image.image = photo
 
