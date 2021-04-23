@@ -25,7 +25,7 @@ class Card:
         # __init__ je konstruktor => on vytvara instanciu objektu premenna = Card()
         self.suit = suit
         self.number = number
-        self.image = self.suitDict[self.suit] + str(number).zfill(2) + ".png"
+        self.image = self.suitDict[self.suit] + str(number).zfill(2)
 
     def __str__(self):
         """Returns name of card"""

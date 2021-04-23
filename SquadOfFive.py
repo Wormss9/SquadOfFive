@@ -28,13 +28,29 @@ class ClientHolder:
         for child in label.winfo_children():
             child.destroy()
         counter = 1
+        self.selected_cards.clear()
         for card_p in cards:
+            """
             card_image = Label(label)
             card_image.grid(row=1, column=counter)
             counter += 1
             photo = ImageTk.PhotoImage(Image.open("graphics/cards/" + card_p.image).resize((50, 70)))
             card_image.configure(image=photo)
             card_image.image = photo
+            """
+
+            self.selected_cards.append(IntVar(value=0))
+            photo_off = ImageTk.PhotoImage(Image.open("graphics/cards/" + card_p.image + ".png").resize((50, 70)))
+            photo_on = ImageTk.PhotoImage(Image.open("graphics/cards/" + card_p.image + "s.png").resize((50, 70)))
+            card_image = Checkbutton(label,
+                                     image=photo_off,
+                                     selectimage=photo_on,
+                                     indicatoron=False,
+                                     onvalue=1,
+                                     offvalue=0,
+                                     variable=self.selected_cards[counter - 1])
+            card_image.grid(row=1, column=counter)
+            counter += 1
 
 
 def open_login_window():
