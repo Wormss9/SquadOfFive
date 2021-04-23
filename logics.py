@@ -1,5 +1,8 @@
+import json
 import random
-from network import *
+from network import NetworkServer,NetworkClient,to_dict
+from _thread import start_new_thread,error
+
 
 playPowerDic = {1: "single",
                 2: "pair",
@@ -61,7 +64,7 @@ class Player:
     def __str__(self):
         return self.name
 
-    def connect(self, name: str, connection: socket.socket):
+    def connect(self, name: str, connection):
         self.name = name
         self.connection = connection
         self.connected = True
