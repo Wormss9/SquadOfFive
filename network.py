@@ -94,11 +94,9 @@ class NetworkServer:
                 else:
                     print_info("Disconnected from", ip_address)
                     break
-            except error:
-                print(str(error))
+            except:
                 break
-        self.server_response_function({"disconnected", ""}, socket_connection.sendall)
-        print("Connection lost.")
+        self.server_response_function(to_dict("disconnected", ""), socket_connection.sendall)
         socket_connection.close()
 
     def accept_connection(self):
