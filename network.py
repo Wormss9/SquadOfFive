@@ -62,7 +62,7 @@ def to_dict(key, value):
 class NetworkServer:
     """Class responsible for what the server communicates"""
 
-    def __init__(self, server_response_function, port=5910):
+    def __init__(self, server_response_function, port=5910, packet_size=2):
         """
         Initializes a server listening to 5 connections
         
@@ -71,6 +71,7 @@ class NetworkServer:
         """""
         # self.socket_connection: socket.socket
         # self.ip_address: str
+        self.packet_size = packet_size
         self.server_response_function = server_response_function
         self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -85,7 +86,7 @@ class NetworkServer:
         print_info("Connected to", ip_address)
         while True:
             try:
-                client_response = socket_connection.recv(1024 * 2)
+                client_response = socket_connection.recv(1024 * self.packet_size)
                 if client_response:
                     print_type("Received", client_response)
                     print_type("threaded_client", (bytes_to_dict(client_response), socket_connection.sendall))
@@ -93,11 +94,9 @@ class NetworkServer:
                 else:
                     print_info("Disconnected from", ip_address)
                     break
-            except error:
-                print(str(error))
+            except:
                 break
-        self.server_response_function({"disconnected", ""}, socket_connection.sendall)
-        print("Connection lost.")
+        self.server_response_function(to_dict("disconnected", ""), socket_connection.sendall)
         socket_connection.close()
 
     def accept_connection(self):

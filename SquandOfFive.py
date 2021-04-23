@@ -1,10 +1,39 @@
 from tkinter import *
 from logics import *
+from PIL import Image, ImageTk
 
 
 class ClientHolder:
     chatTextArea: Label
     status_bar: Label
+    chat = ""
+    card_zone: Label
+    cards_on_hand: Label
+    hand = []
+    table = []
+    add_line_to_chat = ""
+
+    def show_cards(self, location):
+        print("location " + location)
+        if location == "hand":
+            label = self.cards_on_hand
+            cards = self.hand
+        elif location == "table":
+            label = self.cards_on_hand
+            cards = self.table
+        else:
+            print("show cards: ", location)
+            return
+        for child in label.winfo_children():
+            child.destroy()
+        counter = 1
+        for card_p in cards:
+            card_image = Label(label)
+            card_image.grid(row=1, column=counter)
+            counter += 1
+            photo = ImageTk.PhotoImage(Image.open("graphics/cards/" + card_p.image).resize((50, 70)))
+            card_image.configure(image=photo)
+            card_image.image = photo
 
 
 def open_login_window():
@@ -67,6 +96,10 @@ def send_message():
     gameClient.send({"chat": chatReadText.get()})
 
 
+def send_report():
+    gameClient.send({"report": ""})
+
+
 master = Tk()
 master.title("Squad of Five")
 master.configure(bg='grey')
@@ -108,33 +141,18 @@ cardCount3.grid(column=3, row=3, sticky=E)
 
 
 cardZone = Label(master)
+client_holder.card_zone = cardZone
 cardZone.grid(row=2, column=1)
 # region=Card Zone
 
-cardsOnTable = []
-for card in table:
-    cardsOnTable.append(Label(cardZone, text=str(card)))
-x = 1
-for cardLabel in cardsOnTable:
-    cardLabel.grid(column=x, row=1)
-    x += 1
 
 # endregion=Card Zone
 
 
 deckZone = Label(master, bg="lightGrey")
+client_holder.cards_on_hand = deckZone
 deckZone.grid(row=3, column=1)
 # region=Deck Zone
-
-cardsOnHand = []
-cardsOnHandChkBtn = []
-
-for card in gameClient.hand:
-    cardsOnHand.append(Checkbutton(deckZone, text=str(card)))
-x = 1
-for cardLabel in cardsOnHand:
-    cardLabel.grid(column=x, row=1)
-    x += 1
 
 deckZonePlay = Button(deckZone, text="   OK   ")
 deckZonePlay.grid(columnspan=max(1, len(gameClient.hand)))
@@ -144,25 +162,51 @@ deckZonePlay.grid(columnspan=max(1, len(gameClient.hand)))
 statusBar = Label(master, text="Welcome", relief='sunken')
 client_holder.status_bar = statusBar
 statusBar.grid(row=4, column=1, sticky='we')
+
+
 # region=Status Bar
 # endregion=Status Bar
 
+class Example(Frame):
+    def __init__(self, parent):
+        Frame.__init__(self, parent)
+        self.canvas = Canvas(self, borderwidth=0, background="#ffffff")
+        self.frame = Frame(self.canvas, background="#ffffff")
+        self.vsb = Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=self.vsb.set)
+
+        self.vsb.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.create_window((4, 3), window=self.frame, anchor="nw",
+                                  tags="self.frame")
+
+        self.frame.bind("<Configure>", self.on_frame_configure)
+        self.textArea = Label(self.frame)
+        self.textArea.grid()
+
+    def add_line_to_chat(self, text):
+        self.textArea['text'] += text
+
+    def on_frame_configure(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
 
 chatZone = Label(master)
+example = Example(chatZone)
+client_holder.add_line_to_chat = example.add_line_to_chat
+example.pack(side="top", fill="both", expand=True)
 chatZone.grid(column=2, row=1, rowspan=4)
-# region=Chat Zone
-
-chatText = Label(chatZone, text="")
-client_holder.chatTextArea = chatText
 chatInput = Label(chatZone)
 chatReadText = Entry(chatInput)
 
 chatSendButton = Button(chatInput, text="Send", command=send_message)
+chatReportButton = Button(chatInput, text="Report", command=send_report)
 
-chatText.grid()
-chatInput.grid()
+chatInput.pack(side="bottom")
 chatReadText.grid()
 chatSendButton.grid()
+chatReportButton.grid()
+# region=Chat Zone
 
 # endregion=Chat Zone
 
