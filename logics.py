@@ -277,6 +277,15 @@ class GameServer:
         for key in data:
             self.process_respondable(key, data.get(key), connection_to_player)
 
+    def players_name_list(self):
+        name_list = []
+        for player in self.players:
+            if hasattr(player, 'name'):
+                name_list.append([player.name, len(player.hand)])
+            else:
+                break
+        return name_list
+
     def process_respondable(self, key, word, connection_to_player):
         print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
 
@@ -287,7 +296,7 @@ class GameServer:
                     print(word + " reconnected.")
                     self.network.send(
                         {'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
-                         'hand': player.hand_to_list()}, player.connection)
+                         'hand': player.hand_to_list(), 'players': self.players_name_list()}, player.connection)
                     return
             for player in self.players:
                 if not player.connected and not hasattr(player, 'name'):
@@ -295,7 +304,7 @@ class GameServer:
                     print(word + " connected.")
                     self.network.send(
                         {'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
-                         'hand': player.hand_to_list()}, player.connection)
+                         'hand': player.hand_to_list(), 'players': self.players_name_list()}, player.connection)
                     return
             self.network.send({connection: False,
                                'reply': data.name + ' is full'})
