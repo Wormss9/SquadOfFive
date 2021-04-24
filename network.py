@@ -14,7 +14,7 @@ def print_info(text: str, data):
     print(text, ": ", str(data).replace('\n', ' '))
 
 
-def bytes_to_dict(received):
+def bytes_to_dict(received: bytes):
     """
     Converts bytes object to dict.
 
@@ -22,16 +22,12 @@ def bytes_to_dict(received):
     :return: dict
     """
 
-    def return_error(er):
-        print_type("bytes_to_dict", received)
-        return to_dict("error", er)
-
     try:
         translated = json.loads(received.decode())
     except error as e:
-        return return_error(e)
+        return to_dict("bytes_to_dict: ", e)
     if type(translated) != dict:
-        return return_error(400)
+        raise Exception("Parameter should be convertible to <class 'dict'> not to" + str(type(translated)))
     return translated
 
 
@@ -43,8 +39,7 @@ def dict_to_bytes(to_send):
     :return: bytes
     """
     if type(to_send) != dict:
-        print_type("dict_to_bytes", to_send)
-        return None
+        raise Exception("Parameter should be <class 'dict'> type not " + str(type(to_send)))
     return json.dumps(to_send).encode('utf-8')
 
 
@@ -59,6 +54,15 @@ def to_dict(key: str, value):
     return dict({key: value})
 
 
+def send(response: dict, connection_socket):
+    try:
+        print_type("ServerNetwork.send", response)
+        connection_socket(dict_to_bytes(response))
+        print_type("Sent", response)
+    except error as e:
+        print_info("NetworkClient.send", e)
+
+
 class NetworkServer:
     """Class responsible for what the server communicates"""
 
@@ -69,15 +73,11 @@ class NetworkServer:
         :param server_response_function:    Response function receiving parameters (dict,socket) 
         :param port:  Server port: int default: 5910
         """""
-        # self.socket_connection: socket.socket
-        # self.ip_address: str
+
         self.packet_size = packet_size
         self.server_response_function = server_response_function
         self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            self.listening_socket.bind(("", port))
-        except socket.error as e:
-            print_type("Port error", e)
+        self.listening_socket.bind(("", port))
         self.listening_socket.listen(5)
         print("Server started.")
 
@@ -94,23 +94,16 @@ class NetworkServer:
                 else:
                     print_info("Disconnected from", ip_address)
                     break
-            except:
+            except (socket.error, KeyboardInterrupt) as e:
+                self.server_response_function(to_dict("disconnected", ""), socket_connection.sendall)
+                socket_connection.close()
+                print(e)
                 break
-        self.server_response_function(to_dict("disconnected", ""), socket_connection.sendall)
-        socket_connection.close()
 
     def accept_connection(self):
         """Starts connection as new thread """
         socket_connection, ip_address = self.listening_socket.accept()
         start_new_thread(self.threaded_client, (socket_connection, ip_address,))
-
-    def send(self, response: dict, connection_socket):
-        try:
-            print_type("ServerNetwork.send", response)
-            connection_socket(dict_to_bytes(response))
-            print_type("Sent", response)
-        except error as e:
-            print_type("NetworkClient.send", e)
 
 
 class NetworkClient:
@@ -137,7 +130,7 @@ class NetworkClient:
             self.connection_socket.connect(self.server_address)
             print("Connected to: ", self.server_address)
             start_new_thread(self.listen, ())
-        except error as e:
+        except socket.error as e:
             print_type("NetworkClient.connect", e)
 
     def send(self, response: dict):
@@ -145,7 +138,7 @@ class NetworkClient:
             print_type("ClientNetwork.send", response)
             self.connection_socket.sendall(dict_to_bytes(response))
             print_type("Sent", response)
-        except error as e:
+        except socket.error as e:
             print_type("NetworkClient.send", e)
 
     def listen(self):
@@ -159,6 +152,6 @@ class NetworkClient:
                 else:
                     print("Disconnected: ", str(self.server_address))
                     break
-            except error as e:
+            except (socket.error, KeyboardInterrupt) as e:
                 print_type("NetworkClient.listen", e)
                 break
