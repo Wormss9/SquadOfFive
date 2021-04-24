@@ -24,8 +24,8 @@ def bytes_to_dict(received: bytes):
 
     try:
         translated = json.loads(received.decode())
-    except error as e:
-        return to_dict("bytes_to_dict: ", e)
+    except json.decoder.jsondecodeerror as e:
+        return to_dict("bytes_to_dict: ", received, " ", e)
     if type(translated) != dict:
         raise Exception("Parameter should be convertible to <class 'dict'> not to" + str(type(translated)))
     return translated
