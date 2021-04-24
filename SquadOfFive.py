@@ -14,6 +14,7 @@ class ClientHolder:
     table = []
     add_line_to_chat = ""
     selected_cards = []
+    player_show_list = []
 
     def show_cards_hand(self):
         for child in self.cards_on_hand.winfo_children():
@@ -188,7 +189,7 @@ player3 = Label(player_zone, text="Player3")
 cardCount1 = Label(player_zone, text=16)
 cardCount2 = Label(player_zone, text=16)
 cardCount3 = Label(player_zone, text=16)
-
+client_holder.player_show_list = [[player1, cardCount1], [player2, cardCount2], [player3, cardCount3]]
 player1.grid(column=1, row=2, sticky=E)
 player2.grid(column=2, row=2)
 player3.grid(column=3, row=2, sticky=E)
