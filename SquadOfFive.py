@@ -8,42 +8,26 @@ class ClientHolder:
     chatTextArea: Label
     status_bar: Label
     chat = ""
-    card_zone: Label
+    card_on_table: Label
     cards_on_hand: Label
     hand = []
     table = []
     add_line_to_chat = ""
     selected_cards = []
 
-    def show_cards(self, location):
-        print("location " + location)
-        if location == "hand":
-            label = self.cards_on_hand
-            cards = self.hand
-        elif location == "table":
-            label = self.cards_on_hand
-            cards = self.table
-        else:
-            print("show cards: ", location)
-            return
-        for child in label.winfo_children():
+    def show_cards_hand(self):
+        for child in self.cards_on_hand.winfo_children():
             child.destroy()
         counter = 1
         self.selected_cards.clear()
-        for card_p in cards:
-            """
-            card_image = Label(label)
-            card_image.grid(row=1, column=counter)
-            counter += 1
-            photo = ImageTk.PhotoImage(Image.open("graphics/cards/" + card_p.image).resize((50, 70)))
-            card_image.configure(image=photo)
-            card_image.image = photo
-            """
+        for card_p in self.hand:
             card_with_picture = [card_p, IntVar(value=-1), ImageTk.PhotoImage(
-                Image.open("graphics/cards/" + card_p.image + ".png").resize((70, 100))), ImageTk.PhotoImage(
-                Image.open("graphics/cards/" + card_p.image + "s.png").resize((70, 100)))]
+                Image.open("graphics/cards/" + card_p.image + ".png").resize((card_width, card_height))),
+                                 ImageTk.PhotoImage(
+                                     Image.open("graphics/cards/" + card_p.image + "s.png").resize(
+                                         (card_width, card_height)))]
             self.selected_cards.append(card_with_picture)
-            self.selected_cards[counter - 1].append(Checkbutton(label,
+            self.selected_cards[counter - 1].append(Checkbutton(self.cards_on_hand,
                                                                 image=self.selected_cards[counter - 1][2],
                                                                 selectimage=self.selected_cards[counter - 1][3],
                                                                 indicatoron=False,
@@ -52,6 +36,21 @@ class ClientHolder:
                                                                 variable=self.selected_cards[counter - 1][1]))
             self.selected_cards[counter - 1][4].grid(row=1, column=counter)
             counter += 1
+
+    def show_card_table(self):
+        global card_width
+        global card_height
+        for child in self.card_on_table.winfo_children():
+            child.destroy()
+        counter = 1
+        for card_p in self.table:
+            card_image = Label(self.card_on_table)
+            card_image.grid(row=1, column=counter)
+            counter += 1
+            photo = ImageTk.PhotoImage(
+                Image.open("graphics/cards/" + card_p.image + ".png").resize((card_width, card_height)))
+            card_image.configure(image=photo)
+            card_image.image = photo
 
 
 class Example(Frame):
@@ -154,6 +153,9 @@ def play_button():
     gameClient.send({"play": play})
 
 
+card_height = 100
+card_width = 70
+
 master = Tk()
 master.title("Squad of Five")
 master.configure(bg='grey')
@@ -194,7 +196,7 @@ cardCount3.grid(column=3, row=3, sticky=E)
 # endregion=Player Zone
 # region=Card Zone
 table_zone = Label(master)
-client_holder.card_zone = table_zone
+client_holder.card_on_table = table_zone
 table_zone.grid(row=2, column=1)
 
 # endregion=Card Zone
