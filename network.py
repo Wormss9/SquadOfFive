@@ -48,7 +48,7 @@ def dict_to_bytes(to_send):
     return json.dumps(to_send).encode('utf-8')
 
 
-def to_dict(key, value):
+def to_dict(key: str, value):
     """
     Returns dictionary from key and value
 
@@ -56,7 +56,7 @@ def to_dict(key, value):
     :param value:
     :return: {key:value}
     """
-    return dict({str(key): str(value)})
+    return dict({key: value})
 
 
 class NetworkServer:
