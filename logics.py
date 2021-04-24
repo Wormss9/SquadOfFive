@@ -220,7 +220,7 @@ class GameClient:
             self.connection.connect()
             self.connection.send(to_dict('name', self.name))
         except error as e:
-            print_type("GameClient.connect", e)
+            print("GameClient.connect ", e)
             return (False, "Connection failed")
         return (True, "Connected")
 
@@ -352,7 +352,6 @@ class GameServer:
                             return_table.append([card.suit, card.number])
                         for player in self.players:
                             if player.is_connected():
-                                print_type("return table", return_table)
                                 self.network.send(to_dict("table", return_table), player.connection)
             else:
                 for player in self.players:
