@@ -1,5 +1,7 @@
+import json
 import random
-from network import *
+from network import NetworkServer, NetworkClient, to_dict
+from _thread import start_new_thread, error
 
 playPowerDic = {1: "single",
                 2: "pair",
@@ -23,7 +25,7 @@ class Card:
         # __init__ je konstruktor => on vytvara instanciu objektu premenna = Card()
         self.suit = suit
         self.number = number
-        self.image = self.suitDict[self.suit] + str(number).zfill(2) + ".png"
+        self.image = self.suitDict[self.suit] + str(number).zfill(2)
 
     def __str__(self):
         """Returns name of card"""
@@ -48,6 +50,9 @@ class Card:
             return False
         return NotImplemented
 
+    def to_list(self):
+        return [self.suit, self.number]
+
 
 class Player:
     """Player as recognized by the server"""
@@ -61,7 +66,7 @@ class Player:
     def __str__(self):
         return self.name
 
-    def connect(self, name: str, connection: socket.socket):
+    def connect(self, name: str, connection):
         self.name = name
         self.connection = connection
         self.connected = True
@@ -81,10 +86,10 @@ class Player:
             hand_list.append([card.suit, card.number])
         return hand_list
 
-    def is_connected(self,connection_to_player=False):
+    def is_connected(self, connection_to_player=False):
         if hasattr(self, 'connection') and self.connected:
             if connection_to_player:
-                return connection_to_player==self.connection
+                return connection_to_player == self.connection
             return True
         return False
 
@@ -184,8 +189,10 @@ class Play:
         return 0
 
     def __gt__(self, other):
-        my_case = puttable_on_empty_table(self)
-        other_case = puttable_on_empty_table(other)
+        my_case = self.value()
+        other_case = other.value()
+        if my_case > other_case and (other_case == 0 or (4 >= other_case > 7 and 4 > my_case > 7) or my_case >= 8):
+            return True
         if my_case == other_case == 1:
             return self.cards[0] > other.cards[0]
         if my_case == other_case == 2:
@@ -213,7 +220,7 @@ class GameClient:
             self.connection.connect()
             self.connection.send(to_dict('name', self.name))
         except error as e:
-            print_type("GameClient.connect", e)
+            print("GameClient.connect ", e)
             return (False, "Connection failed")
         return (True, "Connected")
 
@@ -238,11 +245,17 @@ class GameClient:
         if key == 'reply':
             self.client_holder.status_bar['text'] = word
 
-        if key == 'hand' or key == 'table':
+        if key == 'hand':
             self.client_holder.hand = []
             for card_list in word:
                 self.client_holder.hand.append(Card(card_list[0], card_list[1]))
-            self.client_holder.show_cards(key)
+            self.client_holder.show_cards_hand()
+
+        if key == 'table':
+            self.client_holder.table = []
+            for card_list in word:
+                self.client_holder.table.append(Card(card_list[0], card_list[1]))
+            self.client_holder.show_card_table()
 
 
         else:
@@ -256,6 +269,7 @@ class GameServer:
         self.players = [Player(), Player(), Player(), Player()]
         self.chat = ""
         Deck(self.players)
+        self.table = []
         for player in self.players:
             player.sort_cards()
 
@@ -310,8 +324,44 @@ class GameServer:
                 for player in self.players:
                     if player.is_connected():
                         self.network.send(to_dict("reply", name + " reported himself"), player.connection)
+
+        if key == 'pass':
+            pass
+        # todo
+
+        if key == 'play':
+            # todo turns
+            play_list = []
+            for card_list in word:
+                play_list.append(Card(card_list[0], card_list[1]))
+            play = Play(play_list)
+            print("Comparing:")
+            print("Table: ", self.table)
+            if play.value() and play > Play(self.table):
+                print("Playlist play: ", play_list)
+                print("Table play: ", self.table)
+                self.table = play_list.copy()
+                print("Table play updated: ", self.table)
+
+                for player in self.players:
+                    if player.is_connected(connection_to_player):
+                        player.hand = [card for card in player.hand if not card in play_list or play_list.remove(card)]
+                        self.network.send({'hand': player.hand_to_list()}, connection_to_player)
+                        return_table = []
+                        for card in self.table:
+                            return_table.append([card.suit, card.number])
+                        for player in self.players:
+                            if player.is_connected():
+                                self.network.send(to_dict("table", return_table), player.connection)
+            else:
+                for player in self.players:
+                    if player.is_connected(connection_to_player):
+                        self.network.send(to_dict("reply", "Bad play"), player.connection)
+
+
+
         else:
-            print("unknown ", key, " ", word)
+            print("unknown '", key, "' ", word)
 
 
 class Settings:
