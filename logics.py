@@ -242,27 +242,34 @@ class GameClient:
             self.client_holder.chat += word
             self.client_holder.add_line_to_chat(word)
 
-        if key == 'reply':
+        elif key == 'reply':
             self.client_holder.status_bar['text'] = word
 
-        if key == 'hand':
+        elif key == 'hand':
             self.client_holder.hand = []
             for card_list in word:
                 self.client_holder.hand.append(Card(card_list[0], card_list[1]))
             self.client_holder.show_cards_hand()
 
-        if key == 'table':
+        elif key == 'table':
             self.client_holder.table = []
             for card_list in word:
                 self.client_holder.table.append(Card(card_list[0], card_list[1]))
             self.client_holder.show_card_table()
 
+        elif key == 'players':
+            counter = 0
+            for player_list in word:
+                if player_list[0] != self.name:
+                    self.client_holder.player_show_list[counter][0]['text'] = player_list[0]
+                    self.client_holder.player_show_list[counter][1]['text'] = player_list[1]
 
         else:
             print('Unknown: "', key, '"')
 
 
 class GameServer:
+    #todo send players
     def __init__(self, name):
         self.network = NetworkServer(server_response_function=self.respond)
         self.name = name
