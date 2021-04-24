@@ -123,9 +123,12 @@ def open_name_window():
 
 
 def host_game():
-    game_server = GameServer("Hosted server")
-    start_new_thread(start_server, (game_server,))
-    gameClient.connect("127.0.0.1")
+    try:
+        game_server = GameServer("Hosted server")
+        start_new_thread(start_server, (game_server,))
+        gameClient.connect("127.0.0.1")
+    finally:
+        gameClient.client_holder.status_bar['text'] = "Can't host server"
 
 
 def start_server(game_server):
