@@ -1,6 +1,6 @@
 import json
 import random
-from network import NetworkServer, NetworkClient, to_dict
+from network import NetworkServer, NetworkClient, to_dict, send
 from _thread import start_new_thread, error
 
 playPowerDic = {1: "single",
@@ -294,7 +294,7 @@ class GameServer:
                 if not player.connected and hasattr(player, 'name') and player.name == word:
                     player.connect(word, connection_to_player)
                     print(word + " reconnected.")
-                    self.network.send(
+                    send(
                         {'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
                          'hand': player.hand_to_list(), 'players': self.players_name_list()}, player.connection)
                     return
@@ -302,12 +302,12 @@ class GameServer:
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word, connection_to_player)
                     print(word + " connected.")
-                    self.network.send(
+                    send(
                         {'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
                          'hand': player.hand_to_list(), 'players': self.players_name_list()}, player.connection)
                     return
-            self.network.send({connection: False,
-                               'reply': data.name + ' is full'})
+            send({connection: False,
+                  'reply': data.name + ' is full'})
 
 
         elif key == 'chat':
@@ -318,7 +318,7 @@ class GameServer:
             self.chat += name + ": " + str(word).replace('\n', '    \n') + '\n'
             for player in self.players:
                 if player.is_connected():
-                    self.network.send(to_dict("chat", "\n" + name + ": " + word), player.connection)
+                    send(to_dict("chat", "\n" + name + ": " + word), player.connection)
 
 
         elif key == 'disconnected':
@@ -332,7 +332,7 @@ class GameServer:
                     name = player.name
                 for player in self.players:
                     if player.is_connected():
-                        self.network.send(to_dict("reply", name + " reported himself"), player.connection)
+                        send(to_dict("reply", name + " reported himself"), player.connection)
 
         if key == 'pass':
             pass
@@ -355,17 +355,17 @@ class GameServer:
                 for player in self.players:
                     if player.is_connected(connection_to_player):
                         player.hand = [card for card in player.hand if not card in play_list or play_list.remove(card)]
-                        self.network.send({'hand': player.hand_to_list()}, connection_to_player)
+                        send({'hand': player.hand_to_list()}, connection_to_player)
                         return_table = []
                         for card in self.table:
                             return_table.append([card.suit, card.number])
                         for player in self.players:
                             if player.is_connected():
-                                self.network.send(to_dict("table", return_table), player.connection)
+                                send(to_dict("table", return_table), player.connection)
             else:
                 for player in self.players:
                     if player.is_connected(connection_to_player):
-                        self.network.send(to_dict("reply", "Bad play"), player.connection)
+                        send(to_dict("reply", "Bad play"), player.connection)
 
 
 
