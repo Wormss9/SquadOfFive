@@ -149,4 +149,5 @@ class NetworkClient:
                     break
             except (socket.error, KeyboardInterrupt) as e:
                 print_type("NetworkClient.listen", e)
+                self.response_function(to_dict('reply', "Disconnected"))
                 break
