@@ -269,7 +269,7 @@ class GameClient:
 
 
 class GameServer:
-    #todo send players
+    # todo send players on connection
     def __init__(self, name):
         self.network = NetworkServer(server_response_function=self.respond)
         self.name = name
@@ -368,7 +368,8 @@ class GameServer:
                             return_table.append([card.suit, card.number])
                         for player in self.players:
                             if player.is_connected():
-                                send(to_dict("table", return_table), player.connection)
+                                send({"table": return_table, 'players': self.players_name_list()}, player.connection)
+
             else:
                 for player in self.players:
                     if player.is_connected(connection_to_player):
