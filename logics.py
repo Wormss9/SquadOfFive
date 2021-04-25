@@ -294,7 +294,7 @@ class GameServer:
         return name_list
 
     def process_respondable(self, key, word, connection_to_player):
-        print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
+        print("Processing: ", key, str(word).replace('\n', ' '), str(connection_to_player)[-19:-1])
 
         if key == 'name':
             for player in self.players:
@@ -341,24 +341,18 @@ class GameServer:
                     if player.is_connected():
                         send(to_dict("reply", name + " reported himself"), player.connection)
 
-        if key == 'pass':
+        elif key == 'pass':
             pass
         # todo
 
-        if key == 'play':
+        elif key == 'play':
             # todo turns
             play_list = []
             for card_list in word:
                 play_list.append(Card(card_list[0], card_list[1]))
             play = Play(play_list)
-            print("Comparing:")
-            print("Table: ", self.table)
             if play.value() and play > Play(self.table):
-                print("Playlist play: ", play_list)
-                print("Table play: ", self.table)
                 self.table = play_list.copy()
-                print("Table play updated: ", self.table)
-
                 for player in self.players:
                     if player.is_connected(connection_to_player):
                         player.hand = [card for card in player.hand if not card in play_list or play_list.remove(card)]
