@@ -57,11 +57,10 @@ def to_dict(key: str, value):
 
 def send(response: dict, connection_socket):
     try:
-        print_type("ServerNetwork.send", response)
         connection_socket(dict_to_bytes(response))
-        print_type("Sent", response)
+        print_type("Network.send", response)
     except error as e:
-        print_info("NetworkClient.send", e)
+        print_info("Network.send", e)
 
 
 class NetworkServer:
@@ -89,8 +88,7 @@ class NetworkServer:
             try:
                 client_response = socket_connection.recv(1024 * self.packet_size)
                 if client_response:
-                    print_type("Received", client_response)
-                    print_type("threaded_client", (bytes_to_dict(client_response), socket_connection.sendall))
+                    print_type("Received", bytes_to_dict(client_response))
                     self.server_response_function(bytes_to_dict(client_response), socket_connection.sendall)
                 else:
                     print_info("Disconnected from", ip_address)
@@ -127,7 +125,6 @@ class NetworkClient:
 
     def connect(self):
         try:
-            print("Client connecting: ", self.server_address)
             self.connection_socket.connect(self.server_address)
             print("Connected to: ", self.server_address)
             start_new_thread(self.listen, ())
@@ -136,9 +133,8 @@ class NetworkClient:
 
     def send(self, response: dict):
         try:
-            print_type("ClientNetwork.send", response)
             self.connection_socket.sendall(dict_to_bytes(response))
-            print_type("Sent", response)
+            print_type("NetworkClient.send", response)
         except socket.error as e:
             print_type("NetworkClient.send", e)
 
@@ -146,9 +142,7 @@ class NetworkClient:
         while True:
             try:
                 data = self.connection_socket.recv(1024 * 2)
-                print_type("Listened to1", data)
                 if data:
-                    print_type("Listened to2", data)
                     self.response_function(bytes_to_dict(data))
                 else:
                     print("Disconnected: ", str(self.server_address))
