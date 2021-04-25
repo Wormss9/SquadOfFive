@@ -293,11 +293,10 @@ class GameServer:
                 break
         return name_list
 
-    def send_to_all(self,message):
+    def send_to_all(self, message):
         for player in self.players:
             if player.is_connected():
                 send(message, player.connection)
-
 
     def process_respondable(self, key, word, connection_to_player):
         print("Processing: ", key, str(word).replace('\n', ' '), str(connection_to_player)[-19:-1])
@@ -307,17 +306,25 @@ class GameServer:
                 if not player.connected and hasattr(player, 'name') and player.name == word:
                     player.connect(word, connection_to_player)
                     print(word + " reconnected.")
+                    return_table = []
+                    for card in self.table:
+                        return_table.append([card.suit, card.number])
                     send(
                         {'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
-                         'hand': player.hand_to_list(), 'players': self.players_name_list(), "table": return_table}, player.connection)
+                         'hand': player.hand_to_list(), 'players': self.players_name_list(), "table": return_table},
+                        player.connection)
                     return
             for player in self.players:
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word, connection_to_player)
                     print(word + " connected.")
+                    return_table = []
+                    for card in self.table:
+                        return_table.append([card.suit, card.number])
                     send(
                         {'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
-                         'hand': player.hand_to_list(), 'players': self.players_name_list(), "table": return_table}, player.connection)
+                         'hand': player.hand_to_list(), 'players': self.players_name_list(), "table": return_table},
+                        player.connection)
                     return
             send({connection: False,
                   'reply': data.name + ' is full'})
@@ -335,6 +342,7 @@ class GameServer:
             for player in self.players:
                 if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
                     player.disconnect()
+                    self.send_to_all(to_dict('reply', player.name + " disconnected."))
 
         elif key == 'report':
             for player in self.players:
