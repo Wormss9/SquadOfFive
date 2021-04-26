@@ -66,7 +66,7 @@ def send(response: dict, connection_socket):
 class NetworkServer:
     """Class responsible for what the server communicates"""
 
-    def __init__(self, server_response_function, port=5910, packet_size=2):
+    def __init__(self, server_response_function, port=5910, packet_size=200):
         """
         Initializes a server listening to 5 connections
         
@@ -88,7 +88,7 @@ class NetworkServer:
             try:
                 client_response = socket_connection.recv(1024 * self.packet_size)
                 if client_response:
-                    print_type("Received", bytes_to_dict(client_response))
+                    print_type("Received", str(bytes_to_dict(client_response))[:100])
                     self.server_response_function(bytes_to_dict(client_response), socket_connection.sendall)
                 else:
                     print_info("Disconnected from", ip_address)
@@ -110,7 +110,7 @@ class NetworkClient:
     Network client responsible for communicating with server.
     """
 
-    def __init__(self, response_function, server_ip, server_port=5910, packet_size=2):
+    def __init__(self, response_function, server_ip, server_port=5910, packet_size=200):
         """
         Initializes Network client
         :param response_function:   Function accepting dictionary as parameter.
