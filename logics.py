@@ -57,11 +57,13 @@ class Card:
 class Player:
     """Player as recognized by the server"""
 
-    def __init__(self):
+    def __init__(self, turn_number, server_turn):
         self.name: str
         self.hand = []
         self.connection: socket.socket
         self.connected = False
+        self.turn_number = turn_number
+        self.server_turn = server_turn
 
     def __str__(self):
         return self.name
@@ -92,6 +94,9 @@ class Player:
                 return connection_to_player == self.connection
             return True
         return False
+
+    def my_turn(self):
+        return self.turn_number == self.server_turn
 
 
 class Deck:
@@ -273,12 +278,33 @@ class GameServer:
     def __init__(self, name):
         self.network = NetworkServer(server_response_function=self.respond)
         self.name = name
-        self.players = [Player(), Player(), Player(), Player()]
+        self.turn = random
+        self.players = []
+        for x in range(4):
+            self.players.append(Player(x + 1, self.turn))
         self.chat = ""
+        Deck(self.players)
+        self.table = []
+        self.pass_counter = 0
+        # todo intagrate this
+        for player in self.players:
+            player.sort_cards()
+
+    def restart(self, turn):
+        self.turn = turn
+        for player in self.players:
+            player.hand = []
         Deck(self.players)
         self.table = []
         for player in self.players:
             player.sort_cards()
+
+    def next_turn(self):
+        if turn == 4:
+            turn = 1
+        else:
+            turn += 1
+        self.send_to_all({'reply': "It's" + self.players[turn - 1]} + 's turn.')
 
     def respond(self, data, connection_to_player):
         for key in data:
@@ -352,30 +378,37 @@ class GameServer:
                     break
 
         elif key == 'pass':
-            pass
-        # todo
+            for player in self.players:
+                if player.is_connected(connection_to_player) and player.my_turn():
+                    self.next_turn()
 
         elif key == 'play':
-            # todo turns
-            play_list = []
-            for card_list in word:
-                play_list.append(Card(card_list[0], card_list[1]))
-            play = Play(play_list)
-            if play.value() and play > Play(self.table):
-                self.table = play_list.copy()
-                for player in self.players:
-                    if player.is_connected(connection_to_player):
-                        player.hand = [card for card in player.hand if not card in play_list or play_list.remove(card)]
-                        send({'hand': player.hand_to_list()}, connection_to_player)
-                        return_table = []
-                        for card in self.table:
-                            return_table.append([card.suit, card.number])
-                        self.send_to_all({"table": return_table, 'players': self.players_name_list()})
+            for player in self.players:
+                if player.is_connected(connection_to_player) and player.my_turn():
+                    play_list = []
+                    for card_list in word:
+                        play_list.append(Card(card_list[0], card_list[1]))
+                    play = Play(play_list)
+                    if play.value() and play > Play(self.table):
+                        self.table = play_list.copy()
+                        self.next_turn()
+                        for player in self.players:
+                            if player.is_connected(connection_to_player):
+                                player.hand = [card for card in player.hand if
+                                               not card in play_list or play_list.remove(card)]
+                                send({'hand': player.hand_to_list()}, connection_to_player)
+                                return_table = []
+                                for card in self.table:
+                                    return_table.append([card.suit, card.number])
+                                self.send_to_all({"table": return_table, 'players': self.players_name_list()})
 
-            else:
-                for player in self.players:
+                    else:
+                        for player in self.players:
+                            if player.is_connected(connection_to_player):
+                                send(to_dict("reply", "Bad play"), player.connection)
+                else:
                     if player.is_connected(connection_to_player):
-                        send(to_dict("reply", "Bad play"), player.connection)
+                        send(to_dict("reply", "Not your turn"), player.connection)
 
 
 
@@ -387,11 +420,13 @@ class Settings:
     def __init__(self):
         self.name = ""
         self.adress = ""
+        self.picture = ""
         try:
             with open('settings.txt') as file:
                 setting = json.load(file)
                 self.name = setting['name']
                 self.adress = setting['address']
+                self.adress = setting['picture']
         except:
             pass
 
@@ -403,8 +438,13 @@ class Settings:
         self.name = name
         self.saveToFile()
 
+    def save_picture(self, picture):
+        self.picture = picture
+        self.saveToFile()
+
     def saveToFile(self):
         data = {"name": self.name,
-                "address": self.adress}
+                "address": self.adress,
+                "picture": self.picture}
         with open('settings.txt', 'w') as outfile:
             json.dump(data, outfile)
