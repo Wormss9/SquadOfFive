@@ -42,6 +42,7 @@ def string_to_image(photo_string):
     c = Image.frombytes('RGBA', (100, 100), b)
     return c
 
+
 class Card:
     """Card having a suit and a number."""
     suitDict = {1: "r", 2: "g", 3: "b", 4: "w"}
@@ -344,8 +345,10 @@ class GameServer:
         self.send_to_all({'reply': "It's" + self.players[turn - 1]} + 's turn.')
 
     def respond(self, data, connection_to_player):
-        for key in data:
-            self.process_respondable(key, data.get(key), connection_to_player)
+        for dic in data:
+            print("bock di:", type(dic), dic)
+            for key in dic:
+                self.process_respondable(key, dic.get(key), connection_to_player)
 
     def players_name_list(self):
         name_list = []
@@ -363,7 +366,7 @@ class GameServer:
 
     def process_respondable(self, key, word, connection_to_player):
         print("Processing: ", key, str(word).replace('\n', ' '), str(connection_to_player)[-19:-1])
-
+        # todo revirk login to name and player and send apropriate data a aproprite times including turn
         if key == 'name':
             for player in self.players:
                 if not player.connected and hasattr(player, 'name') and player.name == word:
@@ -376,8 +379,6 @@ class GameServer:
                         {'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
                          'hand': player.hand_to_list(), 'players': self.players_name_list(), "table": return_table},
                         player.connection)
-                    return
-            for player in self.players:
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word, connection_to_player)
                     print(word + " connected.")
@@ -388,10 +389,18 @@ class GameServer:
                         {'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
                          'hand': player.hand_to_list(), 'players': self.players_name_list(), "table": return_table},
                         player.connection)
+                    counter = 0
+                    for gamer in self.players:
+                        send({"picture": [counter, gamer.picture]}, player.connection)
+                        counter += 1
                     return
             send({connection: False,
                   'reply': data.name + ' is full'})
 
+        elif key == 'picture':
+            for player in self.players:
+                if player.is_connected(connection_to_player):
+                    player.picture = word
 
         elif key == 'chat':
             name = "Anon"
@@ -447,8 +456,6 @@ class GameServer:
                     if player.is_connected(connection_to_player):
                         send(to_dict("reply", "Not your turn"), player.connection)
 
-
-
         else:
             print("unknown '", key, "' ", word)
 
@@ -457,13 +464,13 @@ class Settings:
     def __init__(self):
         self.name = ""
         self.adress = ""
-        self.picture = ""
+        self.picture = picture_to_string('graphics/defaultPlayer.png')
         try:
             with open('settings.txt') as file:
                 setting = json.load(file)
                 self.name = setting['name']
                 self.adress = setting['address']
-                self.adress = setting['picture']
+                self.picture = setting['picture']
         except:
             pass
 
@@ -485,10 +492,3 @@ class Settings:
                 "picture": self.picture}
         with open('settings.txt', 'w') as outfile:
             json.dump(data, outfile)
-
-def picture_to_string(path):
-    return base64.b64encode(Image.open(path).resize((card_height, card_height)).tobytes()).decode()
-
-
-def string_to_photo(photo_string):
-    return ImageTk.PhotoImage(Image.frombytes('RGBA', (100, 100), base64.b64decode(photo_string.encode())))
