@@ -298,25 +298,25 @@ class GameClient:
         elif key == 'players':
             counter = 0
             for player_list in word:
-                if player_list[0] != self.name:
-                    self.client_holder.player_show_list[counter][0]['text'] = player_list[0]
-                    self.client_holder.player_show_list[counter][1]['text'] = player_list[1]
+                self.client_holder.set_players(counter,player_list[0],player_list[1])
 
         elif key == 'picture':
             print("number" + str(word[0]))
             print("picture in base64" + str(word[1]))
             self.client_holder.set_picture(word[0], word[1])
 
+        elif key =='turn':
+            self.client_holder.set_turn(word)
+
         else:
             print('Unknown: "', key, '"')
 
 
 class GameServer:
-    # todo send players on connection
     def __init__(self, name):
         self.network = NetworkServer(server_response_function=self.respond)
         self.name = name
-        self.turn = random
+        self.turn = random.randrange(1, 5)
         self.players = []
         for x in range(4):
             self.players.append(Player(x + 1, self.turn))
@@ -366,7 +366,6 @@ class GameServer:
 
     def process_respondable(self, key, word, connection_to_player):
         print("Processing: ", key, str(word).replace('\n', ' '), str(connection_to_player)[-19:-1])
-        # todo revirk login to name and player and send apropriate data a aproprite times including turn
         if key == 'name':
             for player in self.players:
                 if not player.connected and hasattr(player, 'name') and player.name == word:
@@ -375,60 +374,61 @@ class GameServer:
                     return_table = []
                     for card in self.table:
                         return_table.append([card.suit, card.number])
-                    send(
-                        {'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
-                         'hand': player.hand_to_list(), 'players': self.players_name_list(), "table": return_table},
-                        player.connection)
+                    send({'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
+                          'hand': player.hand_to_list(), 'players': self.players_name_list(), 'table': return_table,
+                          'turn': self.turn}, player.connection)
+                    return
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word, connection_to_player)
                     print(word + " connected.")
                     return_table = []
                     for card in self.table:
                         return_table.append([card.suit, card.number])
-                    send(
-                        {'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
-                         'hand': player.hand_to_list(), 'players': self.players_name_list(), "table": return_table},
-                        player.connection)
-                    counter = 0
-                    for gamer in self.players:
-                        send({"picture": [counter, gamer.picture]}, player.connection)
-                        counter += 1
+                    send({'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
+                          'hand': player.hand_to_list(), 'players': self.players_name_list(), 'table': return_table,
+                          'turn': self.turn}, player.connection)
                     return
-            send({connection: False,
-                  'reply': data.name + ' is full'})
+            send({'connection': False, 'reply': data.name + ' is full'})
 
         elif key == 'picture':
             for player in self.players:
                 if player.is_connected(connection_to_player):
                     player.picture = word
+                    self.send_to_all(to_dict('picture',[player.turn_number,player.picture]))
+
 
         elif key == 'chat':
-            name = "Anon"
             for player in self.players:
                 if player.is_connected(connection_to_player):
-                    name = player.name
-            self.chat += name + ": " + str(word).replace('\n', '    \n') + '\n'
-            self.send_to_all(to_dict("chat", "\n" + name + ": " + word))
+                    self.chat += player.name + ": " + word + '\n'
+                    self.send_to_all(to_dict("chat", player.name + ": " + word + "\n"))
 
         elif key == 'disconnected':
             for player in self.players:
-                if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
+                if player.is_connected(connection_to_player):
                     player.disconnect()
                     self.send_to_all(to_dict('reply', player.name + " disconnected."))
 
         elif key == 'report':
             for player in self.players:
                 if player.is_connected(connection_to_player):
-                    name = player.name
-                    self.send_to_all(to_dict("reply", name + " reported himself"))
-                    break
+                    self.send_to_all(to_dict("reply", player.name + " reported himself"))
 
         elif key == 'pass':
             for player in self.players:
                 if player.is_connected(connection_to_player) and player.my_turn():
                     self.next_turn()
 
-        elif key == 'play':
+
+
+        else:
+            print("Unknown key ", key, " : ", word)
+
+    def old_process_respondable(self, key, word, connection_to_player):
+        print("Old Processing: ", key, str(word).replace('\n', ' '), str(connection_to_player)[-19:-1])
+        # todo revirk login to name and player and send apropriate data a aproprite times including turn
+
+        if key == 'play':
             for player in self.players:
                 if player.is_connected(connection_to_player) and player.my_turn():
                     play_list = []
