@@ -21,15 +21,27 @@ def bytes_to_dict(received: bytes):
     :param received: bytes
     :return: dict
     """
+    to_handle = (str(received)[3:-2].split("}{"))
+    translateds = []
+    for block in to_handle:
+        block = '{' + block + '}'
+        x = 50
+        y = -5
+        if len(block) > x:
+            print("translatig: ", str(block)[:x + y], str(block)[y:])
+        else:
+            print("translatig: ", str(block))
+        try:
+            translateds.append(json.loads(block))
+        except json.decoder.JSONDecodeError as e:
+            print_info('bytes_to_dict', str(e))
+            print("bytes_to_dict: ", translateds)
+            return to_dict("bytes_to_dict: ", received)
 
-    try:
-        translated = json.loads(received.decode())
-    except json.decoder.JSONDecodeError as e:
-        print_info('bytes_to_dict', str(e))
-        return to_dict("bytes_to_dict: ", received)
-    if type(translated) != dict:
-        raise Exception("Parameter should be convertible to <class 'dict'> not to" + str(type(translated)))
-    return translated
+        if type(json.loads(received.decode())) != dict:
+            raise Exception("Parameter should be convertible to <class 'dict'> not to" + str(type(translateds)))
+
+        return translateds
 
 
 def dict_to_bytes(to_send):
@@ -134,14 +146,14 @@ class NetworkClient:
     def send(self, response: dict):
         try:
             self.connection_socket.sendall(dict_to_bytes(response))
-            print_type("NetworkClient.send", response)
+            print_type("NetworkClient.send", str(response)[:100])
         except socket.error as e:
             print_type("NetworkClient.send", e)
 
     def listen(self):
         while True:
             try:
-                data = self.connection_socket.recv(1024 * 2)
+                data = self.connection_socket.recv(1024 * self.packet_size)
                 if data:
                     self.response_function(bytes_to_dict(data))
                 else:
