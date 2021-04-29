@@ -2,6 +2,8 @@ import json
 import random
 from network import NetworkServer, NetworkClient, to_dict, send
 from _thread import start_new_thread, error
+from PIL import Image,ImageTk
+import base64
 
 playPowerDic = {1: "single",
                 2: "pair",
@@ -448,3 +450,10 @@ class Settings:
                 "picture": self.picture}
         with open('settings.txt', 'w') as outfile:
             json.dump(data, outfile)
+
+def picture_to_string(path):
+    return base64.b64encode(Image.open(path).resize((card_height, card_height)).tobytes()).decode()
+
+
+def string_to_photo(photo_string):
+    return ImageTk.PhotoImage(Image.frombytes('RGBA', (100, 100), base64.b64decode(photo_string.encode())))
