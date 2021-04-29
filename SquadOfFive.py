@@ -108,6 +108,10 @@ class ClientHolder:
     player_frame_list = []
     player_details_list = []
 
+    def set_players(self, number, name, card_num):
+        self.player_details_list[number][0]['text'] = name
+        self.player_details_list[number][2]['text'] = str(card_num)
+
     def show_cards_hand(self):
         for child in self.cards_on_hand.winfo_children():
             child.destroy()
@@ -147,8 +151,18 @@ class ClientHolder:
 
     def set_picture(self, number, picture):
         photo_image = ImageTk.PhotoImage(Image.frombytes('RGBA', (100, 100), base64.b64decode(picture)))
-        self.player_details_list[number][2].photo = photo_image
-        self.player_details_list[number][2].configure(image=photo_image)
+        self.player_details_list[number-1][1].photo = photo_image
+        self.player_details_list[number-1][1].configure(image=photo_image)
+
+    def set_turn(self, turn):
+        for frame in self.player_frame_list:
+            frame.configure(bg='grey20')
+        self.player_frame_list[turn - 1].config(bg="brown")
+        for player_details in self.player_details_list:
+            for player_detail in player_details:
+                player_detail.configure(bg='grey20')
+        for player_detail in self.player_details_list[turn - 1]:
+            player_detail.configure(bg='brown')
 
 
 class MainMenu(Menu):
@@ -172,11 +186,12 @@ class PlayerZone(Label):
         Label.__init__(self, parent)
         self.grid(row=row, column=column)
         for x in range(4):
-            self.player_frame.append(Frame(self, background="black"))
+            self.player_frame.append(Frame(self, background="grey20"))
             self.player_frame[x].grid(column=x + 1, row=1)
             self.player_zones.append(
-                [Label(self.player_frame[x], text="Player" + str(x + 1)), Label(self.player_frame[x]),
-                 Label(self.player_frame[x], text=16)])
+                [Label(self.player_frame[x], text="Player" + str(x + 1), bg='grey20', fg='lime'),
+                 Label(self.player_frame[x], bg='grey20', fg='lime'),
+                 Label(self.player_frame[x], text=16, bg='grey20', fg='lime')])
 
         self.default_player_photo = string_to_image(picture_to_string('graphics/defaultPlayer.png'))
         self.default_player_photo = ImageTk.PhotoImage(self.default_player_photo)
@@ -297,7 +312,7 @@ class MainWindow(Tk):
     player_zone: PlayerZone
     table_zone: TableZone
     deck_zone: DeckZone
-    deck_button_zone:DeckButtonZone
+    deck_button_zone: DeckButtonZone
     status_bar: StatusBar
     chat_zone: ChatZone
 
@@ -313,7 +328,7 @@ class MainWindow(Tk):
         self.player_zone = PlayerZone(self, 1, 1)
         self.table_zone = TableZone(self, 2, 1)
         self.deck_zone = DeckZone(self, 3, 1)
-        self.deck_button_zone=DeckButtonZone(self, 4, 1)
+        self.deck_button_zone = DeckButtonZone(self, 4, 1)
         self.status_bar = StatusBar(self, 5, 1)
         self.chat_zone = ChatZone(self, 1, 2)
 
