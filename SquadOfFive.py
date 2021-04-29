@@ -1,7 +1,98 @@
+import base64
+from tkinter import filedialog
 from tkinter import *
-from logics import GameServer, GameClient, Card
+from logics import GameServer, GameClient, picture_to_string, string_to_image
 from _thread import start_new_thread
 from PIL import Image, ImageTk
+
+chatReadText: Entry
+
+
+def open_login_window():
+    def command_button(ip, window):
+        gameClient.settings.save_adress(ip)
+        if not gameClient.settings.name:
+            open_profile_window()
+        response = gameClient.connect(ip)
+        status_bar_text.set(response[1])
+        if not response[0]:
+            window.close()
+
+    global gameClient
+    status_bar_text = StringVar()
+    login_window = Toplevel(master)
+    login_window.configure(bg='grey')
+    login_window.iconbitmap('graphics/icon.ico')
+    login_window.title("Connect")
+    Label(login_window, text="Enter host ip_address:").grid(row=1, column=1)
+    address = Entry(login_window)
+    address.insert(END, str(gameClient.settings.adress))
+    address.grid(row=1, column=2)
+    login_button = Button(login_window, text="Connect")
+    login_button['command'] = lambda: command_button(address.get(), login_window)
+    login_button.grid(row=2, column=1, columnspan=2)
+    status_bar = Label(login_window, textvariable=status_bar_text, relief='sunken')
+    status_bar.grid(row=3, column=1, columnspan=2, sticky='we')
+
+
+def open_profile_window():
+    def command_button(name):
+        gameClient.settings.save_name(name)
+        gameClient.set_name(name)
+        status_bar_text.set("Name changed")
+
+    def picture_button():
+        path = filedialog.askopenfilename(title="Select An Image", filetypes=(
+            ("png files", "*.png"), ("gif files", "*.gif")))
+        name_window.attributes('-topmost', 1)
+        name_window.attributes('-topmost', 0)
+        picture_string = picture_to_string(path)
+        if picture_string:
+            gameClient.settings.save_picture(picture_string)
+            new_photo_image = string_to_image(picture_string)
+            player_picture.photo = ImageTk.PhotoImage(new_photo_image)
+            player_picture.image = player_picture.photo
+            player_picture.configure(image=player_picture.photo)
+            status_bar_text.set("Picture changed")
+        else:
+            status_bar_text.set("Bad image")
+
+    global gameClient
+    status_bar_text = StringVar()
+    name_window = Toplevel(master)
+    name_window.configure(bg='grey')
+    name_window.iconbitmap('graphics/icon.ico')
+    name_window.title("Nick")
+    Label(name_window, text="Enter nickname:").grid(row=1, column=1)
+    address = Entry(name_window)
+    address.insert(END, str(gameClient.settings.name))
+    address.grid(row=1, column=2)
+    name_button = Button(name_window, text="Change name")
+    name_button['command'] = lambda: command_button(address.get())
+    name_button.grid(row=2, column=1, columnspan=2)
+    player_picture = Label(name_window)
+    player_picture.grid(row=3, column=1, columnspan=2)
+    photo_image = string_to_image(gameClient.settings.picture)
+    player_picture.photo = ImageTk.PhotoImage(photo_image)
+    player_picture.configure(image=player_picture.photo)
+    picture_button = Button(name_window, text="Change picture", command=picture_button)
+    picture_button.grid(row=4, column=1, columnspan=2)
+    status_bar = Label(name_window, textvariable=status_bar_text, relief='sunken')
+    status_bar.grid(row=5, column=1, columnspan=2, sticky='we')
+
+
+def host_game():
+    try:
+        game_server = GameServer("Hosted server")
+        start_new_thread(start_server, (game_server,))
+        gameClient.connect("127.0.0.1")
+    finally:
+        gameClient.client_holder.status_bar['text'] = "Can't host server"
+
+
+def start_server(game_server):
+    while True:
+        game_server.network.accept_connection()
 
 
 class ClientHolder:
@@ -14,7 +105,8 @@ class ClientHolder:
     table = []
     add_line_to_chat = ""
     selected_cards = []
-    player_show_list = []
+    player_frame_list = []
+    player_details_list = []
 
     def show_cards_hand(self):
         for child in self.cards_on_hand.winfo_children():
@@ -53,6 +145,96 @@ class ClientHolder:
             card_image.configure(image=photo)
             card_image.image = photo
 
+    def set_picture(self, number, picture):
+        photo_image = ImageTk.PhotoImage(Image.frombytes('RGBA', (100, 100), base64.b64decode(picture)))
+        self.player_details_list[number][2].photo = photo_image
+        self.player_details_list[number][2].configure(image=photo_image)
+
+
+class MainMenu(Menu):
+    submenu: Menu
+
+    def __init__(self, parent):
+        Menu.__init__(self, parent)
+        self.subMenu = Menu(self, tearoff=0)
+        self.subMenu.add_command(label="Connect", command=open_login_window)
+        self.subMenu.add_command(label="Change profile", command=open_profile_window)
+        self.subMenu.add_command(label="Host", command=host_game)
+        self.add_cascade(label="Game", menu=self.subMenu)
+
+
+class PlayerZone(Label):
+    default_player_photo: PhotoImage
+    player_zones = []
+    player_frame = []
+
+    def __init__(self, parent, row, column):
+        Label.__init__(self, parent)
+        self.grid(row=row, column=column)
+        for x in range(4):
+            self.player_frame.append(Frame(self, background="black"))
+            self.player_frame[x].grid(column=x + 1, row=1)
+            self.player_zones.append(
+                [Label(self.player_frame[x], text="Player" + str(x + 1)), Label(self.player_frame[x]),
+                 Label(self.player_frame[x], text=16)])
+
+        self.default_player_photo = string_to_image(picture_to_string('graphics/defaultPlayer.png'))
+        self.default_player_photo = ImageTk.PhotoImage(self.default_player_photo)
+        print(type(self.default_player_photo))
+        for x in range(4):
+            for y in range(3):
+                self.player_zones[x][y].grid(row=y + 1)
+                if y == 1:
+                    self.player_zones[x][y].photo = self.default_player_photo
+                    self.player_zones[x][y].image = self.default_player_photo
+                    self.player_zones[x][y].configure(image=self.default_player_photo)
+
+        client_holder.player_frame_list = self.player_frame
+        client_holder.player_details_list = self.player_zones
+
+
+class TableZone(Label):
+    # todo cards
+    def __init__(self, parent, row, column):
+        Label.__init__(self, parent)
+        self.grid(row=row, column=column)
+        client_holder.card_on_table = self
+
+
+class DeckZone(Label):
+    def __init__(self, parent, row, column):
+        Label.__init__(self, parent, bg="lightGrey")
+        self.grid(row=row, column=column)
+        client_holder.cards_on_hand = self
+
+
+class DeckButtonZone(Label):
+
+    def pass_button(self):
+        gameClient.send({"pass": ""})
+
+    def play_button(self):
+        play = []
+        for card_block in client_holder.selected_cards:
+            if card_block[1].get() >= 0:
+                play.append(card_block[0].to_list())
+        gameClient.send({"play": play})
+
+    def __init__(self, parent, row, column):
+        Label.__init__(self, parent, relief='sunken')
+        self.grid(row=row, column=column, sticky='we')
+        self.deckButton_zone_passButton = Button(self, text="Pass", command=self.pass_button)
+        self.deckButton_zone_passButton.grid(row=1, column=1)
+        self.deckButton_zone_playButton = Button(self, text="Play", command=self.play_button)
+        self.deckButton_zone_playButton.grid(row=1, column=2, sticky='we')
+
+
+class StatusBar(Label):
+    def __init__(self, parent, row, column):
+        Label.__init__(self, parent, text="Welcome", relief='sunken')
+        self.grid(row=row, column=column, columnspan=2, sticky='we')
+        client_holder.status_bar = self
+
 
 class Example(Frame):
     def __init__(self, parent):
@@ -78,172 +260,69 @@ class Example(Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
 
-def open_login_window():
-    def command_button(ip, window):
-        gameClient.settings.save_adress(ip)
-        if not gameClient.settings.name:
-            open_name_window()
-        response = gameClient.connect(ip)
-        status_bar_text.set(response[1])
-        if not response[0]:
-            window.close()
+class ChatZone(Label):
+    example: Example
+    chatReadText: Entry
+    chatInput: Label
+    chatSendButton: Button
+    chatReportButton: Button
 
-    global gameClient
-    status_bar_text = StringVar()
-    login_window = Toplevel(master)
-    login_window.title("Connect")
-    Label(login_window, text="Enter host ip_address:").grid(row=1, column=1)
-    address = Entry(login_window)
-    address.insert(END, str(gameClient.settings.adress))
-    address.grid(row=1, column=2)
-    login_button = Button(login_window, text="Connect")
-    login_button['command'] = lambda: command_button(address.get(), login_window)
-    login_button.grid(row=2, column=1, columnspan=2)
-    status_bar = Label(login_window, textvariable=status_bar_text, relief='sunken')
-    status_bar.grid(row=3, column=1, columnspan=2, sticky='we')
+    def send_message(self):
+        gameClient.send({"chat": self.chatReadText.get()})
 
+    def send_report(self):
+        gameClient.send({"report": ""})
 
-def open_name_window():
-    def command_button(name):
-        gameClient.settings.save_name(name)
-        status_bar_text.set(gameClient.set_name(name))
+    def __init__(self, parent, row, column):
+        Label.__init__(self, parent, bg="lightGrey")
+        self.grid(row=row, column=column, rowspan=4)
 
-    global gameClient
-    status_bar_text = StringVar()
-    name_window = Toplevel(master)
-    name_window.title("Nick")
-    Label(name_window, text="Enter nickname:").grid(row=1, column=1)
-    address = Entry(name_window)
-    address.insert(END, str(gameClient.settings.name))
-    address.grid(row=1, column=2)
-    name_button = Button(name_window, text="Change")
-    name_button['command'] = lambda: command_button(address.get())
-    name_button.grid(row=2, column=1, columnspan=2)
-    status_bar = Label(name_window, textvariable=status_bar_text, relief='sunken')
-    status_bar.grid(row=3, column=1, columnspan=2, sticky='we')
+        self.example = Example(self)
+        client_holder.add_line_to_chat = self.example.add_line_to_chat
+        self.example.pack(side="top", fill="both", expand=True)
+        self.chatInput = Label(self)
+        self.chatReadText = Entry(self.chatInput)
+
+        self.chatSendButton = Button(self.chatInput, text="Send", command=self.send_message)
+        self.chatReportButton = Button(self.chatInput, text="Report", command=self.send_report)
+
+        self.chatInput.pack(side="bottom")
+        self.chatReadText.grid()
+        self.chatSendButton.grid()
+        self.chatReportButton.grid()
 
 
-def host_game():
-    try:
-        game_server = GameServer("Hosted server")
-        start_new_thread(start_server, (game_server,))
-        gameClient.connect("127.0.0.1")
-    finally:
-        gameClient.client_holder.status_bar['text'] = "Can't host server"
+class MainWindow(Tk):
+    main_menu: MainMenu
+    player_zone: PlayerZone
+    table_zone: TableZone
+    deck_zone: DeckZone
+    deck_button_zone:DeckButtonZone
+    status_bar: StatusBar
+    chat_zone: ChatZone
 
+    def __init__(self):
+        Tk.__init__(self)
+        self.title("Squad of Five")
+        self.configure(bg='grey')
+        self.iconbitmap('graphics/icon.ico')
 
-def start_server(game_server):
-    while True:
-        game_server.network.accept_connection()
+        self.main_menu = MainMenu(self)
+        self.config(menu=self.main_menu)
 
-
-def send_message():
-    gameClient.send({"chat": chatReadText.get()})
-
-
-def send_report():
-    gameClient.send({"report": ""})
-
-
-def pass_button():
-    gameClient.send({"pass": ""})
-
-
-def play_button():
-    play = []
-    for card_block in client_holder.selected_cards:
-        if card_block[1].get() >= 0:
-            play.append(card_block[0].to_list())
-    gameClient.send({"play": play})
+        self.player_zone = PlayerZone(self, 1, 1)
+        self.table_zone = TableZone(self, 2, 1)
+        self.deck_zone = DeckZone(self, 3, 1)
+        self.deck_button_zone=DeckButtonZone(self, 4, 1)
+        self.status_bar = StatusBar(self, 5, 1)
+        self.chat_zone = ChatZone(self, 1, 2)
 
 
 card_height = 100
 card_width = 70
 
-master = Tk()
-master.title("Squad of Five")
-master.configure(bg='grey')
-master.iconbitmap('graphics/icon.ico')
-
 client_holder = ClientHolder()
+master = MainWindow()
 gameClient = GameClient(client_holder)
 
-# Adding menu
-menu = Menu(master)
-master.config(menu=menu)
-subMenu = Menu(menu)
-menu.add_cascade(label="Game", menu=subMenu)
-subMenu.add_command(label="Connect", command=open_login_window)
-subMenu.add_command(label="Change nickname", command=open_name_window)
-subMenu.add_command(label="Host", command=host_game)
-
-table = [Card(4, 1)]
-# region=Main Zone
-# region=Player Zone
-player_zone = Label(master, bg="darkGrey")
-player_zone.grid(row=1, column=1)
-
-player1 = Label(player_zone, text="Player1")
-player2 = Label(player_zone, text="Player2")
-player3 = Label(player_zone, text="Player3")
-cardCount1 = Label(player_zone, text=16)
-cardCount2 = Label(player_zone, text=16)
-cardCount3 = Label(player_zone, text=16)
-client_holder.player_show_list = [[player1, cardCount1], [player2, cardCount2], [player3, cardCount3]]
-player1.grid(column=1, row=2, sticky=E)
-player2.grid(column=2, row=2)
-player3.grid(column=3, row=2, sticky=E)
-cardCount1.grid(column=1, row=3, sticky=E)
-cardCount2.grid(column=2, row=3)
-cardCount3.grid(column=3, row=3, sticky=E)
-
-# endregion=Player Zone
-# region=Card Zone
-table_zone = Label(master)
-client_holder.card_on_table = table_zone
-table_zone.grid(row=2, column=1)
-
-# endregion=Card Zone
-# region=Deck Zone
-deck_zone = Label(master, bg="lightGrey")
-client_holder.cards_on_hand = deck_zone
-deck_zone.grid(row=3, column=1)
-
-# endregion=Deck Zone
-# region=DeckButton Zone
-deckButton_zone = Label(master, relief='sunken')
-deckButton_zone.grid(row=4, column=1, sticky='we')
-
-deckButton_zone_passButton = Button(deckButton_zone, text="Pass", command=pass_button)
-deckButton_zone_passButton.grid(row=1, column=1)
-deckButton_zone_playButton = Button(deckButton_zone, text="Play", command=play_button)
-deckButton_zone_playButton.grid(row=1, column=2, sticky='we')
-
-# endregion=DeckButton Zone
-# region=Status Bar
-statusBar = Label(master, text="Welcome", relief='sunken')
-client_holder.status_bar = statusBar
-statusBar.grid(row=5, column=1, columnspan=2, sticky='we')
-
-# endregion=Status Bar
-# region=Chat Zone
-
-chatZone = Label(master)
-example = Example(chatZone)
-client_holder.add_line_to_chat = example.add_line_to_chat
-example.pack(side="top", fill="both", expand=True)
-chatZone.grid(column=2, row=1, rowspan=4)
-chatInput = Label(chatZone)
-chatReadText = Entry(chatInput)
-
-chatSendButton = Button(chatInput, text="Send", command=send_message)
-chatReportButton = Button(chatInput, text="Report", command=send_report)
-
-chatInput.pack(side="bottom")
-chatReadText.grid()
-chatSendButton.grid()
-chatReportButton.grid()
-
-# endregion=Chat Zone
-# endregion=Main Zone
 mainloop()
