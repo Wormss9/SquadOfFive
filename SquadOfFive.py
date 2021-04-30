@@ -152,8 +152,8 @@ class ClientHolder:
 
     def set_picture(self, number, picture):
         photo_image = ImageTk.PhotoImage(Image.frombytes('RGBA', (100, 100), base64.b64decode(picture)))
-        self.player_details_list[number-1][1].photo = photo_image
-        self.player_details_list[number-1][1].configure(image=photo_image)
+        self.player_details_list[number - 1][1].photo = photo_image
+        self.player_details_list[number - 1][1].configure(image=photo_image)
 
     def set_turn(self, turn):
         for frame in self.player_frame_list:
@@ -293,7 +293,7 @@ class ChatZone(Label):
         Label.__init__(self, parent, bg='grey30')
         self.grid(row=row, column=column, rowspan=4)
 
-        self.example = Example(self)
+        self.example = ChatTextFrame(self)
         client_holder.add_line_to_chat = self.example.add_line_to_chat
         self.example.pack(side="top", fill="both", expand=True)
         self.chatInput = Label(self, bg='grey30')
