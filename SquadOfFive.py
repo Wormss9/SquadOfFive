@@ -1,3 +1,4 @@
+import sys
 import base64
 from tkinter import filedialog
 from tkinter import *
@@ -49,6 +50,7 @@ def open_profile_window():
         picture_string = picture_to_string(path)
         if picture_string:
             gameClient.settings.save_picture(picture_string)
+            gameClient.set_picture(picture_string)
             new_photo_image = string_to_image(picture_string)
             player_picture.photo = ImageTk.PhotoImage(new_photo_image)
             player_picture.image = player_picture.photo
@@ -339,6 +341,10 @@ card_width = 70
 
 client_holder = ClientHolder()
 master = MainWindow()
-gameClient = GameClient(client_holder)
 
+
+if len(sys.argv) == 1:
+    gameClient = GameClient(client_holder,"")
+else:
+    gameClient = GameClient(client_holder, str(sys.argv[1]))
 mainloop()
