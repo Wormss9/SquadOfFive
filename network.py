@@ -21,26 +21,18 @@ def bytes_to_dict(received: bytes):
     :param received: bytes
     :return: dict
     """
-    to_handle = (str(received)[3:-2].split("}{"))
+    to_handle = received.decode('utf-8')[1:-1].split("}{")
     translateds = []
     for block in to_handle:
         block = '{' + block + '}'
-        x = 50
-        y = -5
-        if len(block) > x:
-            print("translatig: ", str(block)[:x + y], str(block)[y:])
-        else:
-            print("translatig: ", str(block))
         try:
             translateds.append(json.loads(block))
         except json.decoder.JSONDecodeError as e:
             print_info('bytes_to_dict', str(e))
-            print("bytes_to_dict: ", translateds)
-            return to_dict("bytes_to_dict: ", received)
-
-        if type(json.loads(received.decode())) != dict:
-            raise Exception("Parameter should be convertible to <class 'dict'> not to" + str(type(translateds)))
-
+            print("bytes_to_dict1: ", translateds)
+            print("bytes_to_dict2: ", block)
+            print("bytes_to_dict3: ", json.loads(block))
+            translateds.append(to_dict("bytes_to_dict: ", str(received)))
         return translateds
 
 
@@ -106,7 +98,7 @@ class NetworkServer:
                     print_info("Disconnected from", ip_address)
                     break
             except (socket.error, KeyboardInterrupt) as e:
-                self.server_response_function(to_dict("disconnected", ""), socket_connection.sendall)
+                self.server_response_function([to_dict("disconnected", "")], socket_connection.sendall)
                 socket_connection.close()
                 print(e)
                 break
