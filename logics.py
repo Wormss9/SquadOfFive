@@ -238,8 +238,8 @@ class Play:
 
 
 class GameClient:
-    def __init__(self, client_holder):
-        self.settings = Settings()
+    def __init__(self, client_holder, identifier):
+        self.settings = Settings(identifier)
         self.ip = self.settings.adress
         self.name = self.settings.name
         self.picture = self.settings.picture
@@ -266,7 +266,9 @@ class GameClient:
 
     def set_name(self, name):
         self.name = name
-        return (True, "Name changed to " + name)
+
+    def set_picture(self, picture):
+        self.picture = picture
 
     def respond(self, data):
         for dic in data:
@@ -304,10 +306,9 @@ class GameClient:
             counter = 0
             for player_list in word:
                 self.client_holder.set_players(counter, player_list[0], player_list[1])
+                counter += 1
 
         elif key == 'picture':
-            print("number" + str(word[0]))
-            print("picture in base64" + str(word[1]))
             self.client_holder.set_picture(word[0], word[1])
 
         elif key == 'turn':
@@ -391,6 +392,7 @@ class GameServer:
                     send({'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
                           'hand': player.hand_to_list(), 'players': self.players_name_list(), 'table': return_table,
                           'turn': self.turn}, player.connection)
+                    self.send_to_all()
                     return
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word, connection_to_player)
@@ -399,15 +401,20 @@ class GameServer:
                     for card in self.table:
                         return_table.append([card.suit, card.number])
                     send({'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
-                          'hand': player.hand_to_list(), 'players': self.players_name_list(), 'table': return_table,
+                          'hand': player.hand_to_list(), 'table': return_table,
                           'turn': self.turn}, player.connection)
+                    self.send_to_all(to_dict('players', self.players_name_list()))
                     return
-            send({'connection': False, 'reply': data.name + ' is full'})
+            print(self.players_name_list())
+            send({'connection': False, 'reply': self.name + ' is full'},connection_to_player)
 
         elif key == 'picture':
             for player in self.players:
                 if player.is_connected(connection_to_player):
                     player.picture = word
+                    break
+            for player in self.players:
+                if player.is_connected():
                     self.send_to_all(to_dict('picture', [player.turn_number, player.picture]))
 
 
@@ -472,12 +479,13 @@ class GameServer:
 
 
 class Settings:
-    def __init__(self):
+    def __init__(self, identifier):
+        self.identifier = identifier
         self.name = ""
         self.adress = ""
         self.picture = picture_to_string('graphics/defaultPlayer.png')
         try:
-            with open('settings.txt') as file:
+            with open(str(self.identifier) + 'settings.txt') as file:
                 setting = json.load(file)
                 self.name = setting['name']
                 self.adress = setting['address']
@@ -501,5 +509,5 @@ class Settings:
         data = {"name": self.name,
                 "address": self.adress,
                 "picture": self.picture}
-        with open('settings.txt', 'w') as outfile:
+        with open(str(self.identifier) + 'settings.txt', 'w') as outfile:
             json.dump(data, outfile)
