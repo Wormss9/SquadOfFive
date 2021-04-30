@@ -271,7 +271,12 @@ class GameClient:
     def respond(self, data):
         for dic in data:
             for key in dic:
-                self.process_respondable(key, dic.get(key))
+                if type(dic) == dict:
+                    self.process_respondable(key, dic.get(key))
+                else:
+                    raise Exception(
+                        "Data must be a list of dictionaries \n Data:" + str(data) + "\n Dict:" + str(type(dic)) + str(
+                            dic))
 
     def process_respondable(self, key, word):
         print("Processing: ", key, str(word).replace('\n', ' ')[:50])
@@ -298,14 +303,14 @@ class GameClient:
         elif key == 'players':
             counter = 0
             for player_list in word:
-                self.client_holder.set_players(counter,player_list[0],player_list[1])
+                self.client_holder.set_players(counter, player_list[0], player_list[1])
 
         elif key == 'picture':
             print("number" + str(word[0]))
             print("picture in base64" + str(word[1]))
             self.client_holder.set_picture(word[0], word[1])
 
-        elif key =='turn':
+        elif key == 'turn':
             self.client_holder.set_turn(word)
 
         else:
@@ -338,11 +343,20 @@ class GameServer:
             player.sort_cards()
 
     def next_turn(self):
-        if turn == 4:
-            turn = 1
+        if self.turn == 4:
+            self.turn = 1
         else:
-            turn += 1
-        self.send_to_all({'reply': "It's" + self.players[turn - 1]} + 's turn.')
+            self.turn += 1
+        if hasattr(self.players[self.turn - 1], 'name'):
+            self.send_to_all(to_dict('reply', "It's " + self.players[self.turn - 1].name + "'s turn."))
+        else:
+            self.send_to_all(to_dict('reply', "It's Player" + str(self.turn) + "'s turn."))
+
+    def passs(self):
+        self.pass_counter += 1
+        if self.pass_counter == 4:
+            return True
+        return False
 
     def respond(self, data, connection_to_player):
         for dic in data:
@@ -394,14 +408,14 @@ class GameServer:
             for player in self.players:
                 if player.is_connected(connection_to_player):
                     player.picture = word
-                    self.send_to_all(to_dict('picture',[player.turn_number,player.picture]))
+                    self.send_to_all(to_dict('picture', [player.turn_number, player.picture]))
 
 
         elif key == 'chat':
             for player in self.players:
                 if player.is_connected(connection_to_player):
                     self.chat += player.name + ": " + word + '\n'
-                    self.send_to_all(to_dict("chat", player.name + ": " + word + "\n"))
+                    self.send_to_all(to_dict("chat", player.name + ": " + word))
 
         elif key == 'disconnected':
             for player in self.players:
@@ -417,18 +431,14 @@ class GameServer:
         elif key == 'pass':
             for player in self.players:
                 if player.is_connected(connection_to_player) and player.my_turn():
+                    if self.passs():
+                        self.table = []
+                        self.send_to_all(to_dict("table", self.table))
                     self.next_turn()
+                    self.send_to_all(to_dict('turn', self.turn))
 
 
-
-        else:
-            print("Unknown key ", key, " : ", word)
-
-    def old_process_respondable(self, key, word, connection_to_player):
-        print("Old Processing: ", key, str(word).replace('\n', ' '), str(connection_to_player)[-19:-1])
-        # todo revirk login to name and player and send apropriate data a aproprite times including turn
-
-        if key == 'play':
+        elif key == 'play':
             for player in self.players:
                 if player.is_connected(connection_to_player) and player.my_turn():
                     play_list = []
@@ -456,8 +466,9 @@ class GameServer:
                     if player.is_connected(connection_to_player):
                         send(to_dict("reply", "Not your turn"), player.connection)
 
+
         else:
-            print("unknown '", key, "' ", word)
+            print("Unknown key ", key, " : ", word)
 
 
 class Settings:
