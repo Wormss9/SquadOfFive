@@ -130,7 +130,8 @@ class ClientHolder:
                                                                 indicatoron=False,
                                                                 onvalue=counter - 1,
                                                                 offvalue=-1,
-                                                                variable=self.selected_cards[counter - 1][1]))
+                                                                variable=self.selected_cards[counter - 1][1],
+                                                                bg='grey20'))
             self.selected_cards[counter - 1][4].grid(row=1, column=counter)
             counter += 1
 
@@ -141,7 +142,7 @@ class ClientHolder:
             child.destroy()
         counter = 1
         for card_p in self.table:
-            card_image = Label(self.card_on_table)
+            card_image = Label(self.card_on_table, bg='grey30')
             card_image.grid(row=1, column=counter)
             counter += 1
             photo = ImageTk.PhotoImage(
@@ -157,12 +158,12 @@ class ClientHolder:
     def set_turn(self, turn):
         for frame in self.player_frame_list:
             frame.configure(bg='grey20')
-        self.player_frame_list[turn - 1].config(bg="brown")
+        self.player_frame_list[turn - 1].config(bg="gold2")
         for player_details in self.player_details_list:
             for player_detail in player_details:
                 player_detail.configure(bg='grey20')
         for player_detail in self.player_details_list[turn - 1]:
-            player_detail.configure(bg='brown')
+            player_detail.configure(bg='gold2')
 
 
 class MainMenu(Menu):
@@ -211,14 +212,14 @@ class PlayerZone(Label):
 class TableZone(Label):
     # todo cards
     def __init__(self, parent, row, column):
-        Label.__init__(self, parent)
+        Label.__init__(self, parent, bg='grey30')
         self.grid(row=row, column=column)
         client_holder.card_on_table = self
 
 
 class DeckZone(Label):
     def __init__(self, parent, row, column):
-        Label.__init__(self, parent, bg="lightGrey")
+        Label.__init__(self, parent, bg='grey30')
         self.grid(row=row, column=column)
         client_holder.cards_on_hand = self
 
@@ -236,26 +237,26 @@ class DeckButtonZone(Label):
         gameClient.send({"play": play})
 
     def __init__(self, parent, row, column):
-        Label.__init__(self, parent, relief='sunken')
+        Label.__init__(self, parent, relief='sunken', bg='grey30', fg='lime')
         self.grid(row=row, column=column, sticky='we')
-        self.deckButton_zone_passButton = Button(self, text="Pass", command=self.pass_button)
+        self.deckButton_zone_passButton = Button(self, text="Pass", command=self.pass_button, bg='grey20', fg='lime')
         self.deckButton_zone_passButton.grid(row=1, column=1)
-        self.deckButton_zone_playButton = Button(self, text="Play", command=self.play_button)
+        self.deckButton_zone_playButton = Button(self, text="Play", command=self.play_button, bg='grey20', fg='lime')
         self.deckButton_zone_playButton.grid(row=1, column=2, sticky='we')
 
 
 class StatusBar(Label):
     def __init__(self, parent, row, column):
-        Label.__init__(self, parent, text="Welcome", relief='sunken')
+        Label.__init__(self, parent, text="Welcome", relief='sunken', bg='grey20', fg='lime')
         self.grid(row=row, column=column, columnspan=2, sticky='we')
         client_holder.status_bar = self
 
 
-class Example(Frame):
+class ChatTextFrame(Frame):
     def __init__(self, parent):
         Frame.__init__(self, parent)
-        self.canvas = Canvas(self, borderwidth=0, background="#ffffff")
-        self.frame = Frame(self.canvas, background="#ffffff")
+        self.canvas = Canvas(self, borderwidth=0, bg='grey20')
+        self.frame = Frame(self.canvas, bg='grey20')
         self.vsb = Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.vsb.set)
 
@@ -265,18 +266,18 @@ class Example(Frame):
                                   tags="self.frame")
 
         self.frame.bind("<Configure>", self.on_frame_configure)
-        self.textArea = Label(self.frame)
-        self.textArea.grid()
+        self.textArea = Label(self.frame, bg='grey20', fg='lime')
+        self.textArea.grid(sticky=W)
 
     def add_line_to_chat(self, text):
-        self.textArea['text'] += text
+        self.textArea['text'] += text + "\n"
 
     def on_frame_configure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
 
 class ChatZone(Label):
-    example: Example
+    example: ChatTextFrame
     chatReadText: Entry
     chatInput: Label
     chatSendButton: Button
@@ -289,17 +290,17 @@ class ChatZone(Label):
         gameClient.send({"report": ""})
 
     def __init__(self, parent, row, column):
-        Label.__init__(self, parent, bg="lightGrey")
+        Label.__init__(self, parent, bg='grey30')
         self.grid(row=row, column=column, rowspan=4)
 
         self.example = Example(self)
         client_holder.add_line_to_chat = self.example.add_line_to_chat
         self.example.pack(side="top", fill="both", expand=True)
-        self.chatInput = Label(self)
+        self.chatInput = Label(self, bg='grey30')
         self.chatReadText = Entry(self.chatInput)
 
-        self.chatSendButton = Button(self.chatInput, text="Send", command=self.send_message)
-        self.chatReportButton = Button(self.chatInput, text="Report", command=self.send_report)
+        self.chatSendButton = Button(self.chatInput, text="Send", bg='grey20', fg='lime', command=self.send_message)
+        self.chatReportButton = Button(self.chatInput, text="Report", bg='grey20', fg='lime', command=self.send_report)
 
         self.chatInput.pack(side="bottom")
         self.chatReadText.grid()
@@ -319,7 +320,7 @@ class MainWindow(Tk):
     def __init__(self):
         Tk.__init__(self)
         self.title("Squad of Five")
-        self.configure(bg='grey')
+        self.configure(bg='grey30')
         self.iconbitmap('graphics/icon.ico')
 
         self.main_menu = MainMenu(self)
