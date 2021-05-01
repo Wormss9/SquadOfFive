@@ -147,7 +147,8 @@ class NetworkClient:
             try:
                 data = self.connection_socket.recv(1024 * self.packet_size)
                 if data:
-                    self.response_function(bytes_to_dict(data))
+                    start_new_thread(self.response_function, (bytes_to_dict(data),))
+                    #self.response_function(bytes_to_dict(data))
                 else:
                     print("Disconnected: ", str(self.server_address))
                     break
