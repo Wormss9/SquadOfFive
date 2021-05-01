@@ -171,12 +171,12 @@ class Play:
     """Defines the cards on the table and the ones you are putting on it."""
 
     def __init__(self, cards: [Card]):
-        if len(cards) == 0:
-            raise Exception("Play musts contain cards." + str(cards))
         self.cards = cards
         self.cards.sort()
 
     def value(self):
+        if len(cards) == 0:
+            return 0
         flush = True
         straight = True
         same = True
