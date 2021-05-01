@@ -262,7 +262,7 @@ class Play:
             old_card = self.cards[0]
             tercfirst = True
             for x in range(3):
-                if self.cards[x].color != old_card.color:
+                if self.cards[x].suit != old_card.suit:
                     tercfirst = False
                     break
                 old_card = self.cards[x]
@@ -276,7 +276,7 @@ class Play:
             old_card = other.cards[0]
             tercfirst = True
             for x in range(3):
-                if other.cards[x].color != old_card.color:
+                if other.cards[x].suit != old_card.suit:
                     tercfirst = False
                     break
                 old_card = other.cards[x]
@@ -286,12 +286,16 @@ class Play:
             else:
                 other_terc = other.cards[2:5]
                 other_pair = other.cards[0:2]
-            for mc, oc in zip(my_terc.reverse(), other_terc.reverse()):
+                my_terc.reverse()
+                other_terc.reverse()
+            for mc, oc in zip(my_terc, other_terc):
                 if mc > oc:
                     return True
                 if mc < oc:
                     return False
-            for mc, oc in zip(my_pair.reverse(), other_pair.reverse()):
+                my_pair.reverse()
+                other_pair.reverse()
+            for mc, oc in zip(my_pair, other_pair):
                 if mc > oc:
                     return True
                 if mc < oc:
