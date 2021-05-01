@@ -30,10 +30,40 @@ class TestPlayComparing(unittest.TestCase):
         self.assertEqual(Play([Card(1, 1), Card(1, 1), Card(2, 1), Card(2, 1), Card(3, 1)]).value(), 9)
 
     def testFullHouses(self):
+        self.assertEqual(Play([Card(1, 4), Card(4, 4), Card(3, 7), Card(3, 7), Card(4, 7)]).value(), 6)
+        self.assertEqual(Play([Card(2, 3), Card(3, 3), Card(4, 6), Card(3, 6), Card(2, 6)]).value(), 6)
+        self.assertEqual(Play([Card(1, 4), Card(4, 4), Card(3, 7), Card(3, 7), Card(4, 7)]).value(), 6)
+        self.assertEqual(Play([Card(2, 3), Card(3, 3), Card(4, 6), Card(3, 6), Card(2, 6)]).value(), 6)
+        self.assertEqual(Play([Card(1, 5), Card(4, 5), Card(2, 5), Card(1, 2), Card(4, 2)]).value(), 6)
+        self.assertEqual(Play([Card(4, 11), Card(4, 11), Card(4, 9), Card(3, 9), Card(3, 9)]).value(), 6)
+        self.assertEqual(Play([Card(1, 5), Card(4, 5), Card(2, 5), Card(1, 2), Card(4, 2)]).value(), 6)
+        self.assertEqual(Play([Card(4, 11), Card(4, 11), Card(4, 9), Card(3, 9), Card(3, 9)]).value(), 6)
+        self.assertEqual(Play([Card(1, 10), Card(4, 10), Card(3, 10), Card(3, 1), Card(4, 1)]).value(), 6)
+        self.assertEqual(Play([Card(1, 10), Card(4, 10), Card(4, 10), Card(3, 1), Card(2, 1)]).value(), 6)
+        self.assertEqual(Play([Card(1, 10), Card(4, 10), Card(3, 10), Card(3, 1), Card(4, 1)]).value(), 6)
+        self.assertEqual(Play([Card(1, 10), Card(4, 10), Card(4, 10), Card(3, 1), Card(2, 1)]).value(), 6)
+        self.assertEqual(Play([Card(1, 1), Card(4, 1), Card(3, 1), Card(3, 7), Card(4, 7)]).value(), 6)
+        self.assertEqual(Play([Card(2, 1), Card(3, 1), Card(4, 3), Card(3, 3), Card(2, 3)]).value(), 6)
+        self.assertEqual(Play([Card(1, 1), Card(4, 1), Card(3, 1), Card(3, 7), Card(4, 7)]).value(), 6)
+        self.assertEqual(Play([Card(2, 1), Card(3, 1), Card(4, 3), Card(3, 3), Card(2, 3)]).value(), 6)
+
+    def testFullHouseComparison(self):
         self.assertEqual(Play([Card(1, 4), Card(4, 4), Card(3, 7), Card(3, 7), Card(4, 7)]) > Play(
             [Card(2, 3), Card(3, 3), Card(4, 6), Card(3, 6), Card(2, 6)]), True)
         self.assertEqual(Play([Card(1, 4), Card(4, 4), Card(3, 7), Card(3, 7), Card(4, 7)]) < Play(
             [Card(2, 3), Card(3, 3), Card(4, 6), Card(3, 6), Card(2, 6)]), False)
+        self.assertEqual(Play([Card(1, 5), Card(4, 5), Card(2, 5), Card(1, 2), Card(4, 2)]) < Play(
+            [Card(4, 11), Card(4, 11), Card(4, 9), Card(3, 9), Card(3, 9)]), True)
+        self.assertEqual(Play([Card(1, 5), Card(4, 5), Card(2, 5), Card(1, 2), Card(4, 2)]) > Play(
+            [Card(4, 11), Card(4, 11), Card(4, 9), Card(3, 9), Card(3, 9)]), False)
+        self.assertEqual(Play([Card(1, 10), Card(4, 10), Card(3, 10), Card(3, 1), Card(4, 1)]) < Play(
+            [Card(1, 10), Card(4, 10), Card(4, 10), Card(3, 1), Card(2, 1)]), True)
+        self.assertEqual(Play([Card(1, 10), Card(4, 10), Card(3, 10), Card(3, 1), Card(4, 1)]) > Play(
+            [Card(1, 10), Card(4, 10), Card(4, 10), Card(3, 1), Card(2, 1)]), False)
+        self.assertEqual(Play([Card(1, 1), Card(4, 1), Card(3, 1), Card(3, 7), Card(4, 7)]) > Play(
+            [Card(2, 1), Card(3, 1), Card(4, 3), Card(3, 3), Card(2, 3)]), True)
+        self.assertEqual(Play([Card(1, 1), Card(4, 1), Card(3, 1), Card(3, 7), Card(4, 7)]) < Play(
+            [Card(2, 1), Card(3, 1), Card(4, 3), Card(3, 3), Card(2, 3)]), False)
 
 
 if __name__ == '__main__':
