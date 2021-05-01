@@ -63,8 +63,8 @@ def send(response: dict, connection_socket):
     try:
         connection_socket(dict_to_bytes(response))
         print_type("Network.send", response)
-    except error as e:
-        print_info("Network.send", e)
+    except ConnectionResetError as e:
+        print_info("Network.send.reset", e)
 
 
 class NetworkServer:
@@ -148,7 +148,7 @@ class NetworkClient:
                 data = self.connection_socket.recv(1024 * self.packet_size)
                 if data:
                     start_new_thread(self.response_function, (bytes_to_dict(data),))
-                    #self.response_function(bytes_to_dict(data))
+                    # self.response_function(bytes_to_dict(data))
                 else:
                     print("Disconnected: ", str(self.server_address))
                     break
