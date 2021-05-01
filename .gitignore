@@ -1,6 +1,6 @@
 #Non default
 .idea
-settings.txt
+*settings.txt
 build
 dist
 # Byte-compiled / optimized / DLL files

@@ -1,10 +1,15 @@
+import json
 import random
-from network import *
+from network import NetworkServer, NetworkClient, to_dict, send
+from _thread import start_new_thread, error
+from PIL import Image, ImageTk, UnidentifiedImageError
+from tkinter import PhotoImage
+import base64
 
 playPowerDic = {1: "single",
                 2: "pair",
                 3: "three of a kind",
-                4: "straight suite",
+                4: "straight",
                 5: "flush",
                 6: "full house",
                 7: "straight flush",
@@ -13,6 +18,29 @@ playPowerDic = {1: "single",
                 10: "gang of six",
                 11: "gang of seven"
                 }
+
+photo_size = 100
+
+
+def picture_to_string(path):
+    try:
+        a = Image.open(path).convert('RGBA')
+    except AttributeError:
+        return False
+    except UnidentifiedImageError:
+        return False
+    b = a.resize((100, 100))
+    c = b.tobytes()
+    d = base64.b64encode(c)
+    e = d.decode()
+    return e
+
+
+def string_to_image(photo_string):
+    a = photo_string.encode()
+    b = base64.b64decode(a)
+    c = Image.frombytes('RGBA', (100, 100), b)
+    return c
 
 
 class Card:
@@ -23,7 +51,7 @@ class Card:
         # __init__ je konstruktor => on vytvara instanciu objektu premenna = Card()
         self.suit = suit
         self.number = number
-        self.image = self.suitDict[self.suit] + str(number).zfill(2) + ".png"
+        self.image = self.suitDict[self.suit] + str(number).zfill(2)
 
     def __str__(self):
         """Returns name of card"""
@@ -48,20 +76,26 @@ class Card:
             return False
         return NotImplemented
 
+    def to_list(self):
+        return [self.suit, self.number]
+
 
 class Player:
     """Player as recognized by the server"""
 
-    def __init__(self):
+    def __init__(self, turn_number, server_turn):
         self.name: str
         self.hand = []
         self.connection: socket.socket
         self.connected = False
+        self.turn_number = turn_number
+        self.server_turn = server_turn
+        self.picture = picture_to_string('graphics/defaultPlayer.png')
 
     def __str__(self):
         return self.name
 
-    def connect(self, name: str, connection: socket.socket):
+    def connect(self, name: str, connection):
         self.name = name
         self.connection = connection
         self.connected = True
@@ -81,12 +115,15 @@ class Player:
             hand_list.append([card.suit, card.number])
         return hand_list
 
-    def is_connected(self,connection_to_player=False):
+    def is_connected(self, connection_to_player=False):
         if hasattr(self, 'connection') and self.connected:
             if connection_to_player:
-                return connection_to_player==self.connection
+                return connection_to_player == self.connection
             return True
         return False
+
+    def my_turn(self):
+        return self.turn_number == self.server_turn
 
 
 class Deck:
@@ -134,116 +171,214 @@ class Play:
     """Defines the cards on the table and the ones you are putting on it."""
 
     def __init__(self, cards: [Card]):
+        if len(cards) == 0:
+            raise Exception("Play musts contain cards." + str(cards))
         self.cards = cards
+        self.cards.sort()
 
     def value(self):
-        self.cards.sort()
-        flush = False
-        straight = False
+        flush = True
+        straight = True
+        same = True
+        # region same
+        current_number = self.cards[0].number
+        for card in self.cards:
+            if card.number != current_number:
+                same = False
+                break
+        # endregion same
         """Returns the value of the hand. Usefull for comparison. Needed for first play."""
         # finding out wether you have suit or a flush because they have no expressive value alone
         if len(self.cards) == 5:
-            if self.cards[0].suit == self.cards[1].suit == self.cards[2].suit == self.cards[3].suit == self.cards[
-                4].suit:
-                flush = True
-            if self.cards[4].number == self.cards[3].number + 1 == self.cards[2].number + 2 == self.cards[
-                1].number + 3 == self.cards[0].number + 4:
-                straight = True
+            # region flush
+            if self.cards[0].suit == 4:
+                current_suit = self.cards[1].suit
+            else:
+                current_suit = self.cards[0].suit
+            for card in self.cards:
+                if card.suit != current_suit and card.suit != 4:
+                    flush = False
+                    break
+            # endregion flush
+            # region straight
+            current_suit = self.cards[0].suit
+            old_number = self.cards[0].number - 1
+            for card in self.cards:
+                if card.number != old_number + 1:
+                    straight = False
+                    break
+                old_number += 1
+            # endregion straight
         # 1: "single"
         if len(self.cards) == 1:
             return 1
         # 2: "pair"
-        if len(self.cards) == 2 and self.cards[0].number == self.cards[1].number:
+        if len(self.cards) == 2 and same:
             return 2
         # 3: "three of a kind"
-        if len(self.cards) == 3 and self.cards[0].number == self.cards[1].number == self.cards[2].number:
+        if len(self.cards) == 3 and same:
             return 3
         # 4: "straight"
-        if straight and not flush:
+        if straight and not flush and len(self.cards) == 5:
             return 4
-        # 5: "flush"
-        if flush and not straight:
-            return 5
-        # todo 6: "full house"
-
         # 7: "straight flush"
-        if flush and straight:
+        if flush and straight and len(self.cards) == 5:
             return 7
-        # 8: "gang of four"
-        if len(self.cards) == 4:
-            pass
         # 9: "gang of five"
-        if len(self.cards) == 5:
-            pass
+        if len(self.cards) == 5 and same:
+            return 9
+        # 6: "full house"
+        if len(self.cards) == 5 and ((Play(self.cards[0:2]).value() == 2 and Play(self.cards[2:5]).value() == 3) or (
+                Play(self.cards[3:5]).value() == 2 and Play(self.cards[0:3]).value() == 3)):
+            return 6
+        # 5: "flush"
+        if flush and not straight and len(self.cards) == 5:
+            return 5
+        # 8: "gang of four"
+        if len(self.cards) == 4 and same:
+            return 8
         # 10: "gang of six"
-        if len(self.cards) == 6:
-            pass
+        if len(self.cards) == 6 and same:
+            return 10
         # 11: "gang of seven"
-        if len(self.cards) == 7:
-            pass
+        if len(self.cards) == 7 and same:
+            return 11
         return 0
 
     def __gt__(self, other):
-        my_case = puttable_on_empty_table(self)
-        other_case = puttable_on_empty_table(other)
-        if my_case == other_case == 1:
-            return self.cards[0] > other.cards[0]
-        if my_case == other_case == 2:
-            # not comparing all card by color
-            return self.cards[0] > other.cards[0]
-        if my_case == other_case == 3:
-            # not comparing all card by color
-            return self.cards[0] > other.cards[0]
-        # todo
+        my_case = self.value()
+        other_case = other.value()
+        # compares different 5 card combinations
+        if my_case > other_case and 4 >= other_case > 7 and 4 > my_case > 7:
+            return True
+        # compares same card number combinations
+        if my_case == other_case != 6:
+            for mc, oc in zip(self.cards.reverse(), other.cards.reverse()):
+                if mc > oc:
+                    return True
+                if mc < oc:
+                    return False
+        if my_case == other_case == 6:
+            old_card = self.cards[0]
+            tercfirst = True
+            for x in range(3):
+                if self.cards[x].suit != old_card.suit:
+                    tercfirst = False
+                    break
+                old_card = self.cards[x]
+            if tercfirst:
+                my_terc = self.cards[0:3]
+                my_pair = self.cards[3:5]
+            else:
+                my_terc = self.cards[2:5]
+                my_pair = self.cards[0:2]
+
+            old_card = other.cards[0]
+            tercfirst = True
+            for x in range(3):
+                if other.cards[x].suit != old_card.suit:
+                    tercfirst = False
+                    break
+                old_card = other.cards[x]
+            if tercfirst:
+                other_terc = other.cards[0:3]
+                other_pair = other.cards[3:5]
+            else:
+                other_terc = other.cards[2:5]
+                other_pair = other.cards[0:2]
+                my_terc.reverse()
+                other_terc.reverse()
+            for mc, oc in zip(my_terc, other_terc):
+                if mc > oc:
+                    return True
+                if mc < oc:
+                    return False
+                my_pair.reverse()
+                other_pair.reverse()
+            for mc, oc in zip(my_pair, other_pair):
+                if mc > oc:
+                    return True
+                if mc < oc:
+                    return False
         return False
 
 
 class GameClient:
-    def __init__(self, client_holder):
-        self.settings = Settings()
+    def __init__(self, client_holder, identifier):
+        self.settings = Settings(identifier)
         self.ip = self.settings.adress
         self.name = self.settings.name
+        self.picture = self.settings.picture
         self.hand = []
         self.connection: NetworkClient
         self.client_holder = client_holder
+        self.status_bar: Label
 
     def connect(self, ip):
         try:
             self.connection = NetworkClient(response_function=self.respond, server_ip=ip)
             self.connection.connect()
-            self.connection.send(to_dict('name', self.name))
+            self.connection.send({'name': self.name, 'picture': self.picture})
         except error as e:
-            print_type("GameClient.connect", e)
+            print("GameClient.connect ", e)
             return (False, "Connection failed")
         return (True, "Connected")
 
     def send(self, message: dict):
-        self.connection.send(message)
+        try:
+            self.connection.send(message)
+        except AttributeError:
+            self.client_holder.status_bar['text'] = "Not connected."
 
     def set_name(self, name):
         self.name = name
-        return (True, "Name changed to " + name)
+
+    def set_picture(self, picture):
+        self.picture = picture
 
     def respond(self, data):
-        for key in data:
-            self.process_respondable(key, data.get(key))
+        for dic in data:
+            for key in dic:
+                if type(dic) == dict:
+                    self.process_respondable(key, dic.get(key))
+                else:
+                    raise Exception(
+                        "Data must be a list of dictionaries \n Data:" + str(data) + "\n Dict:" + str(type(dic)) + str(
+                            dic))
 
     def process_respondable(self, key, word):
-        print("Processing: ", key, str(word).replace('\n', ' '))
+        print("Processing: ", key, str(word).replace('\n', ' ')[:50])
 
         if key == 'chat':
             self.client_holder.chat += word
             self.client_holder.add_line_to_chat(word)
 
-        if key == 'reply':
+        elif key == 'reply':
             self.client_holder.status_bar['text'] = word
 
-        if key == 'hand' or key == 'table':
+        elif key == 'hand':
             self.client_holder.hand = []
             for card_list in word:
                 self.client_holder.hand.append(Card(card_list[0], card_list[1]))
-            self.client_holder.show_cards(key)
+            self.client_holder.show_cards_hand()
 
+        elif key == 'table':
+            self.client_holder.table = []
+            for card_list in word:
+                self.client_holder.table.append(Card(card_list[0], card_list[1]))
+            self.client_holder.show_card_table()
+
+        elif key == 'players':
+            counter = 0
+            for player_list in word:
+                self.client_holder.set_players(counter, player_list[0], player_list[1])
+                counter += 1
+
+        elif key == 'picture':
+            self.client_holder.set_picture(word[0], word[1])
+
+        elif key == 'turn':
+            self.client_holder.set_turn(word)
 
         else:
             print('Unknown: "', key, '"')
@@ -253,76 +388,173 @@ class GameServer:
     def __init__(self, name):
         self.network = NetworkServer(server_response_function=self.respond)
         self.name = name
-        self.players = [Player(), Player(), Player(), Player()]
+        self.turn = random.randrange(1, 5)
+        self.players = []
+        for x in range(4):
+            self.players.append(Player(x + 1, self.turn))
         self.chat = ""
         Deck(self.players)
+        self.table = []
+        self.pass_counter = 0
         for player in self.players:
             player.sort_cards()
 
+    def restart(self, turn):
+        self.turn = turn
+        for player in self.players:
+            player.hand = []
+        Deck(self.players)
+        self.table = []
+        for player in self.players:
+            player.sort_cards()
+
+    def next_turn(self):
+        if self.turn == 4:
+            self.turn = 1
+        else:
+            self.turn += 1
+        if hasattr(self.players[self.turn - 1], 'name'):
+            self.send_to_all(to_dict('reply', "It's " + self.players[self.turn - 1].name + "'s turn."))
+        else:
+            self.send_to_all(to_dict('reply', "It's Player" + str(self.turn) + "'s turn."))
+
+    def passs(self):
+        self.pass_counter += 1
+        if self.pass_counter == 4:
+            return True
+        return False
+
     def respond(self, data, connection_to_player):
-        for key in data:
-            self.process_respondable(key, data.get(key), connection_to_player)
+        for dic in data:
+            print("bock di:", type(dic), dic)
+            for key in dic:
+                self.process_respondable(key, dic.get(key), connection_to_player)
+
+    def players_name_list(self):
+        name_list = []
+        for player in self.players:
+            if hasattr(player, 'name'):
+                name_list.append([player.name, len(player.hand)])
+            else:
+                break
+        return name_list
+
+    def send_to_all(self, message):
+        for player in self.players:
+            if player.is_connected():
+                send(message, player.connection)
 
     def process_respondable(self, key, word, connection_to_player):
-        print("Processing: ", key, str(word).replace('\n', ' '), connection_to_player)
-
+        print("Processing: ", key, str(word).replace('\n', ' '), str(connection_to_player)[-19:-1])
         if key == 'name':
             for player in self.players:
                 if not player.connected and hasattr(player, 'name') and player.name == word:
                     player.connect(word, connection_to_player)
                     print(word + " reconnected.")
-                    self.network.send(
-                        {'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
-                         'hand': player.hand_to_list()}, player.connection)
+                    return_table = []
+                    for card in self.table:
+                        return_table.append([card.suit, card.number])
+                    send({'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
+                          'hand': player.hand_to_list(), 'players': self.players_name_list(), 'table': return_table,
+                          'turn': self.turn}, player.connection)
+                    self.send_to_all()
                     return
-            for player in self.players:
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word, connection_to_player)
                     print(word + " connected.")
-                    self.network.send(
-                        {'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
-                         'hand': player.hand_to_list()}, player.connection)
+                    return_table = []
+                    for card in self.table:
+                        return_table.append([card.suit, card.number])
+                    send({'connection': True, 'reply': word + ' connected to ' + self.name, 'chat': self.chat,
+                          'hand': player.hand_to_list(), 'table': return_table,
+                          'turn': self.turn}, player.connection)
+                    self.send_to_all(to_dict('players', self.players_name_list()))
                     return
-            self.network.send({connection: False,
-                               'reply': data.name + ' is full'})
+            print(self.players_name_list())
+            send({'connection': False, 'reply': self.name + ' is full'}, connection_to_player)
+
+        elif key == 'picture':
+            for player in self.players:
+                if player.is_connected(connection_to_player):
+                    player.picture = word
+                    break
+            for player in self.players:
+                if player.is_connected():
+                    self.send_to_all(to_dict('picture', [player.turn_number, player.picture]))
 
 
         elif key == 'chat':
-            name = "Anon"
             for player in self.players:
                 if player.is_connected(connection_to_player):
-                    name = player.name
-            self.chat += name + ": " + str(word).replace('\n', '    \n') + '\n'
-            for player in self.players:
-                if player.is_connected():
-                    self.network.send(to_dict("chat", "\n" + name + ": " + word), player.connection)
-
+                    self.chat += player.name + ": " + word + '\n'
+                    self.send_to_all(to_dict("chat", player.name + ": " + word))
 
         elif key == 'disconnected':
             for player in self.players:
-                if hasattr(player, 'connection') and player.connected and player.connection == connection_to_player:
+                if player.is_connected(connection_to_player):
                     player.disconnect()
+                    self.send_to_all(to_dict('reply', player.name + " disconnected."))
 
         elif key == 'report':
             for player in self.players:
                 if player.is_connected(connection_to_player):
-                    name = player.name
-                for player in self.players:
-                    if player.is_connected():
-                        self.network.send(to_dict("reply", name + " reported himself"), player.connection)
+                    self.send_to_all(to_dict("reply", player.name + " reported himself"))
+
+        elif key == 'pass':
+            for player in self.players:
+                if player.is_connected(connection_to_player) and player.my_turn():
+                    if self.passs():
+                        self.table = []
+                        self.send_to_all(to_dict("table", self.table))
+                    self.next_turn()
+                    self.send_to_all(to_dict('turn', self.turn))
+
+
+        elif key == 'play':
+            for player in self.players:
+                if player.is_connected(connection_to_player) and player.my_turn():
+                    play_list = []
+                    for card_list in word:
+                        play_list.append(Card(card_list[0], card_list[1]))
+                    play = Play(play_list)
+                    if play.value() and play > Play(self.table):
+                        self.table = play_list.copy()
+                        self.next_turn()
+                        for player in self.players:
+                            if player.is_connected(connection_to_player):
+                                player.hand = [card for card in player.hand if
+                                               not card in play_list or play_list.remove(card)]
+                                send({'hand': player.hand_to_list()}, connection_to_player)
+                                return_table = []
+                                for card in self.table:
+                                    return_table.append([card.suit, card.number])
+                                self.send_to_all({"table": return_table, 'players': self.players_name_list()})
+
+                    else:
+                        for player in self.players:
+                            if player.is_connected(connection_to_player):
+                                send(to_dict("reply", "Bad play"), player.connection)
+                else:
+                    if player.is_connected(connection_to_player):
+                        send(to_dict("reply", "Not your turn"), player.connection)
+
+
         else:
-            print("unknown ", key, " ", word)
+            print("Unknown key ", key, " : ", word)
 
 
 class Settings:
-    def __init__(self):
+    def __init__(self, identifier):
+        self.identifier = identifier
         self.name = ""
         self.adress = ""
+        self.picture = picture_to_string('graphics/defaultPlayer.png')
         try:
-            with open('settings.txt') as file:
+            with open(str(self.identifier) + 'settings.txt') as file:
                 setting = json.load(file)
                 self.name = setting['name']
                 self.adress = setting['address']
+                self.picture = setting['picture']
         except:
             pass
 
@@ -334,8 +566,13 @@ class Settings:
         self.name = name
         self.saveToFile()
 
+    def save_picture(self, picture):
+        self.picture = picture
+        self.saveToFile()
+
     def saveToFile(self):
         data = {"name": self.name,
-                "address": self.adress}
-        with open('settings.txt', 'w') as outfile:
+                "address": self.adress,
+                "picture": self.picture}
+        with open(str(self.identifier) + 'settings.txt', 'w') as outfile:
             json.dump(data, outfile)
