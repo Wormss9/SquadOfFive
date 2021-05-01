@@ -1,3 +1,4 @@
+
 import sys
 import base64
 from tkinter import filedialog
@@ -22,6 +23,7 @@ def open_login_window():
     global gameClient
     status_bar_text = StringVar()
     login_window = Toplevel(master)
+
     login_window.configure(bg='grey')
     login_window.iconbitmap('graphics/icon.ico')
     login_window.title("Connect")
@@ -59,9 +61,11 @@ def open_profile_window():
         else:
             status_bar_text.set("Bad image")
 
+
     global gameClient
     status_bar_text = StringVar()
     name_window = Toplevel(master)
+
     name_window.configure(bg='grey')
     name_window.iconbitmap('graphics/icon.ico')
     name_window.title("Nick")
@@ -69,6 +73,7 @@ def open_profile_window():
     address = Entry(name_window)
     address.insert(END, str(gameClient.settings.name))
     address.grid(row=1, column=2)
+
     name_button = Button(name_window, text="Change name")
     name_button['command'] = lambda: command_button(address.get())
     name_button.grid(row=2, column=1, columnspan=2)
@@ -90,6 +95,7 @@ def host_game():
         gameClient.connect("127.0.0.1")
     finally:
         gameClient.client_holder.status_bar['text'] = "Can't host server"
+
 
 
 def start_server(game_server):
@@ -259,6 +265,7 @@ class ChatTextFrame(Frame):
         Frame.__init__(self, parent)
         self.canvas = Canvas(self, borderwidth=0, bg='grey20')
         self.frame = Frame(self.canvas, bg='grey20')
+
         self.vsb = Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.canvas.configure(yscrollcommand=self.vsb.set)
 
@@ -268,6 +275,7 @@ class ChatTextFrame(Frame):
                                   tags="self.frame")
 
         self.frame.bind("<Configure>", self.on_frame_configure)
+
         self.textArea = Label(self.frame, bg='grey20', fg='lime')
         self.textArea.grid(sticky=W)
 
