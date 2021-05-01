@@ -1,4 +1,3 @@
-
 import sys
 import base64
 from tkinter import filedialog
@@ -61,7 +60,6 @@ def open_profile_window():
         else:
             status_bar_text.set("Bad image")
 
-
     global gameClient
     status_bar_text = StringVar()
     name_window = Toplevel(master)
@@ -95,7 +93,6 @@ def host_game():
         gameClient.connect("127.0.0.1")
     finally:
         gameClient.client_holder.status_bar['text'] = "Can't host server"
-
 
 
 def start_server(game_server):
@@ -350,9 +347,8 @@ card_width = 70
 client_holder = ClientHolder()
 master = MainWindow()
 
-
 if len(sys.argv) == 1:
-    gameClient = GameClient(client_holder,"")
+    gameClient = GameClient(client_holder, "")
 else:
     gameClient = GameClient(client_holder, str(sys.argv[1]))
 mainloop()
