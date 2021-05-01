@@ -221,9 +221,6 @@ class Play:
         # 4: "straight"
         if straight and not flush and len(self.cards) == 5:
             return 4
-        # 5: "flush"
-        if flush and not straight and len(self.cards) == 5:
-            return 5
         # 7: "straight flush"
         if flush and straight and len(self.cards) == 5:
             return 7
@@ -234,6 +231,9 @@ class Play:
         if len(self.cards) == 5 and ((Play(self.cards[0:2]).value() == 2 and Play(self.cards[2:5]).value() == 3) or (
                 Play(self.cards[3:5]).value() == 2 and Play(self.cards[0:3]).value() == 3)):
             return 6
+        # 5: "flush"
+        if flush and not straight and len(self.cards) == 5:
+            return 5
         # 8: "gang of four"
         if len(self.cards) == 4 and same:
             return 8
