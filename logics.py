@@ -9,7 +9,7 @@ import base64
 playPowerDic = {1: "single",
                 2: "pair",
                 3: "three of a kind",
-                4: "straight suite",
+                4: "straight",
                 5: "flush",
                 6: "full house",
                 7: "straight flush",
@@ -171,69 +171,131 @@ class Play:
     """Defines the cards on the table and the ones you are putting on it."""
 
     def __init__(self, cards: [Card]):
+        if len(cards) == 0:
+            raise Exception("Play musts contain cards." + str(cards))
         self.cards = cards
+        self.cards.sort()
 
     def value(self):
-        self.cards.sort()
-        flush = False
-        straight = False
+        flush = True
+        straight = True
+        same = True
+        # region same
+        current_number = self.cards[0].number
+        for card in self.cards:
+            if card.number != current_number:
+                same = False
+                break
+        # endregion same
         """Returns the value of the hand. Usefull for comparison. Needed for first play."""
         # finding out wether you have suit or a flush because they have no expressive value alone
         if len(self.cards) == 5:
-            if self.cards[0].suit == self.cards[1].suit == self.cards[2].suit == self.cards[3].suit == self.cards[
-                4].suit:
-                flush = True
-            if self.cards[4].number == self.cards[3].number + 1 == self.cards[2].number + 2 == self.cards[
-                1].number + 3 == self.cards[0].number + 4:
-                straight = True
+            # region flush
+            if self.cards[0].suit == 4:
+                current_suit = self.cards[1].suit
+            else:
+                current_suit = self.cards[0].suit
+            for card in self.cards:
+                if card.suit != current_suit and card.suit != 4:
+                    flush = False
+                    break
+            # endregion flush
+            # region straight
+            current_suit = self.cards[0].suit
+            old_number = self.cards[0].number - 1
+            for card in self.cards:
+                if card.number != old_number + 1:
+                    straight = False
+                    break
+                old_number += 1
+            # endregion straight
         # 1: "single"
         if len(self.cards) == 1:
             return 1
         # 2: "pair"
-        if len(self.cards) == 2 and self.cards[0].number == self.cards[1].number:
+        if len(self.cards) == 2 and same:
             return 2
         # 3: "three of a kind"
-        if len(self.cards) == 3 and self.cards[0].number == self.cards[1].number == self.cards[2].number:
+        if len(self.cards) == 3 and same:
             return 3
         # 4: "straight"
-        if straight and not flush:
+        if straight and not flush and len(self.cards) == 5:
             return 4
         # 5: "flush"
-        if flush and not straight:
+        if flush and not straight and len(self.cards) == 5:
             return 5
-        # todo 6: "full house"
-
         # 7: "straight flush"
-        if flush and straight:
+        if flush and straight and len(self.cards) == 5:
             return 7
-        # 8: "gang of four"
-        if len(self.cards) == 4:
-            pass
         # 9: "gang of five"
-        if len(self.cards) == 5:
-            pass
+        if len(self.cards) == 5 and same:
+            return 9
+        # 6: "full house"
+        if len(self.cards) == 5 and ((Play(self.cards[0:2]).value() == 2 and Play(self.cards[2:5]).value() == 3) or (
+                Play(self.cards[3:5]).value() == 2 and Play(self.cards[0:3]).value() == 3)):
+            return 6
+        # 8: "gang of four"
+        if len(self.cards) == 4 and same:
+            return 8
         # 10: "gang of six"
-        if len(self.cards) == 6:
-            pass
+        if len(self.cards) == 6 and same:
+            return 10
         # 11: "gang of seven"
-        if len(self.cards) == 7:
-            pass
+        if len(self.cards) == 7 and same:
+            return 11
         return 0
 
     def __gt__(self, other):
         my_case = self.value()
         other_case = other.value()
-        if my_case > other_case and (other_case == 0 or (4 >= other_case > 7 and 4 > my_case > 7) or my_case >= 8):
+        # compares different 5 card combinations
+        if my_case > other_case and 4 >= other_case > 7 and 4 > my_case > 7:
             return True
-        if my_case == other_case == 1:
-            return self.cards[0] > other.cards[0]
-        if my_case == other_case == 2:
-            # not comparing all card by color
-            return self.cards[0] > other.cards[0]
-        if my_case == other_case == 3:
-            # not comparing all card by color
-            return self.cards[0] > other.cards[0]
-        # todo
+        # compares same card number combinations
+        if my_case == other_case != 6:
+            for mc, oc in zip(self.cards.reverse(), other.cards.reverse()):
+                if mc > oc:
+                    return True
+                if mc < oc:
+                    return False
+        if my_case == other_case == 6:
+            old_card = self.cards[0]
+            tercfirst = True
+            for x in range(3):
+                if self.cards[x].color != old_card.color:
+                    tercfirst = False
+                    break
+                old_card = self.cards[x]
+            if tercfirst:
+                my_terc = self.cards[0:3]
+                my_pair = self.cards[3:5]
+            else:
+                my_terc = self.cards[2:5]
+                my_pair = self.cards[0:2]
+
+            old_card = other.cards[0]
+            tercfirst = True
+            for x in range(3):
+                if other.cards[x].color != old_card.color:
+                    tercfirst = False
+                    break
+                old_card = other.cards[x]
+            if tercfirst:
+                other_terc = other.cards[0:3]
+                other_pair = other.cards[3:5]
+            else:
+                other_terc = other.cards[2:5]
+                other_pair = other.cards[0:2]
+            for mc, oc in zip(my_terc.reverse(), other_terc.reverse()):
+                if mc > oc:
+                    return True
+                if mc < oc:
+                    return False
+            for mc, oc in zip(my_pair.reverse(), other_pair.reverse()):
+                if mc > oc:
+                    return True
+                if mc < oc:
+                    return False
         return False
 
 
@@ -330,7 +392,6 @@ class GameServer:
         Deck(self.players)
         self.table = []
         self.pass_counter = 0
-        # todo intagrate this
         for player in self.players:
             player.sort_cards()
 
@@ -406,7 +467,7 @@ class GameServer:
                     self.send_to_all(to_dict('players', self.players_name_list()))
                     return
             print(self.players_name_list())
-            send({'connection': False, 'reply': self.name + ' is full'},connection_to_player)
+            send({'connection': False, 'reply': self.name + ' is full'}, connection_to_player)
 
         elif key == 'picture':
             for player in self.players:
