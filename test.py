@@ -65,6 +65,12 @@ class TestPlayComparing(unittest.TestCase):
         self.assertEqual(Play([Card(1, 1), Card(4, 1), Card(3, 1), Card(3, 7), Card(4, 7)]) < Play(
             [Card(2, 1), Card(3, 1), Card(4, 3), Card(3, 3), Card(2, 3)]), False)
 
+    def testEmptyTable(self):
+        self.assertEqual(Play([]) < Play(
+            [Card(2, 1), Card(3, 1), Card(4, 3), Card(3, 3), Card(2, 3)]), True)
+        self.assertEqual(Play([]) > Play(
+            [Card(2, 1), Card(3, 1), Card(4, 3), Card(3, 3), Card(2, 3)]), False)
+
 
 if __name__ == '__main__':
     unittest.main()
