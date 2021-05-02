@@ -175,7 +175,7 @@ class Play:
         self.cards.sort()
 
     def value(self):
-        if len(cards) == 0:
+        if len(self.cards) == 0:
             return 0
         flush = True
         straight = True
@@ -249,6 +249,8 @@ class Play:
         my_case = self.value()
         other_case = other.value()
         # compares different 5 card combinations
+        if my_case > other_case and other_case == 0:
+            return True
         if my_case > other_case and 4 >= other_case > 7 and 4 > my_case > 7:
             return True
         # compares same card number combinations
@@ -525,6 +527,8 @@ class GameServer:
                                 player.hand = [card for card in player.hand if
                                                not card in play_list or play_list.remove(card)]
                                 send({'hand': player.hand_to_list()}, connection_to_player)
+                                if len(player.hand) == 0:
+                                    self.won_turn(player)
                                 return_table = []
                                 for card in self.table:
                                     return_table.append([card.suit, card.number])
@@ -541,6 +545,16 @@ class GameServer:
 
         else:
             print("Unknown key ", key, " : ", word)
+
+    def won_turn(self, won_player):
+        for player in self.players:
+            player.points += len(player.hand)
+        for player in self.players:
+            if player.points >= 100:
+                won_game()
+
+    def won_game(self):
+        pass
 
 
 class Settings:
