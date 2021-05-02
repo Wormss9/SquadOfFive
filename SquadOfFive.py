@@ -16,8 +16,8 @@ def open_login_window():
             open_profile_window()
         response = gameClient.connect(ip)
         status_bar_text.set(response[1])
-        if not response[0]:
-            window.close()
+        if response[0]:
+            window.destroy()
 
     global gameClient
     status_bar_text = StringVar()
