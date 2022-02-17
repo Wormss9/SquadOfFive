@@ -26,7 +26,7 @@ jobs:
         pip install pyinstaller
     - name: Build with pyinstaller
       run: |
-        pyinstaller --icon graphics/icon.ico --noconsole SquadOfFive.py
+        pyinstaller --icon src/graphics/icon.ico --noconsole SquadOfFive.py
     - name: Copy graphics
       run: |
         cp -r graphics dist/SquadOfFive/graphics

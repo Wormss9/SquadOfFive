@@ -1,4 +1,4 @@
-from logics import Play, Card
+from src.logics.logics import Play, Card
 import unittest
 
 

@@ -2,9 +2,13 @@ import sys
 import base64
 from tkinter import filedialog
 from tkinter import *
-from logics import GameServer, GameClient, picture_to_string, string_to_image
+
 from _thread import start_new_thread
 from PIL import Image, ImageTk
+
+from logics.logics import GameClient, GameServer
+from utils.utils import picture_to_string, string_to_image
+
 
 chatReadText: Entry
 
@@ -24,7 +28,7 @@ def open_login_window():
     login_window = Toplevel(master)
 
     login_window.configure(bg='grey')
-    login_window.iconbitmap('graphics/icon.ico')
+    login_window.iconbitmap('src/graphics/icon.ico')
     login_window.title("Connect")
     Label(login_window, text="Enter host ip_address:").grid(row=1, column=1)
     address = Entry(login_window)
@@ -65,7 +69,7 @@ def open_profile_window():
     name_window = Toplevel(master)
 
     name_window.configure(bg='grey')
-    name_window.iconbitmap('graphics/icon.ico')
+    name_window.iconbitmap('src/graphics/icon.ico')
     name_window.title("Nick")
     Label(name_window, text="Enter nickname:").grid(row=1, column=1)
     address = Entry(name_window)
@@ -124,9 +128,9 @@ class ClientHolder:
         self.selected_cards.clear()
         for card_p in self.hand:
             card_with_picture = [card_p, IntVar(value=-1), ImageTk.PhotoImage(
-                Image.open("graphics/cards/" + card_p.image + ".png").resize((card_width, card_height))),
+                Image.open("src/graphics/cards/" + card_p.image + ".png").resize((card_width, card_height))),
                                  ImageTk.PhotoImage(
-                                     Image.open("graphics/cards/" + card_p.image + "s.png").resize(
+                                     Image.open("src/graphics/cards/" + card_p.image + "s.png").resize(
                                          (card_width, card_height)))]
             self.selected_cards.append(card_with_picture)
             self.selected_cards[counter - 1].append(Checkbutton(self.cards_on_hand,
@@ -151,7 +155,7 @@ class ClientHolder:
             card_image.grid(row=1, column=counter)
             counter += 1
             photo = ImageTk.PhotoImage(
-                Image.open("graphics/cards/" + card_p.image + ".png").resize((card_width, card_height)))
+                Image.open("src/graphics/cards/" + card_p.image + ".png").resize((card_width, card_height)))
             card_image.configure(image=photo)
             card_image.image = photo
 
@@ -199,7 +203,7 @@ class PlayerZone(Label):
                  Label(self.player_frame[x], bg='grey20', fg='lime'),
                  Label(self.player_frame[x], text=16, bg='grey20', fg='lime')])
 
-        self.default_player_photo = string_to_image(picture_to_string('graphics/defaultPlayer.png'))
+        self.default_player_photo = string_to_image(picture_to_string('src/graphics/defaultPlayer.png'))
         self.default_player_photo = ImageTk.PhotoImage(self.default_player_photo)
         print(type(self.default_player_photo))
         for x in range(4):
@@ -328,7 +332,7 @@ class MainWindow(Tk):
         Tk.__init__(self)
         self.title("Squad of Five")
         self.configure(bg='grey30')
-        self.iconbitmap('graphics/icon.ico')
+        self.iconbitmap('src/graphics/icon.ico')
 
         self.main_menu = MainMenu(self)
         self.config(menu=self.main_menu)

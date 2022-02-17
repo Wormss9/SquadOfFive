@@ -1,4 +1,4 @@
-from logics import GameServer
+from logics.logics import GameServer
 
 game = GameServer("TestServer")
 while True:

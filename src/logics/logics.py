@@ -1,10 +1,14 @@
 import json
 import random
-from network import NetworkServer, NetworkClient, to_dict, send
-from _thread import start_new_thread, error
-from PIL import Image, ImageTk, UnidentifiedImageError
-from tkinter import PhotoImage
-import base64
+from network.server import NetworkServer
+from utils.utils import picture_to_string, send, to_dict
+from _thread import error
+import socket
+from typing import List
+from tkinter import Label
+from network.client import NetworkClient
+
+
 
 playPowerDic = {1: "single",
                 2: "pair",
@@ -20,27 +24,6 @@ playPowerDic = {1: "single",
                 }
 
 photo_size = 100
-
-
-def picture_to_string(path):
-    try:
-        a = Image.open(path).convert('RGBA')
-    except AttributeError:
-        return False
-    except UnidentifiedImageError:
-        return False
-    b = a.resize((100, 100))
-    c = b.tobytes()
-    d = base64.b64encode(c)
-    e = d.decode()
-    return e
-
-
-def string_to_image(photo_string):
-    a = photo_string.encode()
-    b = base64.b64decode(a)
-    c = Image.frombytes('RGBA', (100, 100), b)
-    return c
 
 
 class Card:
@@ -90,7 +73,7 @@ class Player:
         self.connected = False
         self.turn_number = turn_number
         self.server_turn = server_turn
-        self.picture = picture_to_string('graphics/defaultPlayer.png')
+        self.picture = picture_to_string('src/graphics/defaultPlayer.png')
 
     def __str__(self):
         return self.name
@@ -129,7 +112,7 @@ class Player:
 class Deck:
     """A random card deck."""
 
-    def __init__(self, players: [Player]):
+    def __init__(self, players: List[Player]):
         self.players = players
         self.deck = []
         self.fill()
@@ -170,7 +153,7 @@ class Deck:
 class Play:
     """Defines the cards on the table and the ones you are putting on it."""
 
-    def __init__(self, cards: [Card]):
+    def __init__(self, cards: List[Card]):
         self.cards = cards
         self.cards.sort()
 
@@ -573,7 +556,7 @@ class Settings:
         self.identifier = identifier
         self.name = ""
         self.adress = ""
-        self.picture = picture_to_string('graphics/defaultPlayer.png')
+        self.picture = picture_to_string('src/graphics/defaultPlayer.png')
         try:
             with open(str(self.identifier) + 'settings.txt') as file:
                 setting = json.load(file)
