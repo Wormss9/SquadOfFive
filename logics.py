@@ -122,7 +122,7 @@ class Player:
             return True
         return False
 
-    def my_turn(self):
+    def my_turn(self): #todo SERVER TURN AS IMPUT
         return self.turn_number == self.server_turn
 
 
@@ -459,7 +459,7 @@ class GameServer:
                     send({'connection': True, 'reply': word + ' reconnected to ' + self.name, 'chat': self.chat,
                           'hand': player.hand_to_list(), 'players': self.players_name_list(), 'table': return_table,
                           'turn': self.turn}, player.connection)
-                    self.send_to_all()
+                    #self.send_to_all()
                     return
                 if not player.connected and not hasattr(player, 'name'):
                     player.connect(word, connection_to_player)
@@ -532,7 +532,7 @@ class GameServer:
                                 return_table = []
                                 for card in self.table:
                                     return_table.append([card.suit, card.number])
-                                self.send_to_all({"table": return_table, 'players': self.players_name_list()})
+                                self.send_to_all({"table": return_table, 'players': self.players_name_list(),'turn': self.turn})
 
                     else:
                         for player in self.players:
@@ -548,12 +548,23 @@ class GameServer:
 
     def won_turn(self, won_player):
         for player in self.players:
-            player.points += len(player.hand)
+            if len(player.hand)<=7:
+                player.points += len(player.hand)
+            if len(player.hand) <= 10:
+                player.points += len(player.hand)*2
+            if len(player.hand) <= 13:
+                player.points += len(player.hand)*3
+            if len(player.hand) <= 15:
+                player.points += len(player.hand)*4
+            else:
+                player.points += len(player.hand)*5
+        # todo start new round
         for player in self.players:
             if player.points >= 100:
-                won_game()
+                self.won_game()
 
     def won_game(self):
+        #todo show winer
         pass
 
 
