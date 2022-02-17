@@ -24,6 +24,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
+        pip install pillow
     - name: Build with pyinstaller
       run: |
         pyinstaller --icon src/graphics/icon.ico --noconsole --noconfirm src/SquadOfFive.py
