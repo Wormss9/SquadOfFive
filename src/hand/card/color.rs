@@ -9,10 +9,10 @@ pub enum Color {
 impl Color {
     pub fn from_u8(color: u8) -> Self {
         match color {
-            0 => Self::Red,
-            1 => Self::Green,
-            2 => Self::Blue,
-            3 => Self::White,
+            1 => Self::Red,
+            2 => Self::Green,
+            3 => Self::Blue,
+            4 => Self::White,
             _ => panic!("Max value is 3"),
         }
     }
