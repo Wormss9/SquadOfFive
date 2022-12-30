@@ -1,0 +1,11 @@
+[package]
+name = "squad_of_five"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+bevy = "0.9.1"
+bevy_renet = "0.0.6"
+rand = "0.8.5"
+winit = "0.27.5"
+image = "0.24.5"
