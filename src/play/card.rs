@@ -13,7 +13,7 @@ pub struct Card {
 }
 
 impl Card {
-    pub fn new(value: u8, color: u8) -> Self {
+    pub fn new(color: u8, value: u8) -> Self {
         Self {
             value: Value::from_u8(value),
             color: Color::from_u8(color),
@@ -61,19 +61,18 @@ mod tests {
 
     #[test]
     fn ord() {
-        assert!(Card::new(2, 2) > Card::new(1, 2));
         assert!(Card::new(2, 2) > Card::new(2, 1));
-        assert!(Card::new(3, 2) > Card::new(3, 1));
-        assert!(Card::new(2, 1) > Card::new(1, 3));
+        assert!(Card::new(2, 2) > Card::new(1, 2));
+        assert!(Card::new(2, 3) > Card::new(1, 3));
+        assert!(Card::new(1, 2) > Card::new(3, 1));
         assert!(Card::new(2, 2) > Card::new(1, 1));
     }
 
     #[test]
     fn path() {
         assert_eq!(Card::new(1, 1).to_path(), "r01".to_string());
-        assert_eq!(Card::new(5, 2).to_path(), "g05".to_string());
-        assert_eq!(Card::new(11, 3).to_path(), "b11".to_string());
-        assert_eq!(Card::new(1, 4).to_path(), "w01".to_string());
+        assert_eq!(Card::new(2, 5).to_path(), "g05".to_string());
+        assert_eq!(Card::new(3, 11).to_path(), "b11".to_string());
+        assert_eq!(Card::new(4, 1).to_path(), "w01".to_string());
     }
-
 }

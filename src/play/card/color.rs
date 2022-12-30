@@ -13,7 +13,7 @@ impl Color {
             2 => Self::Green,
             3 => Self::Blue,
             4 => Self::White,
-            _ => panic!("Max value is 3"),
+            _ => panic!("Max value is 4"),
         }
     }
     pub fn to_char(&self) -> char {
