@@ -1,2 +1,2 @@
 # SquadOfFive
-Private card game/learning project.
+Card game/learning project.
