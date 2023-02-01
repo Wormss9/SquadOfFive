@@ -1,12 +1,11 @@
 package enpoints
 
 import (
+	"SquadOfFive/backend/src/db"
 	"net/http"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func GetStatusHandler(client *mongo.Client) func(http.ResponseWriter, *http.Request) {
+func GetStatusHandler(client *db.Client) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
