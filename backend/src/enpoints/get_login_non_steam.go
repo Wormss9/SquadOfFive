@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetLoginSteam(client *database.Database) gin.HandlerFunc {
+func GetLoginNonSteam(client *database.Database) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		gosteamauth.RedirectClient(c.Writer, c.Request, gosteamauth.BuildQueryString("http://localhost:5000/api/login/steam/process"))
 	}
