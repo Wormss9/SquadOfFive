@@ -5,11 +5,15 @@ services:
       - "8080:8080"
   backend:
     build: ./backend
+    env_file:
+      - .env.2.local
+    depends_on:
+      [db]
     ports:
       - "5000:5000"
-    env_file:
-      - .env
   db:
-    image: mongo
+    image: postgres:alpine
+    env_file:
+      - .env.2.local
     ports:
-      - "27017:27017"
+      - "5432:5432"
