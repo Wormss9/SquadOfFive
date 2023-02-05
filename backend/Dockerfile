@@ -1,12 +1,11 @@
-FROM golang:alpine as build
+FROM rust:alpine as build
 
 WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download && go mod verify
 COPY . .
-RUN go build -o ./backend ./src
+RUN apk add --no-cache musl-dev
+RUN cargo install --path .
 
 FROM alpine:latest
 WORKDIR /app
-COPY --from=build /app/backend ./
-CMD ["./backend"]
+COPY --from=build /usr/local/cargo/bin/backend /bin/
+CMD ["backend"]
