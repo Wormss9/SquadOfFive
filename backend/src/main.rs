@@ -40,8 +40,8 @@ fn main() {
         .and(warp::path::end())
         .and(json_body::<Login>())
         .and(db_filter.clone())
-        .and_then(authorization::login)
-        .recover(rejection::handle_rejection);
+        .and_then(authorization::login);
+
 
     let put_register = warp::put()
         .and(warp::path("api"))
@@ -49,10 +49,9 @@ fn main() {
         .and(warp::path::end())
         .and(json_body::<Login>())
         .and(db_filter.clone())
-        .and_then(handlers::register)
-        .recover(rejection::handle_rejection);
-
-    let routes = put_register;
+        .and_then(handlers::register);
+    let r = put_register.or(get_login);
+    let routes = r.recover(rejection::handle_rejection);
 
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
