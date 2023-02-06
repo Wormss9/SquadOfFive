@@ -1,7 +1,7 @@
 use std::env;
 
 use async_trait::async_trait;
-use deadpool_postgres::{ManagerConfig, Pool, RecyclingMethod, Runtime};
+use deadpool_postgres::{ManagerConfig, RecyclingMethod, Runtime, Pool};
 
 pub use player::Player;
 use tokio_postgres::{Error, NoTls};
@@ -28,7 +28,9 @@ pub fn connect() -> Pool {
         recycling_method: RecyclingMethod::Fast,
     });
 
-    config
+    let pool = config
         .create_pool(Some(Runtime::Tokio1), NoTls)
-        .expect(&format!("Failed to connect to {dbname}"))
+        .expect(&format!("Failed to connect to {dbname}"));
+    initialize(pool.clone());
+    pool
 }
