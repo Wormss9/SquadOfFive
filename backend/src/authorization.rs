@@ -1,10 +1,11 @@
 use super::database::Player;
 use hmac::{Hmac, Mac};
-use jwt::{AlgorithmType, Header, SignWithKey, Token};
+use jwt::{AlgorithmType, Header, SignWithKey, Token, VerifyWithKey};
 use pwhash::bcrypt;
 use serde::{Deserialize, Serialize};
 use sha2::Sha512;
 use std::env;
+use crate::database::player::PlayerIdentification;
 
 pub fn hash_password(password: String) -> String {
     bcrypt::hash(password).unwrap()
@@ -27,6 +28,10 @@ pub fn create_token(player: Player, key: Hmac<Sha512>) -> Result<String, jwt::Er
     };
     let token = Token::new(header, player.get_identification()).sign_with_key(&key)?;
     Ok(token.as_str().to_owned())
+}
+
+pub fn authorize_token(key: &Hmac<Sha512>, token: String) -> Result<PlayerIdentification, jwt::Error> {
+    token.verify_with_key(key)
 }
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Login {

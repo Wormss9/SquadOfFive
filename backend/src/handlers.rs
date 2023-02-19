@@ -1,3 +1,4 @@
+use crate::database::player::PlayerIdentification;
 use crate::rejection::MyRejection;
 use crate::{
     authorization::{create_token, verify_password, Login},
@@ -50,4 +51,10 @@ pub async fn register(login: Login, pool: Pool) -> Result<WithStatus<String>, Re
         "CREATED".to_owned(),
         StatusCode::CREATED,
     ))
+}
+
+pub async fn restricted_handler(
+    _player: PlayerIdentification,
+) -> Result<WithStatus<String>, Rejection> {
+    Ok(warp::reply::with_status("Authorized".to_owned(), StatusCode::OK))
 }

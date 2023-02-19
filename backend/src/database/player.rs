@@ -19,7 +19,6 @@ pub struct Player {
 
 impl From<Row> for Player {
     fn from(row: Row) -> Self {
-        print!("{:?}", row);
         Self {
             id: row.get("id"),
             name: row.get("name"),

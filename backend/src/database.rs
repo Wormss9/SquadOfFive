@@ -6,7 +6,7 @@ use deadpool_postgres::{ManagerConfig, Pool, RecyclingMethod, Runtime};
 pub use player::Player;
 use tokio_postgres::{Error, NoTls};
 
-mod player;
+pub mod player;
 
 #[async_trait]
 pub trait Database {
