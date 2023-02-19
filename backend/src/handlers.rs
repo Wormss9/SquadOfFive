@@ -17,7 +17,7 @@ pub async fn login(
 ) -> Result<WithHeader<String>, Rejection> {
     let player = match match Player::get(pool, &login.name).await {
         Ok(p) => p,
-        Err(_) => return Err(MyRejection::new(StatusCode::INTERNAL_SERVER_ERROR, "1")),
+        Err(_) => return Err(MyRejection::message(StatusCode::INTERNAL_SERVER_ERROR, "1")),
     } {
         Some(p) => p,
         None => return Err(MyRejection::code(StatusCode::NOT_FOUND)),
@@ -25,7 +25,7 @@ pub async fn login(
     let player_password = match &player.password {
         Some(x) => x,
         None => {
-            return Err(MyRejection::new(
+            return Err(MyRejection::message(
                 http::StatusCode::INTERNAL_SERVER_ERROR,
                 "2",
             ))
@@ -40,7 +40,7 @@ pub async fn login(
             "set-cookie",
             format!("token={}; Path=/; HttpOnly; Max-Age=1209600", token),
         )),
-        Err(_) => Err(MyRejection::new(StatusCode::INTERNAL_SERVER_ERROR, "3")),
+        Err(_) => Err(MyRejection::message(StatusCode::INTERNAL_SERVER_ERROR, "3")),
     }
 }
 

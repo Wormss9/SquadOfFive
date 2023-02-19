@@ -30,7 +30,9 @@ pub async fn connect() -> Pool {
 
     let pool = config
         .create_pool(Some(Runtime::Tokio1), NoTls)
-        .expect(&format!("Failed to connect to {dbname}"));
-    initialize(pool.clone()).await.expect("Failed to initialize db");
+        .unwrap_or_else(|_| panic!("Failed to connect to {dbname}"));
+    initialize(pool.clone())
+        .await
+        .expect("Failed to initialize db");
     pool
 }

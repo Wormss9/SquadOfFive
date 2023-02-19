@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use serde_derive::{Deserialize, Serialize};
 use tokio_postgres::{Error, Row};
-use warp:: Rejection;
+use warp::Rejection;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Player {
@@ -58,7 +58,10 @@ impl Database for Player {
 
 impl Player {
     pub async fn create(pool: Pool, name: &str, password: &str) -> Result<u64, Rejection> {
-        let client = pool.get().await.map_err(|_| -> Rejection { get_internal_server_error() })?;
+        let client = pool
+            .get()
+            .await
+            .map_err(|_| -> Rejection { get_internal_server_error() })?;
         client
             .execute(
                 "INSERT INTO player (name, nick, password) VALUES ($1, $1, $2);",
@@ -73,7 +76,10 @@ impl Player {
         nick: &str,
         avatar: &str,
     ) -> Result<u64, Rejection> {
-        let client = pool.get().await.map_err(|_| -> Rejection { get_internal_server_error() })?;
+        let client = pool
+            .get()
+            .await
+            .map_err(|_| -> Rejection { get_internal_server_error() })?;
         client
             .execute(
                 "INSERT INTO player (steamId, nick, avatar) VALUES ($1, $2, $3)",
@@ -83,25 +89,28 @@ impl Player {
             .map_err(|_| -> Rejection { get_internal_server_error() })
     }
     pub async fn get(pool: Pool, name: &str) -> Result<Option<Self>, Rejection> {
-        let client = pool.get().await.map_err(|_| -> Rejection { get_internal_server_error() })?;
+        let client = pool
+            .get()
+            .await
+            .map_err(|_| -> Rejection { get_internal_server_error() })?;
         let row = client
             .query_opt("SELECT * FROM player WHERE name = ($1);", &[&name])
-            .await.map_err(|_| -> Rejection { get_internal_server_error() })?;
+            .await
+            .map_err(|_| -> Rejection { get_internal_server_error() })?;
 
-        Ok(match row {
-            Some(row) => Some(Player::from(row)),
-            None => None,
-        })
+        Ok(row.map(Player::from))
     }
     pub async fn get_steam(pool: Pool, steam_id: &str) -> Result<Option<Self>, Rejection> {
-        let client = pool.get().await.map_err(|_| -> Rejection { get_internal_server_error() })?;
+        let client = pool
+            .get()
+            .await
+            .map_err(|_| -> Rejection { get_internal_server_error() })?;
         let row = client
             .query_opt("SELECT * FROM player WHERE steamId = ($1);", &[&steam_id])
-            .await.map_err(|_| -> Rejection { get_internal_server_error() })?;
-        Ok(match row {
-            Some(row) => Some(Player::from(row)),
-            None => None,
-        })
+            .await
+            .map_err(|_| -> Rejection { get_internal_server_error() })?;
+
+        Ok(row.map(Player::from))
     }
     pub fn get_identification(&self) -> PlayerIdentification {
         PlayerIdentification {

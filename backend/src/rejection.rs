@@ -22,7 +22,7 @@ impl Reject for MyRejection {}
 impl MyRejection {
     fn get_reply(&self) -> WithStatus<String> {
         reply::with_status(
-            self.message.clone().unwrap_or_default().to_owned(),
+            self.message.clone().unwrap_or_default(),
             self.code,
         )
     }
@@ -32,7 +32,7 @@ impl MyRejection {
             message: None,
         })
     }
-    pub fn new(code: StatusCode, message: &str) -> Rejection {
+    pub fn message(code: StatusCode, message: &str) -> Rejection {
         warp::reject::custom(Self {
             code,
             message: Some(message.to_owned()),
