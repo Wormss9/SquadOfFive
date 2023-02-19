@@ -1,7 +1,7 @@
 use std::env;
 
 use async_trait::async_trait;
-use deadpool_postgres::{ManagerConfig, RecyclingMethod, Runtime, Pool};
+use deadpool_postgres::{ManagerConfig, Pool, RecyclingMethod, Runtime};
 
 pub use player::Player;
 use tokio_postgres::{Error, NoTls};
@@ -17,7 +17,7 @@ async fn initialize(pool: Pool) -> Result<(), Error> {
     Player::create_table(pool).await
 }
 
-pub fn connect() -> Pool {
+pub async fn connect() -> Pool {
     let mut config = deadpool_postgres::Config::new();
     config.user = Some(env::var("POSTGRES_USER").expect("Missing POSTGRES_USER"));
     config.password = Some(env::var("POSTGRES_PASSWORD").expect("Missing POSTGRES_PASSWORD"));
@@ -31,6 +31,6 @@ pub fn connect() -> Pool {
     let pool = config
         .create_pool(Some(Runtime::Tokio1), NoTls)
         .expect(&format!("Failed to connect to {dbname}"));
-    initialize(pool.clone());
+    initialize(pool.clone()).await.expect("Failed to initialize db");
     pool
 }

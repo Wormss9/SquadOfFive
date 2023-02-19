@@ -34,7 +34,7 @@ impl From<Row> for Player {
 #[async_trait]
 impl Database for Player {
     async fn create_table(pool: Pool) -> Result<(), Error> {
-        let client = pool.get().await.unwrap();
+        let client = pool.get().await.expect("Failed to connect to db");
         client
             .batch_execute(
                 "CREATE TABLE IF NOT EXISTS player (
