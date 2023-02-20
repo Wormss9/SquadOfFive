@@ -1,8 +1,9 @@
-use crate::{authorization::hash_password, rejection::get_internal_server_error};
+use crate::{game::play::Card, rejection::MyRejection};
 
-use super::Database;
+use super::{initialize_client, Database};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
+use http::StatusCode;
 use serde_derive::{Deserialize, Serialize};
 use tokio_postgres::{Error, Row};
 use warp::Rejection;
@@ -10,22 +11,22 @@ use warp::Rejection;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Player {
     pub id: i32,
-    pub name: Option<String>,
-    pub password: Option<String>,
-    pub steam_id: Option<i32>,
-    pub nick: String,
-    pub avatar: String,
+    pub game_user: Option<i32>,
+    pub room: String,
+    pub cards: Vec<Card>,
+    pub points: i32,
+    pub turn: i32,
 }
 
 impl From<Row> for Player {
     fn from(row: Row) -> Self {
         Self {
             id: row.get("id"),
-            name: row.get("name"),
-            password: row.get("password"),
-            steam_id: row.get("steam_id"),
-            nick: row.get("nick"),
-            avatar: row.get("avatar"),
+            game_user: row.get("game_user"),
+            room: row.get("room"),
+            cards: row.get("cards"),
+            points: row.get("points"),
+            turn: row.get("turn"),
         }
     }
 }
@@ -37,92 +38,67 @@ impl Database for Player {
         client
             .batch_execute(
                 "CREATE TABLE IF NOT EXISTS player (
-    id              SERIAL PRIMARY KEY,
-    name            VARCHAR UNIQUE NULLS NOT DISTINCT,
-    password        VARCHAR,
-    steam_id        INT UNIQUE NULLS NOT DISTINCT,
-    nick            VARCHAR NOT NULL,
-    avatar          VARCHAR NOT NULL DEFAULT ''
-    );",
+                    id          SERIAL PRIMARY KEY,
+                    game_user   INT REFERENCES game_user(id),
+                    room        TEXT NOT NULL REFERENCES room(ulid),
+                    cards       JSON[] DEFAULT array[]::JSON[],
+                    points      INT DEFAULT 0,
+                    turn        INT DEFAULT 0
+                );
+                CREATE INDEX IF NOT EXISTS game_user_index ON player(game_user);
+                CREATE INDEX IF NOT EXISTS room_index ON player(room);",
             )
-            .await?;
-        client
-            .batch_execute("CREATE INDEX IF NOT EXISTS name_index ON player(name);")
-            .await?;
-        client
-            .batch_execute("CREATE INDEX IF NOT EXISTS steam_index ON player(steam_id);")
             .await
     }
 }
 
 impl Player {
-    pub async fn create(pool: Pool, name: &str, password: &str) -> Result<u64, Rejection> {
-        let client = pool
-            .get()
-            .await
-            .map_err(|_| -> Rejection { get_internal_server_error() })?;
-        client
-            .execute(
-                "INSERT INTO player (name, nick, password) VALUES ($1, $1, $2);",
-                &[&name, &hash_password(password.to_owned())],
-            )
-            .await
-            .map_err(|_| -> Rejection { get_internal_server_error() })
-    }
-    pub async fn create_steam(
+    pub async fn create(
         pool: Pool,
-        steam_id: &str,
-        nick: &str,
-        avatar: &str,
-    ) -> Result<u64, Rejection> {
-        let client = pool
-            .get()
-            .await
-            .map_err(|_| -> Rejection { get_internal_server_error() })?;
-        client
-            .execute(
-                "INSERT INTO player (steamId, nick, avatar) VALUES ($1, $2, $3)",
-                &[&steam_id, &nick, &avatar],
+        room: &str,
+        cards: &Vec<Card>,
+        turn: i32,
+    ) -> Result<Player, Rejection> {
+        let row = initialize_client(pool)
+            .await?
+            .query_one(
+                "INSERT INTO player (room, cards, turn) VALUES ($1, $2, $3)  RETURNING *;",
+                &[&room, cards, &turn],
             )
             .await
-            .map_err(|_| -> Rejection { get_internal_server_error() })
+            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+        Ok(Player::from(row))
     }
-    pub async fn get(pool: Pool, name: &str) -> Result<Option<Self>, Rejection> {
-        let client = pool
-            .get()
+    pub async fn get(pool: Pool, room: &str, user: &str) -> Result<Option<Self>, Rejection> {
+        let row = initialize_client(pool)
+            .await?
+            .query_opt(
+                "SELECT * FROM player WHERE room = ($1) AND game_user = ($2);",
+                &[&room, &user],
+            )
             .await
-            .map_err(|_| -> Rejection { get_internal_server_error() })?;
-        let row = client
-            .query_opt("SELECT * FROM player WHERE name = ($1);", &[&name])
-            .await
-            .map_err(|_| -> Rejection { get_internal_server_error() })?;
+            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
 
         Ok(row.map(Player::from))
     }
-    pub async fn get_steam(pool: Pool, steam_id: &str) -> Result<Option<Self>, Rejection> {
-        let client = pool
-            .get()
+    pub async fn get_all(pool: Pool, room: &str) -> Result<Vec<Self>, Rejection> {
+        let rows = initialize_client(pool)
+            .await?
+            .query("SELECT * FROM player WHERE room = ($1);", &[&room])
             .await
-            .map_err(|_| -> Rejection { get_internal_server_error() })?;
-        let row = client
-            .query_opt("SELECT * FROM player WHERE steamId = ($1);", &[&steam_id])
+            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+
+        Ok(rows.into_iter().map(Player::from).collect())
+    }
+    pub async fn set_user(&self, pool: Pool, user: i32) -> Result<(), Rejection> {
+        initialize_client(pool)
+            .await?
+            .execute(
+                "UPDATE player SET game_user = $1 WHERE id = $2 AND turn = $3",
+                &[&user, &self.id, &self.turn],
+            )
             .await
-            .map_err(|_| -> Rejection { get_internal_server_error() })?;
-
-        Ok(row.map(Player::from))
+            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+        Ok(())
     }
-    pub fn get_identification(&self) -> PlayerIdentification {
-        PlayerIdentification {
-            id: self.id,
-            name: self.name.clone(),
-            steam_id: self.steam_id,
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct PlayerIdentification {
-    pub id: i32,
-    pub name: Option<String>,
-    pub steam_id: Option<i32>,
 }

@@ -1,11 +1,11 @@
-use super::database::Player;
+use super::database::GameUser;
 use hmac::{Hmac, Mac};
 use jwt::{AlgorithmType, Header, SignWithKey, Token, VerifyWithKey};
 use pwhash::bcrypt;
 use serde::{Deserialize, Serialize};
 use sha2::Sha512;
 use std::env;
-use crate::database::player::PlayerIdentification;
+use crate::database::game_user::UserIdentification;
 
 pub fn hash_password(password: String) -> String {
     bcrypt::hash(password).unwrap()
@@ -21,7 +21,7 @@ pub fn get_key() -> Hmac<Sha512> {
     )
     .expect("Failed to create key")
 }
-pub fn create_token(player: Player, key: Hmac<Sha512>) -> Result<String, jwt::Error> {
+pub fn create_token(player: GameUser, key: Hmac<Sha512>) -> Result<String, jwt::Error> {
     let header = Header {
         algorithm: AlgorithmType::Hs512,
         ..Default::default()
@@ -30,7 +30,7 @@ pub fn create_token(player: Player, key: Hmac<Sha512>) -> Result<String, jwt::Er
     Ok(token.as_str().to_owned())
 }
 
-pub fn authorize_token(key: &Hmac<Sha512>, token: String) -> Result<PlayerIdentification, jwt::Error> {
+pub fn authorize_token(key: &Hmac<Sha512>, token: String) -> Result<UserIdentification, jwt::Error> {
     token.verify_with_key(key)
 }
 #[derive(Debug, Deserialize, Serialize, Clone)]

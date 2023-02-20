@@ -4,9 +4,11 @@ mod color;
 mod value;
 
 use color::Color;
+use serde::{Deserialize, Serialize};
+use tokio_postgres::types::{accepts, to_sql_checked, FromSql, IsNull, ToSql};
 use value::Value;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Card {
     pub value: Value,
     pub color: Color,
@@ -47,6 +49,42 @@ impl PartialOrd for Card {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
+}
+
+impl ToSql for Card {
+    fn to_sql(
+        &self,
+        _: &tokio_postgres::types::Type,
+        w: &mut tokio_postgres::types::private::BytesMut,
+    ) -> Result<tokio_postgres::types::IsNull, Box<dyn std::error::Error + Sync + Send>>
+    where
+        Self: Sized,
+    {
+        match serde_json::to_vec(self) {
+            Ok(c) => {
+                w.extend_from_slice(&c);
+                Ok(IsNull::No)
+            }
+            Err(x) => {
+                eprint!("Card: {}", x);
+                Ok(IsNull::Yes)
+            }
+        }
+    }
+
+    accepts!(JSON);
+    to_sql_checked!();
+}
+
+impl FromSql<'_> for Card {
+    fn from_sql<'a>(
+        _: &tokio_postgres::types::Type,
+        raw: &'a [u8],
+    ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+        serde_json::from_slice(raw).map_err(|e| Box::from(e))
+    }
+
+    accepts!(JSON);
 }
 
 #[cfg(test)]

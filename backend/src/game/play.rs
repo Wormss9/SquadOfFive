@@ -79,7 +79,7 @@ impl Play {
                     return comparison;
                 }
             }
-            return Ordering::Equal;
+            Ordering::Equal
         }
     }
 
@@ -204,7 +204,7 @@ impl Play {
     }
 }
 
-pub fn deal_cards()->(Vec<Card>, Vec<Card>, Vec<Card>, Vec<Card>) {
+pub fn deal_cards()->[Vec<Card>;4] {
     let mut deck:Vec<Card> = vec![];
     for color in 1..4 {
         for value in 1..11 {
@@ -216,7 +216,11 @@ pub fn deal_cards()->(Vec<Card>, Vec<Card>, Vec<Card>, Vec<Card>) {
     deck.push(Card::new(4, 1));
     let mut rng = thread_rng();
     deck.shuffle(&mut rng);
-    (deck[0..16].to_vec(),deck[16..32].to_vec(),deck[32..48].to_vec(),deck[48..64].to_vec())
+    let mut hands = [deck[0..16].to_vec(),deck[16..32].to_vec(),deck[32..48].to_vec(),deck[48..64].to_vec()];
+    for cards in hands.as_mut(){
+        cards.sort();
+    }
+    hands
 }
 
 #[cfg(test)]

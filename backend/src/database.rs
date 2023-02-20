@@ -1,12 +1,18 @@
-use std::env;
+use crate::rejection::MyRejection;
 
+pub use self::{player::Player, room::Room, game_user::GameUser};
 use async_trait::async_trait;
-use deadpool_postgres::{ManagerConfig, Pool, RecyclingMethod, Runtime};
-
-pub use player::Player;
+use deadpool_postgres::{ManagerConfig, Object, Pool, RecyclingMethod, Runtime};
+use http::StatusCode;
+use std::env;
 use tokio_postgres::{Error, NoTls};
+use warp::Rejection;
+
+mod default_image;
 
 pub mod player;
+pub mod room;
+pub mod game_user;
 
 #[async_trait]
 pub trait Database {
@@ -14,7 +20,15 @@ pub trait Database {
 }
 
 async fn initialize(pool: Pool) -> Result<(), Error> {
+    GameUser::create_table(pool.clone()).await?;
+    Room::create_table(pool.clone()).await?;
     Player::create_table(pool).await
+}
+
+async fn initialize_client(pool: Pool) -> Result<Object, Rejection> {
+    pool.get()
+        .await
+        .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
 }
 
 pub async fn connect() -> Pool {

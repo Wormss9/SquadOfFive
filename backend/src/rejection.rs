@@ -14,23 +14,22 @@ pub struct MyRejection {
     message: Option<String>,
 }
 
-pub fn get_internal_server_error() -> Rejection {
-    MyRejection::code(StatusCode::INTERNAL_SERVER_ERROR)
-}
-
 impl Reject for MyRejection {}
 impl MyRejection {
     fn get_reply(&self) -> WithStatus<String> {
-        reply::with_status(
-            self.message.clone().unwrap_or_default(),
-            self.code,
-        )
+        reply::with_status(self.message.clone().unwrap_or_default(), self.code)
     }
     pub fn code(code: StatusCode) -> Rejection {
         warp::reject::custom(Self {
             code,
             message: None,
         })
+    }
+    pub fn code_fn<T: std::fmt::Debug>(code: StatusCode) -> impl Fn(T) -> Rejection {
+        move |x| -> Rejection {
+            panic!("{:?}", x);
+            Self::code(code)
+        }
     }
     pub fn message(code: StatusCode, message: &str) -> Rejection {
         warp::reject::custom(Self {
