@@ -1,4 +1,4 @@
-use crate::handlers;
+use crate::handlers::room;
 use deadpool_postgres::Pool;
 use hmac::Hmac;
 use sha2::Sha512;
@@ -17,7 +17,7 @@ pub fn create_room(
         .and(warp::path::end())
         .and(auth_validation(key))
         .and(add_struct(pool))
-        .and_then(handlers::room::create_room)
+        .and_then(room::create_room)
 }
 
 pub fn get_my_rooms(
@@ -26,11 +26,26 @@ pub fn get_my_rooms(
 ) -> impl Filter<Extract = (Json,), Error = Rejection> + Clone {
     warp::get()
         .and(warp::path("api"))
-        .and(warp::path("room"))
+        .and(warp::path("rooms"))
+        .and(warp::path("created"))
         .and(warp::path::end())
         .and(auth_validation(key))
         .and(add_struct(pool))
-        .and_then(handlers::room::get_my)
+        .and_then(room::get_my)
+}
+
+pub fn get_joined_rooms(
+    pool: Pool,
+    key: Hmac<Sha512>,
+) -> impl Filter<Extract = (Json,), Error = Rejection> + Clone {
+    warp::get()
+        .and(warp::path("api"))
+        .and(warp::path("rooms"))
+        .and(warp::path("joined"))
+        .and(warp::path::end())
+        .and(auth_validation(key))
+        .and(add_struct(pool))
+        .and_then(room::get_joined)
 }
 
 pub fn get_room(
@@ -44,7 +59,7 @@ pub fn get_room(
         .and(warp::path::end())
         .and(auth_validation(key))
         .and(add_struct(pool))
-        .and_then(handlers::room::get_room)
+        .and_then(room::get_room)
 }
 
 pub fn join_room(
@@ -58,5 +73,5 @@ pub fn join_room(
         .and(warp::path::end())
         .and(auth_validation(key))
         .and(add_struct(pool))
-        .and_then(handlers::room::join_room)
+        .and_then(room::join_room)
 }

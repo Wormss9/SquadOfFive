@@ -30,6 +30,11 @@ pub async fn get_my(user: UserIdentification, pool: Pool) -> Result<Json, Reject
     Ok(warp::reply::json(&room))
 }
 
+pub async fn get_joined(user: UserIdentification, pool: Pool) -> Result<Json, Rejection> {
+    let room = Room::get_joined(pool, user.id).await?;
+    Ok(warp::reply::json(&room))
+}
+
 pub async fn get_room(
     ulid: String,
     user: UserIdentification,

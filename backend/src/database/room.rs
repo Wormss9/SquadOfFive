@@ -79,10 +79,9 @@ impl Room {
     pub async fn get_joined(pool: Pool, host: i32) -> Result<Vec<Self>, Rejection> {
         let rows = initialize_client(pool)
             .await?
-            .query("SELECT * FROM room WHERE host = ($1);", &[&host])
+            .query("select * from room where ulid in (select room from player where game_user = ($1));", &[&host])
             .await
             .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
-        todo!();
         Ok(rows.into_iter().map(Room::from).collect())
     }
     pub async fn get_players(pool: Pool, id: &str) -> Result<Option<Self>, Rejection> {

@@ -1,7 +1,6 @@
 use authorization::get_key;
 use database::connect;
-use filters::login::{get_login, get_restricted, put_register};
-use filters::room::{create_room, get_my_rooms, get_room, join_room};
+use filters::{room,login};
 use serde_derive::{Deserialize, Serialize};
 use warp::Filter;
 
@@ -23,14 +22,15 @@ async fn main() {
     let pool = connect().await;
     let key = get_key();
 
-    let login_routes = get_login(pool.clone(), key.clone())
-        .or(put_register(pool.clone()))
-        .or(get_restricted(key.clone()));
+    let login_routes = login::get_login(pool.clone(), key.clone())
+        .or(login::put_register(pool.clone()))
+        .or(login::get_restricted(key.clone()));
 
-    let room_routes = create_room(pool.clone(), key.clone())
-        .or(get_room(pool.clone(), key.clone()))
-        .or(join_room(pool.clone(), key.clone()))
-        .or(get_my_rooms(pool.clone(), key.clone()));
+    let room_routes = room::create_room(pool.clone(), key.clone())
+        .or(room::get_room(pool.clone(), key.clone()))
+        .or(room::join_room(pool.clone(), key.clone()))
+        .or(room::get_my_rooms(pool.clone(), key.clone()))
+        .or(room::get_joined_rooms(pool.clone(), key.clone()));
 
     let routes = login_routes.or(room_routes);
 
