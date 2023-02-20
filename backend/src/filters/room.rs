@@ -48,6 +48,21 @@ pub fn get_joined_rooms(
         .and_then(room::get_joined)
 }
 
+pub fn get_players(
+    pool: Pool,
+    key: Hmac<Sha512>,
+) -> impl Filter<Extract = (Json,), Error = Rejection> + Clone {
+    warp::get()
+        .and(warp::path("api"))
+        .and(warp::path("room"))
+        .and(warp::path::param())
+        .and(warp::path("players"))
+        .and(warp::path::end())
+        .and(auth_validation(key))
+        .and(add_struct(pool))
+        .and_then(room::get_players)
+}
+
 pub fn get_room(
     pool: Pool,
     key: Hmac<Sha512>,

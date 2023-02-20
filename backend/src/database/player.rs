@@ -101,4 +101,22 @@ impl Player {
             .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
         Ok(())
     }
+    pub fn public(&self) -> PublicPlayer {
+        PublicPlayer {
+            id: self.id,
+            game_user: self.game_user,
+            room: self.room.clone(),
+            points: self.points,
+            turn: self.turn,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct PublicPlayer {
+    pub id: i32,
+    pub game_user: Option<i32>,
+    pub room: String,
+    pub points: i32,
+    pub turn: i32,
 }

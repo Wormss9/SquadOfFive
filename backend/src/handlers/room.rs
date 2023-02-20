@@ -1,4 +1,5 @@
 use crate::database::game_user::UserIdentification;
+use crate::database::player::PublicPlayer;
 use crate::database::{player, Room};
 use crate::game::play::deal_cards;
 use crate::rejection::MyRejection;
@@ -33,6 +34,23 @@ pub async fn get_my(user: UserIdentification, pool: Pool) -> Result<Json, Reject
 pub async fn get_joined(user: UserIdentification, pool: Pool) -> Result<Json, Rejection> {
     let room = Room::get_joined(pool, user.id).await?;
     Ok(warp::reply::json(&room))
+}
+
+pub async fn get_players(
+    ulid: String,
+    user: UserIdentification,
+    pool: Pool,
+) -> Result<Json, Rejection> {
+    let room = Room::get(pool.clone(), &ulid)
+        .await?
+        .ok_or(MyRejection::code(StatusCode::NOT_FOUND))?;
+    let players = Player::get_all(pool, &room.ulid).await?;
+    players
+        .iter()
+        .find(|p| p.game_user == Some(user.id))
+        .ok_or(MyRejection::code(StatusCode::UNAUTHORIZED))?;
+    let public_players:Vec<PublicPlayer> = players.iter().map(|p| p.public()).collect();
+    Ok(warp::reply::json(&public_players))
 }
 
 pub async fn get_room(

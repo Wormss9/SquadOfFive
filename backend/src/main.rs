@@ -30,7 +30,8 @@ async fn main() {
         .or(room::get_room(pool.clone(), key.clone()))
         .or(room::join_room(pool.clone(), key.clone()))
         .or(room::get_my_rooms(pool.clone(), key.clone()))
-        .or(room::get_joined_rooms(pool.clone(), key.clone()));
+        .or(room::get_joined_rooms(pool.clone(), key.clone()))
+        .or(room::get_players(pool.clone(), key.clone()));
 
     let routes = login_routes.or(room_routes);
 
