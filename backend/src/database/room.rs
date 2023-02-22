@@ -1,4 +1,4 @@
-use crate::{game::play::Card, rejection::MyRejection};
+use crate::{game_logic::play::Card, rejection::MyRejection};
 
 use super::{initialize_client, Database};
 use async_trait::async_trait;

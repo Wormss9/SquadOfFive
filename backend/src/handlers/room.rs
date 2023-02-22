@@ -1,7 +1,7 @@
 use crate::database::game_user::UserIdentification;
 use crate::database::player::PublicPlayer;
 use crate::database::{player, Room};
-use crate::game::play::deal_cards;
+use crate::game_logic::play::deal_cards;
 use crate::rejection::MyRejection;
 
 use deadpool_postgres::Pool;
@@ -49,7 +49,7 @@ pub async fn get_players(
         .iter()
         .find(|p| p.game_user == Some(user.id))
         .ok_or(MyRejection::code(StatusCode::UNAUTHORIZED))?;
-    let public_players:Vec<PublicPlayer> = players.iter().map(|p| p.public()).collect();
+    let public_players: Vec<PublicPlayer> = players.iter().map(|p| p.public()).collect();
     Ok(warp::reply::json(&public_players))
 }
 
@@ -61,11 +61,9 @@ pub async fn get_room(
     let room = Room::get(pool.clone(), &ulid)
         .await?
         .ok_or(MyRejection::code(StatusCode::NOT_FOUND))?;
-    let players = Player::get_all(pool, &room.ulid).await?;
-    players
-        .iter()
-        .find(|p| p.game_user == Some(user.id))
-        .ok_or(MyRejection::code(StatusCode::UNAUTHORIZED))?;
+    if !user.is_part_of_room(pool, &ulid).await?.is_some() {
+        return Err(MyRejection::code(StatusCode::UNAUTHORIZED));
+    }
     Ok(warp::reply::json(&room))
 }
 

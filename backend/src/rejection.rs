@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{convert::Infallible, error::Error};
 
 use http::StatusCode;
 use warp::{
@@ -39,7 +39,7 @@ impl MyRejection {
     }
 }
 
-pub async fn handle_rejection(result: Rejection) -> Result<impl Reply, std::convert::Infallible> {
+pub async fn handle_rejection(result: Rejection) -> Result<impl Reply, Infallible> {
     Ok(if result.is_not_found() {
         reply::with_status("NOT_FOUND".to_owned(), StatusCode::NOT_FOUND)
     } else if let Some(e) = result.find::<MyRejection>() {

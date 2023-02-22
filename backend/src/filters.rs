@@ -5,8 +5,11 @@ use http::StatusCode;
 use sha2::Sha512;
 use warp::{Filter, Rejection};
 
-use crate::{database::game_user::UserIdentification, authorization::authorize_token, rejection::MyRejection};
+use crate::{
+    authorization::authorize_token, database::game_user::UserIdentification, rejection::MyRejection,
+};
 
+pub mod game;
 pub mod login;
 pub mod room;
 

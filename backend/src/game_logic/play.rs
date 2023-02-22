@@ -1,5 +1,5 @@
 mod value;
-use rand::{thread_rng, seq::SliceRandom};
+use rand::{seq::SliceRandom, thread_rng};
 use value::Value;
 mod card;
 pub use card::Card;
@@ -204,8 +204,8 @@ impl Play {
     }
 }
 
-pub fn deal_cards()->[Vec<Card>;4] {
-    let mut deck:Vec<Card> = vec![];
+pub fn deal_cards() -> [Vec<Card>; 4] {
+    let mut deck: Vec<Card> = vec![];
     for color in 1..4 {
         for value in 1..11 {
             deck.push(Card::new(color, value));
@@ -216,8 +216,13 @@ pub fn deal_cards()->[Vec<Card>;4] {
     deck.push(Card::new(4, 1));
     let mut rng = thread_rng();
     deck.shuffle(&mut rng);
-    let mut hands = [deck[0..16].to_vec(),deck[16..32].to_vec(),deck[32..48].to_vec(),deck[48..64].to_vec()];
-    for cards in hands.as_mut(){
+    let mut hands = [
+        deck[0..16].to_vec(),
+        deck[16..32].to_vec(),
+        deck[32..48].to_vec(),
+        deck[48..64].to_vec(),
+    ];
+    for cards in hands.as_mut() {
         cards.sort();
     }
     hands

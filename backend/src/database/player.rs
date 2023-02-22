@@ -1,4 +1,4 @@
-use crate::{game::play::Card, rejection::MyRejection};
+use crate::{game_logic::play::Card, rejection::MyRejection};
 
 use super::{initialize_client, Database};
 use async_trait::async_trait;
@@ -112,11 +112,17 @@ impl Player {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq, Hash)]
 pub struct PublicPlayer {
     pub id: i32,
     pub game_user: Option<i32>,
     pub room: String,
     pub points: i32,
     pub turn: i32,
+}
+
+impl PartialEq for PublicPlayer {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
 }

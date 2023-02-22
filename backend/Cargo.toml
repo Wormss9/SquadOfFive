@@ -4,18 +4,20 @@ version = "0.0.1"
 edition = "2021"
 
 [dependencies]
-warp = "0.3.3"
+async-trait = "0.1.64"
 deadpool-postgres = "0.10.5"
-tokio-postgres = "0.7.2"
-tokio = { version = "1", features = ["full"] }
+futures = "0.3.26"
+hmac = "0.12.1"
+http = "0.2.8"
+jwt = "0.16.0"
+pwhash = "1"
+rand = "0.8.5"
 serde = "1.0.152"
 serde_derive = "1.0.152"
-http = "0.2.8"
-async-trait = "0.1.64"
-jwt = "0.16.0"
 sha2 = "0.10.6"
-hmac = "0.12.1"
-pwhash = "1"
-ulid = { version = "1", features = ["serde"] }
-rand = "0.8.5"
 serde_json = { version = "1.0.93", features = ["std"] }
+tokio = { version = "1", features = ["full"] }
+tokio-postgres = "0.7.2"
+tokio-stream = "0.1.12"
+ulid = { version = "1", features = ["serde"] }
+warp = { version = "0.3.3", features = ["websocket"] }

@@ -1,6 +1,6 @@
 use crate::{authorization::hash_password, rejection::MyRejection};
 
-use super::{initialize_client, Database};
+use super::{initialize_client, player, Database, Player, Room};
 use crate::database::default_image::IMAGE;
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
@@ -113,4 +113,17 @@ pub struct UserIdentification {
     pub id: i32,
     pub name: Option<String>,
     pub steam_id: Option<i32>,
+}
+
+impl UserIdentification {
+    pub async fn is_part_of_room(
+        &self,
+        pool: Pool,
+        room: &str,
+    ) -> Result<Option<Player>, Rejection> {
+        let players = Player::get_all(pool, room).await?;
+        Ok(players
+            .into_iter()
+            .find(|player| player.game_user == Some(self.id)))
+    }
 }
