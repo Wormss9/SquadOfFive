@@ -1,6 +1,5 @@
-use std::{convert::Infallible, error::Error};
-
 use http::StatusCode;
+use std::{convert::Infallible, error::Error};
 use warp::{
     body::BodyDeserializeError,
     reject::Reject,

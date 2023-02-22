@@ -1,21 +1,19 @@
+use super::authorization::{create_token, verify_password, Login};
 use crate::database::game_user::UserIdentification;
-use crate::rejection::MyRejection;
-use crate::{
-    authorization::{create_token, verify_password, Login},
-    database::GameUser,
-};
+use crate::database::GameUser;
+use crate::filters::rejection::MyRejection;
 use deadpool_postgres::Pool;
 use hmac::Hmac;
 use http::StatusCode;
 use sha2::Sha512;
-use warp::reply::WithHeader;
-use warp::{reply::WithStatus, Rejection};
+use warp::Rejection;
+use warp::Reply;
 
-pub async fn login(
+pub async fn user_login(
     login: Login,
     pool: Pool,
     key: Hmac<Sha512>,
-) -> Result<WithHeader<String>, Rejection> {
+) -> Result<impl Reply, Rejection> {
     let player = match match GameUser::get(pool, &login.name).await {
         Ok(p) => p,
         Err(_) => return Err(MyRejection::message(StatusCode::INTERNAL_SERVER_ERROR, "1")),
@@ -45,7 +43,7 @@ pub async fn login(
     }
 }
 
-pub async fn register(login: Login, pool: Pool) -> Result<WithStatus<String>, Rejection> {
+pub async fn user_register(login: Login, pool: Pool) -> Result<impl Reply, Rejection> {
     GameUser::create(pool.clone(), &login.name, &login.password).await?;
     Ok(warp::reply::with_status(
         "CREATED".to_owned(),
@@ -53,9 +51,7 @@ pub async fn register(login: Login, pool: Pool) -> Result<WithStatus<String>, Re
     ))
 }
 
-pub async fn restricted_handler(
-    _player: UserIdentification,
-) -> Result<WithStatus<String>, Rejection> {
+pub async fn restricted_handler(_player: UserIdentification) -> Result<impl Reply, Rejection> {
     Ok(warp::reply::with_status(
         "Authorized".to_owned(),
         StatusCode::OK,

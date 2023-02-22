@@ -1,10 +1,9 @@
-use deadpool_postgres::Pool;
-use warp::{ws::WebSocket, Reply};
-
 use crate::{
     database::game_user::UserIdentification,
     websocket::{self, WsPlayers},
 };
+use deadpool_postgres::Pool;
+use warp::{ws::WebSocket, Reply};
 
 pub fn join_game(
     room: String,

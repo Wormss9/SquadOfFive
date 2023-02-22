@@ -1,18 +1,14 @@
-use crate::database::game_user::UserIdentification;
-use crate::database::player::PublicPlayer;
-use crate::database::{player, Room};
-use crate::game_logic::play::deal_cards;
-use crate::rejection::MyRejection;
-
+use crate::{
+    database::{game_user::UserIdentification, player::PublicPlayer, Player, Room},
+    filters::rejection::MyRejection,
+    game_logic::play::deal_cards,
+};
 use deadpool_postgres::Pool;
-
 use http::StatusCode;
-use player::Player;
-
 use rand::seq::SliceRandom;
 use warp::{reply::Json, Rejection};
 
-pub async fn create_room(user: UserIdentification, pool: Pool) -> Result<Json, Rejection> {
+pub async fn create(user: UserIdentification, pool: Pool) -> Result<Json, Rejection> {
     let room = Room::create(pool.clone(), user.id).await?;
     let deck = deal_cards();
     let mut players: Vec<Player> = Vec::new();
@@ -26,7 +22,7 @@ pub async fn create_room(user: UserIdentification, pool: Pool) -> Result<Json, R
     Ok(warp::reply::json(&room))
 }
 
-pub async fn get_my(user: UserIdentification, pool: Pool) -> Result<Json, Rejection> {
+pub async fn get_owned(user: UserIdentification, pool: Pool) -> Result<Json, Rejection> {
     let room = Room::get_my(pool, user.id).await?;
     Ok(warp::reply::json(&room))
 }
@@ -53,7 +49,7 @@ pub async fn get_players(
     Ok(warp::reply::json(&public_players))
 }
 
-pub async fn get_room(
+pub async fn get_one(
     ulid: String,
     user: UserIdentification,
     pool: Pool,
@@ -67,11 +63,7 @@ pub async fn get_room(
     Ok(warp::reply::json(&room))
 }
 
-pub async fn join_room(
-    ulid: String,
-    user: UserIdentification,
-    pool: Pool,
-) -> Result<Json, Rejection> {
+pub async fn join(ulid: String, user: UserIdentification, pool: Pool) -> Result<Json, Rejection> {
     let room = Room::get(pool.clone(), &ulid)
         .await?
         .ok_or(MyRejection::code(StatusCode::NOT_FOUND))?;

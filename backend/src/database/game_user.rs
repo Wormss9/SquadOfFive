@@ -1,7 +1,6 @@
-use crate::{authorization::hash_password, rejection::MyRejection};
-
-use super::{initialize_client, player, Database, Player, Room};
-use crate::database::default_image::IMAGE;
+use super::{default_image::IMAGE, initialize_client, Database, Player};
+use crate::filters::rejection::MyRejection;
+use crate::handlers::authorization::hash_password;
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use http::StatusCode;

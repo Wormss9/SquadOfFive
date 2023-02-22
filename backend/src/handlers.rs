@@ -1,3 +1,4 @@
+pub mod authorization;
 pub mod game;
-pub mod login;
 pub mod room;
+pub mod signing;

@@ -1,13 +1,11 @@
+use super::{add_struct, auth_validation};
+use crate::{handlers, websocket::WsPlayers};
 use deadpool_postgres::Pool;
 use hmac::Hmac;
 use sha2::Sha512;
 use warp::{Filter, Rejection, Reply};
 
-use crate::{handlers, websocket::WsPlayers};
-
-use super::{add_struct, auth_validation};
-
-pub fn join_game(
+pub fn game(
     pool: Pool,
     key: Hmac<Sha512>,
     rooms: WsPlayers,

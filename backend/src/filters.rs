@@ -1,17 +1,16 @@
-use std::convert::Infallible;
-
+use crate::{database::game_user::UserIdentification, handlers::authorization::authorize_token};
 use hmac::Hmac;
 use http::StatusCode;
+use rejection::MyRejection;
 use sha2::Sha512;
+use std::convert::Infallible;
 use warp::{Filter, Rejection};
 
-use crate::{
-    authorization::authorize_token, database::game_user::UserIdentification, rejection::MyRejection,
-};
-
 pub mod game;
-pub mod login;
+pub mod rejection;
 pub mod room;
+pub mod signing;
+mod utils;
 
 pub fn add_struct<T: Clone + std::marker::Send>(
     add: T,

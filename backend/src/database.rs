@@ -1,6 +1,5 @@
-use crate::rejection::MyRejection;
-
-pub use self::{player::Player, room::Room, game_user::GameUser};
+pub use self::{game_user::GameUser, player::Player, room::Room};
+use crate::filters::rejection::MyRejection;
 use async_trait::async_trait;
 use deadpool_postgres::{ManagerConfig, Object, Pool, RecyclingMethod, Runtime};
 use http::StatusCode;
@@ -9,10 +8,9 @@ use tokio_postgres::{Error, NoTls};
 use warp::Rejection;
 
 mod default_image;
-
+pub mod game_user;
 pub mod player;
 pub mod room;
-pub mod game_user;
 
 #[async_trait]
 pub trait Database {

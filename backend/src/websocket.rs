@@ -1,14 +1,10 @@
+use crate::database::{player::PublicPlayer, Player};
 use deadpool_postgres::Pool;
 use futures::StreamExt;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::{mpsc, RwLock};
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use warp::ws::{Message, WebSocket};
-
-use crate::database::{
-    player::PublicPlayer,
-    Player,
-};
 
 pub type WsPlayers =
     Arc<RwLock<HashMap<PublicPlayer, mpsc::UnboundedSender<Result<Message, warp::Error>>>>>;
@@ -25,12 +21,7 @@ pub async fn join(ulid: String, player: Player, pool: Pool, players: WsPlayers, 
 
     // Reading and broadcasting messages
     while let Some(result) = user_rx.next().await {
-        broadcast_msg(
-            result.expect("Failed to fetch message"),
-            &ulid,
-            &players,
-        )
-        .await;
+        broadcast_msg(result.expect("Failed to fetch message"), &ulid, &players).await;
     }
 
     // Disconnect
