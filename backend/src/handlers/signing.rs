@@ -4,6 +4,7 @@ use crate::database::GameUser;
 use crate::filters::rejection::MyRejection;
 use deadpool_postgres::Pool;
 use hmac::Hmac;
+use http::Response;
 use http::StatusCode;
 use sha2::Sha512;
 use warp::Rejection;
@@ -34,11 +35,9 @@ pub async fn user_login(
         return Err(MyRejection::code(http::StatusCode::BAD_REQUEST));
     }
     match create_token(player, key) {
-        Ok(token) => Ok(warp::reply::with_header(
-            token.clone(),
-            "set-cookie",
-            format!("token={}; Path=/; HttpOnly; Max-Age=1209600", token),
-        )),
+        Ok(token) => Ok(
+            Response::builder().body(serde_json::to_string(&token).unwrap())
+    ),
         Err(_) => Err(MyRejection::message(StatusCode::INTERNAL_SERVER_ERROR, "3")),
     }
 }

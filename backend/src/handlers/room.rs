@@ -62,8 +62,7 @@ pub async fn join(ulid: String, user: UserIdentification, pool: Pool) -> Result<
     let players = room.get_players(pool.clone()).await?;
     let exists = players
         .iter()
-        .find(|p| p.game_user == Some(user.id))
-        .is_some();
+        .any(|p| p.game_user == Some(user.id));
     if exists {
         return Err(MyRejection::code(StatusCode::CONFLICT));
     }

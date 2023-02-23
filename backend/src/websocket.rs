@@ -22,7 +22,7 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
 
     // Reading and broadcasting messages
     while let Some(result) = user_rx.next().await {
-        broadcast_msg(result.expect("Failed to fetch message"), &ulid, &players).await;
+        broadcast_msg(result.expect("Failed to fetch message"), ulid, &players).await;
     }
 
     // Disconnect
@@ -30,7 +30,7 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
 }
 
 pub async fn broadcast_msg(msg: Message, room: &str, players: &WsPlayers) {
-    if let Ok(_) = msg.to_str() {
+    if msg.to_str().is_ok() {
         let players = players.read().await;
         for (receiver, tx) in players.iter().clone() {
             if room == receiver.room {

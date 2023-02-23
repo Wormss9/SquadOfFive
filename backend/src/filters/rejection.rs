@@ -26,7 +26,6 @@ impl MyRejection {
     }
     pub fn code_fn<T: std::fmt::Debug>(code: StatusCode) -> impl Fn(T) -> Rejection {
         move |x| -> Rejection {
-            panic!("{:?}", x);
             Self::code(code)
         }
     }

@@ -1,4 +1,4 @@
-use super::{add_struct, cookie_auth, utils::json_body};
+use super::{add_struct, cookie_auth, utils::{json_body, json_query}};
 use crate::handlers::{authorization, signing};
 use deadpool_postgres::Pool;
 use hmac::Hmac;
@@ -10,14 +10,14 @@ fn get_login(
     key: Hmac<Sha512>,
 ) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {
     warp::get()
-        .and(warp::path("api"))
-        .and(warp::path("login"))
-        .and(warp::path("user"))
-        .and(warp::path::end())
-        .and(json_body::<authorization::Login>())
-        .and(add_struct(pool))
-        .and(add_struct(key))
-        .and_then(signing::user_login)
+    .and(warp::path("api"))
+    .and(warp::path("login"))
+    .and(warp::path("user"))
+    .and(warp::path::end())
+    .and(json_query::<authorization::Login>())
+    .and(add_struct(pool))
+    .and(add_struct(key))
+    .and_then(signing::user_login)
 }
 
 fn put_register(pool: Pool) -> impl Filter<Extract = (impl Reply,), Error = Rejection> + Clone {

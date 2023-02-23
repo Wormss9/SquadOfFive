@@ -64,9 +64,9 @@ impl Room {
             .query_opt("SELECT * FROM room WHERE ulid = ($1);", &[&id])
             .await
             .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
-        Ok(row
+        row
             .map(Room::from)
-            .ok_or(MyRejection::code(StatusCode::NOT_FOUND))?)
+            .ok_or(MyRejection::code(StatusCode::NOT_FOUND))
     }
     pub async fn get_my(pool: Pool, host: i32) -> Result<Vec<Self>, Rejection> {
         let rows = initialize_client(pool)

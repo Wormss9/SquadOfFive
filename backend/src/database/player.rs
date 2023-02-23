@@ -104,7 +104,7 @@ impl Player {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize, Clone, Eq, Hash)]
+#[derive(Debug, Deserialize, Serialize, Clone, Eq)]
 pub struct PublicPlayer {
     pub id: i32,
     pub game_user: Option<i32>,
@@ -116,5 +116,24 @@ pub struct PublicPlayer {
 impl PartialEq for PublicPlayer {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
+    }
+}
+
+impl std::hash::Hash for PublicPlayer {
+    fn hash_slice<H: std::hash::Hasher>(data: &[Self], state: &mut H)
+    where
+        Self: Sized,
+    {
+        for piece in data {
+            piece.id.hash(state);
+        }
+    }
+
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+        self.game_user.hash(state);
+        self.room.hash(state);
+        self.points.hash(state);
+        self.turn.hash(state);
     }
 }

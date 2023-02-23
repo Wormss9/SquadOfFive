@@ -20,13 +20,15 @@ pub fn get_key() -> Hmac<Sha512> {
     )
     .expect("Failed to create key")
 }
-pub fn create_token(player: GameUser, key: Hmac<Sha512>) -> Result<String, jwt::Error> {
+pub fn create_token(player: GameUser, key: Hmac<Sha512>) -> Result<LoginResponse, jwt::Error> {
     let header = Header {
         algorithm: AlgorithmType::Hs512,
         ..Default::default()
     };
     let token = Token::new(header, player.get_identification()).sign_with_key(&key)?;
-    Ok(token.as_str().to_owned())
+    Ok(LoginResponse {
+        Authorization: token.as_str().to_owned(),
+    })
 }
 
 pub fn authorize_token(
@@ -39,4 +41,9 @@ pub fn authorize_token(
 pub struct Login {
     pub name: String,
     pub password: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct LoginResponse {
+    pub Authorization: String,
 }

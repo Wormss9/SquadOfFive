@@ -99,5 +99,5 @@ pub fn room(
         .or(get_room(pool.clone(), key.clone()))
         .or(get_owned(pool.clone(), key.clone()))
         .or(get_joined(pool.clone(), key.clone()))
-        .or(get_players(pool.clone(), key.clone()))
+        .or(get_players(pool, key))
 }

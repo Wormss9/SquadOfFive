@@ -79,7 +79,7 @@ impl ToSql for Card {
 impl FromSql<'_> for Card {
     fn from_sql<'a>(
         _: &tokio_postgres::types::Type,
-        raw: &'a [u8],
+        raw: &'_ [u8],
     ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
         serde_json::from_slice(raw).map_err(|e| Box::from(e))
     }

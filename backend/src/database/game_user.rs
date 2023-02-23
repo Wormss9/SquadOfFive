@@ -117,9 +117,9 @@ pub struct UserIdentification {
 impl UserIdentification {
     pub async fn is_part_of(&self, pool: Pool, room: &Room) -> Result<Player, Rejection> {
         let players = room.get_players(pool).await?;
-        Ok(players
+        players
             .into_iter()
             .find(|player| player.game_user == Some(self.id))
-            .ok_or(MyRejection::code(StatusCode::UNAUTHORIZED))?)
+            .ok_or(MyRejection::code(StatusCode::UNAUTHORIZED))
     }
 }
