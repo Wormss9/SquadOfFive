@@ -1,4 +1,4 @@
-use super::{add_struct, auth_validation};
+use super::{add_struct, cookie_auth};
 use crate::handlers::room;
 use deadpool_postgres::Pool;
 use hmac::Hmac;
@@ -14,7 +14,7 @@ fn put_create(
         .and(warp::path("room"))
         .and(warp::path("create"))
         .and(warp::path::end())
-        .and(auth_validation(key))
+        .and(cookie_auth(key))
         .and(add_struct(pool))
         .and_then(room::create)
 }
@@ -28,7 +28,7 @@ fn patch_join(
         .and(warp::path::param())
         .and(warp::path("join"))
         .and(warp::path::end())
-        .and(auth_validation(key))
+        .and(cookie_auth(key))
         .and(add_struct(pool))
         .and_then(room::join)
 }
@@ -42,7 +42,7 @@ fn get_room(
         .and(warp::path("room"))
         .and(warp::path::param())
         .and(warp::path::end())
-        .and(auth_validation(key))
+        .and(cookie_auth(key))
         .and(add_struct(pool))
         .and_then(room::get_one)
 }
@@ -56,7 +56,7 @@ fn get_owned(
         .and(warp::path("rooms"))
         .and(warp::path("owned"))
         .and(warp::path::end())
-        .and(auth_validation(key))
+        .and(cookie_auth(key))
         .and(add_struct(pool))
         .and_then(room::get_owned)
 }
@@ -70,7 +70,7 @@ fn get_joined(
         .and(warp::path("rooms"))
         .and(warp::path("joined"))
         .and(warp::path::end())
-        .and(auth_validation(key))
+        .and(cookie_auth(key))
         .and(add_struct(pool))
         .and_then(room::get_joined)
 }
@@ -85,7 +85,7 @@ fn get_players(
         .and(warp::path::param())
         .and(warp::path("players"))
         .and(warp::path::end())
-        .and(auth_validation(key))
+        .and(cookie_auth(key))
         .and(add_struct(pool))
         .and_then(room::get_players)
 }

@@ -1,11 +1,11 @@
 use crate::{
-    database::game_user::UserIdentification,
+    database::{game_user::UserIdentification, Room},
     websocket::{self, WsPlayers},
 };
 use deadpool_postgres::Pool;
 use warp::{ws::WebSocket, Reply};
 
-pub fn join_game(
+pub fn game(
     room: String,
     user: UserIdentification,
     pool: Pool,
@@ -15,19 +15,20 @@ pub fn join_game(
     ws.on_upgrade(move |socket| join(room, user, pool, players, socket))
 }
 
-async fn join(
+pub async fn join(
     room: String,
     user: UserIdentification,
     pool: Pool,
     players: WsPlayers,
     socket: WebSocket,
 ) {
-    let player = match match user.is_part_of_room(pool.clone(), &room).await {
-        Ok(o) => o,
+    let room = match Room::get(pool.clone(), &room).await {
+        Ok(r) => r,
         Err(_) => return,
-    } {
-        Some(p) => p,
-        None => return,
+    };
+    let player = match user.is_part_of(pool.clone(), &room).await {
+        Ok(r) => r,
+        Err(_) => return,
     };
     websocket::join(room, player, pool, players, socket).await
 }

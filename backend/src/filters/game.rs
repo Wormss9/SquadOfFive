@@ -1,5 +1,5 @@
-use super::{add_struct, auth_validation};
-use crate::{handlers, websocket::WsPlayers};
+use super::{add_struct, header_auth};
+use crate::{handlers::game, websocket::WsPlayers};
 use deadpool_postgres::Pool;
 use hmac::Hmac;
 use sha2::Sha512;
@@ -14,9 +14,9 @@ pub fn game(
         .and(warp::path("game"))
         .and(warp::path::param())
         .and(warp::path::end())
-        .and(auth_validation(key))
+        .and(header_auth(key))
         .and(add_struct(pool))
         .and(add_struct(rooms))
         .and(warp::ws())
-        .map(handlers::game::join_game)
+        .map(game::game)
 }

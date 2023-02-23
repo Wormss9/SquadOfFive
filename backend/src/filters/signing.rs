@@ -1,4 +1,4 @@
-use super::{add_struct, auth_validation, utils::json_body};
+use super::{add_struct, cookie_auth, utils::json_body};
 use crate::handlers::{authorization, signing};
 use deadpool_postgres::Pool;
 use hmac::Hmac;
@@ -38,7 +38,7 @@ fn get_restricted(
         .and(warp::path("api"))
         .and(warp::path("restricted"))
         .and(warp::path::end())
-        .and(auth_validation(key))
+        .and(cookie_auth(key))
         .and_then(signing::restricted_handler)
 }
 

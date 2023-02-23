@@ -18,10 +18,23 @@ pub fn add_struct<T: Clone + std::marker::Send>(
     warp::any().map(move || -> T { add.clone() })
 }
 
-pub fn auth_validation(
+pub fn cookie_auth(
     key: Hmac<Sha512>,
 ) -> impl Filter<Extract = (UserIdentification,), Error = Rejection> + Clone {
     warp::cookie::<String>("token")
+        .and(add_struct(key))
+        .and_then(|token: String, key: Hmac<Sha512>| async move {
+            match authorize_token(&key.clone(), token.clone()) {
+                Ok(p) => Ok(p),
+                Err(_) => Err(MyRejection::code(StatusCode::UNAUTHORIZED)),
+            }
+        })
+}
+
+pub fn header_auth(
+    key: Hmac<Sha512>,
+) -> impl Filter<Extract = (UserIdentification,), Error = Rejection> + Clone {
+    warp::header::<String>("Authentication")
         .and(add_struct(key))
         .and_then(|token: String, key: Hmac<Sha512>| async move {
             match authorize_token(&key.clone(), token.clone()) {

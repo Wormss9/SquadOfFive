@@ -81,15 +81,7 @@ impl Player {
 
         Ok(row.map(Player::from))
     }
-    pub async fn get_all(pool: Pool, room: &str) -> Result<Vec<Self>, Rejection> {
-        let rows = initialize_client(pool)
-            .await?
-            .query("SELECT * FROM player WHERE room = ($1);", &[&room])
-            .await
-            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
 
-        Ok(rows.into_iter().map(Player::from).collect())
-    }
     pub async fn set_user(&self, pool: Pool, user: i32) -> Result<(), Rejection> {
         initialize_client(pool)
             .await?

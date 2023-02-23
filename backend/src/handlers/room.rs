@@ -37,10 +37,8 @@ pub async fn get_players(
     user: UserIdentification,
     pool: Pool,
 ) -> Result<Json, Rejection> {
-    let room = Room::get(pool.clone(), &ulid)
-        .await?
-        .ok_or(MyRejection::code(StatusCode::NOT_FOUND))?;
-    let players = Player::get_all(pool, &room.ulid).await?;
+    let room = Room::get(pool.clone(), &ulid).await?;
+    let players = room.get_players(pool).await?;
     players
         .iter()
         .find(|p| p.game_user == Some(user.id))
@@ -54,28 +52,22 @@ pub async fn get_one(
     user: UserIdentification,
     pool: Pool,
 ) -> Result<Json, Rejection> {
-    let room = Room::get(pool.clone(), &ulid)
-        .await?
-        .ok_or(MyRejection::code(StatusCode::NOT_FOUND))?;
-    if !user.is_part_of_room(pool, &ulid).await?.is_some() {
-        return Err(MyRejection::code(StatusCode::UNAUTHORIZED));
-    }
+    let room = Room::get(pool.clone(), &ulid).await?;
+    user.is_part_of(pool, &room).await?;
     Ok(warp::reply::json(&room))
 }
 
 pub async fn join(ulid: String, user: UserIdentification, pool: Pool) -> Result<Json, Rejection> {
-    let room = Room::get(pool.clone(), &ulid)
-        .await?
-        .ok_or(MyRejection::code(StatusCode::NOT_FOUND))?;
-    let room_players = Player::get_all(pool.clone(), &room.ulid).await?;
-    let exists = room_players
+    let room = Room::get(pool.clone(), &ulid).await?;
+    let players = room.get_players(pool.clone()).await?;
+    let exists = players
         .iter()
         .find(|p| p.game_user == Some(user.id))
         .is_some();
     if exists {
         return Err(MyRejection::code(StatusCode::CONFLICT));
     }
-    let players: Vec<Player> = room_players
+    let players: Vec<Player> = players
         .into_iter()
         .filter(|p| p.game_user.is_none())
         .collect();

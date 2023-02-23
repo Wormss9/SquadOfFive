@@ -1,4 +1,4 @@
-use super::{initialize_client, Database};
+use super::{initialize_client, Database, Player};
 use crate::filters::rejection::MyRejection;
 use crate::game_logic::play::Card;
 use async_trait::async_trait;
@@ -58,14 +58,15 @@ impl Room {
             .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
         Ok(Room::from(row))
     }
-    pub async fn get(pool: Pool, id: &str) -> Result<Option<Self>, Rejection> {
+    pub async fn get(pool: Pool, id: &str) -> Result<Self, Rejection> {
         let row = initialize_client(pool)
             .await?
             .query_opt("SELECT * FROM room WHERE ulid = ($1);", &[&id])
             .await
             .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
-
-        Ok(row.map(Room::from))
+        Ok(row
+            .map(Room::from)
+            .ok_or(MyRejection::code(StatusCode::NOT_FOUND))?)
     }
     pub async fn get_my(pool: Pool, host: i32) -> Result<Vec<Self>, Rejection> {
         let rows = initialize_client(pool)
@@ -84,13 +85,13 @@ impl Room {
             .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
         Ok(rows.into_iter().map(Room::from).collect())
     }
-    pub async fn get_players(pool: Pool, id: &str) -> Result<Option<Self>, Rejection> {
-        let row = initialize_client(pool)
+    pub async fn get_players(&self, pool: Pool) -> Result<Vec<Player>, Rejection> {
+        let rows = initialize_client(pool)
             .await?
-            .query_opt("SELECT * FROM room WHERE ulid = ($1);", &[&id])
+            .query("SELECT * FROM player WHERE room = ($1);", &[&self.ulid])
             .await
             .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
 
-        Ok(row.map(Room::from))
+        Ok(rows.into_iter().map(Player::from).collect())
     }
 }

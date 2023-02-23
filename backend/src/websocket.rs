@@ -1,4 +1,4 @@
-use crate::database::{player::PublicPlayer, Player};
+use crate::database::{player::PublicPlayer, Player, Room};
 use deadpool_postgres::Pool;
 use futures::StreamExt;
 use std::{collections::HashMap, sync::Arc};
@@ -9,7 +9,8 @@ use warp::ws::{Message, WebSocket};
 pub type WsPlayers =
     Arc<RwLock<HashMap<PublicPlayer, mpsc::UnboundedSender<Result<Message, warp::Error>>>>>;
 
-pub async fn join(ulid: String, player: Player, pool: Pool, players: WsPlayers, socket: WebSocket) {
+pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, socket: WebSocket) {
+    let ulid = &room.ulid;
     // Establishing a connection
     let (user_tx, mut user_rx) = socket.split();
     let (tx, rx) = mpsc::unbounded_channel();

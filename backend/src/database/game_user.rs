@@ -1,4 +1,4 @@
-use super::{default_image::IMAGE, initialize_client, Database, Player};
+use super::{default_image::IMAGE, initialize_client, Database, Player, Room};
 use crate::filters::rejection::MyRejection;
 use crate::handlers::authorization::hash_password;
 use async_trait::async_trait;
@@ -115,14 +115,11 @@ pub struct UserIdentification {
 }
 
 impl UserIdentification {
-    pub async fn is_part_of_room(
-        &self,
-        pool: Pool,
-        room: &str,
-    ) -> Result<Option<Player>, Rejection> {
-        let players = Player::get_all(pool, room).await?;
+    pub async fn is_part_of(&self, pool: Pool, room: &Room) -> Result<Player, Rejection> {
+        let players = room.get_players(pool).await?;
         Ok(players
             .into_iter()
-            .find(|player| player.game_user == Some(self.id)))
+            .find(|player| player.game_user == Some(self.id))
+            .ok_or(MyRejection::code(StatusCode::UNAUTHORIZED))?)
     }
 }
