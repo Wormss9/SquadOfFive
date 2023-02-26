@@ -1,11 +1,11 @@
+use crate::error::Error;
+
 pub use self::{game_user::GameUser, player::Player, room::Room};
-use crate::filters::rejection::MyRejection;
-use async_trait::async_trait;
+use axum::async_trait;
 use deadpool_postgres::{ManagerConfig, Object, Pool, RecyclingMethod, Runtime};
 use http::StatusCode;
 use std::env;
-use tokio_postgres::{Error, NoTls};
-use warp::Rejection;
+use tokio_postgres::NoTls;
 
 mod default_image;
 pub mod game_user;
@@ -23,13 +23,13 @@ async fn initialize(pool: Pool) -> Result<(), Error> {
     Player::create_table(pool).await
 }
 
-async fn initialize_client(pool: Pool) -> Result<Object, Rejection> {
+async fn initialize_client(pool: Pool) -> Result<Object, Error> {
     pool.get()
         .await
-        .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
+        .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
 }
 
-pub async fn connect() -> Pool {
+pub async fn get_pool() -> Pool {
     let mut config = deadpool_postgres::Config::new();
     config.user = Some(env::var("POSTGRES_USER").expect("Missing POSTGRES_USER"));
     config.password = Some(env::var("POSTGRES_PASSWORD").expect("Missing POSTGRES_PASSWORD"));

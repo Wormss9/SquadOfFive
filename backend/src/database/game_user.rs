@@ -1,12 +1,10 @@
 use super::{default_image::IMAGE, initialize_client, Database, Player, Room};
-use crate::filters::rejection::MyRejection;
-use crate::handlers::authorization::hash_password;
+use crate::{authorization::hash_password, error::Error};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use http::StatusCode;
 use serde_derive::{Deserialize, Serialize};
-use tokio_postgres::{Error, Row};
-use warp::Rejection;
+use tokio_postgres::Row;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GameUser {
@@ -47,12 +45,15 @@ impl Database for GameUser {
             CREATE INDEX IF NOT EXISTS steam_index ON game_user(steam_id);",
             IMAGE
         );
-        client.batch_execute(&create_query).await
+        client
+            .batch_execute(&create_query)
+            .await
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
     }
 }
 
 impl GameUser {
-    pub async fn create(pool: Pool, name: &str, password: &str) -> Result<u64, Rejection> {
+    pub async fn create(pool: Pool, name: &str, password: &str) -> Result<u64, Error> {
         initialize_client(pool)
             .await?
             .execute(
@@ -60,14 +61,14 @@ impl GameUser {
                 &[&name, &hash_password(password.to_owned())],
             )
             .await
-            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
+            .map_err(Error::from_db)
     }
     pub async fn create_steam(
         pool: Pool,
         steam_id: &str,
         nick: &str,
         avatar: &str,
-    ) -> Result<u64, Rejection> {
+    ) -> Result<u64, Error> {
         initialize_client(pool)
             .await?
             .execute(
@@ -75,18 +76,18 @@ impl GameUser {
                 &[&steam_id, &nick, &avatar],
             )
             .await
-            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
     }
-    pub async fn get(pool: Pool, name: &str) -> Result<Option<Self>, Rejection> {
+    pub async fn get(pool: Pool, name: &str) -> Result<Option<Self>, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt("SELECT * FROM game_user WHERE name = ($1);", &[&name])
             .await
-            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
 
         Ok(row.map(GameUser::from))
     }
-    pub async fn get_steam(pool: Pool, steam_id: &str) -> Result<Option<Self>, Rejection> {
+    pub async fn get_steam(pool: Pool, steam_id: &str) -> Result<Option<Self>, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt(
@@ -94,7 +95,7 @@ impl GameUser {
                 &[&steam_id],
             )
             .await
-            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
 
         Ok(row.map(GameUser::from))
     }
@@ -115,11 +116,11 @@ pub struct UserIdentification {
 }
 
 impl UserIdentification {
-    pub async fn is_part_of(&self, pool: Pool, room: &Room) -> Result<Player, Rejection> {
+    pub async fn is_part_of(&self, pool: Pool, room: &Room) -> Result<Player, Error> {
         let players = room.get_players(pool).await?;
         players
             .into_iter()
             .find(|player| player.game_user == Some(self.id))
-            .ok_or(MyRejection::code(StatusCode::UNAUTHORIZED))
+            .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))
     }
 }

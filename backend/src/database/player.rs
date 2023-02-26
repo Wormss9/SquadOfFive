@@ -1,13 +1,10 @@
 use super::{initialize_client, Database};
-use crate::filters::rejection::MyRejection;
-use crate::game_logic::play::Card;
+use crate::{error::Error, game_logic::play::Card};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use http::StatusCode;
 use serde_derive::{Deserialize, Serialize};
-use tokio_postgres::{Error, Row};
-use warp::Rejection;
-
+use tokio_postgres::Row;
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Player {
     pub id: i32,
@@ -49,6 +46,7 @@ impl Database for Player {
                 CREATE INDEX IF NOT EXISTS room_index ON player(room);",
             )
             .await
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
     }
 }
 
@@ -58,7 +56,7 @@ impl Player {
         room: &str,
         cards: &Vec<Card>,
         turn: i32,
-    ) -> Result<Player, Rejection> {
+    ) -> Result<Player, Error> {
         let row = initialize_client(pool)
             .await?
             .query_one(
@@ -66,10 +64,10 @@ impl Player {
                 &[&room, cards, &turn],
             )
             .await
-            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
         Ok(Player::from(row))
     }
-    pub async fn get(pool: Pool, room: &str, user: &str) -> Result<Option<Self>, Rejection> {
+    pub async fn get(pool: Pool, room: &str, user: &str) -> Result<Option<Self>, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt(
@@ -77,12 +75,12 @@ impl Player {
                 &[&room, &user],
             )
             .await
-            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
 
         Ok(row.map(Player::from))
     }
 
-    pub async fn set_user(&self, pool: Pool, user: i32) -> Result<(), Rejection> {
+    pub async fn set_user(&self, pool: Pool, user: i32) -> Result<(), Error> {
         initialize_client(pool)
             .await?
             .execute(
@@ -90,7 +88,7 @@ impl Player {
                 &[&user, &self.id, &self.turn],
             )
             .await
-            .map_err(MyRejection::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
         Ok(())
     }
     pub fn public(&self) -> PublicPlayer {

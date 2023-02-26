@@ -1,58 +1,41 @@
-use super::authorization::{create_token, verify_password, Login};
-use crate::database::game_user::UserIdentification;
+use crate::authorization::{create_token, verify_password, Key, Login};
 use crate::database::GameUser;
-use crate::filters::rejection::MyRejection;
+use crate::error::Error;
+use axum::extract::{Query, State};
+use axum::response::IntoResponse;
+use axum::{debug_handler, Json};
 use deadpool_postgres::Pool;
-use hmac::Hmac;
-use http::Response;
 use http::StatusCode;
-use sha2::Sha512;
-use warp::Rejection;
-use warp::Reply;
 
+#[debug_handler]
 pub async fn user_login(
-    login: Login,
-    pool: Pool,
-    key: Hmac<Sha512>,
-) -> Result<impl Reply, Rejection> {
+    State((pool, key)): State<(Pool, Key)>,
+    Query(login): Query<Login>,
+) -> Result<impl IntoResponse, Error> {
     let player = match match GameUser::get(pool, &login.name).await {
         Ok(p) => p,
-        Err(_) => return Err(MyRejection::message(StatusCode::INTERNAL_SERVER_ERROR, "1")),
+        Err(_) => return Err(Error::code(StatusCode::INTERNAL_SERVER_ERROR)),
     } {
         Some(p) => p,
-        None => return Err(MyRejection::code(StatusCode::NOT_FOUND)),
+        None => return Err(Error::code(StatusCode::NOT_FOUND)),
     };
     let player_password = match &player.password {
         Some(x) => x,
-        None => {
-            return Err(MyRejection::message(
-                http::StatusCode::INTERNAL_SERVER_ERROR,
-                "2",
-            ))
-        }
+        None => return Err(Error::code(http::StatusCode::INTERNAL_SERVER_ERROR)),
     };
     if !verify_password(login.password, player_password) {
-        return Err(MyRejection::code(http::StatusCode::BAD_REQUEST));
+        return Err(Error::code(http::StatusCode::BAD_REQUEST));
     }
     match create_token(player, key) {
-        Ok(token) => Ok(
-            Response::builder().body(serde_json::to_string(&token).unwrap())
-    ),
-        Err(_) => Err(MyRejection::message(StatusCode::INTERNAL_SERVER_ERROR, "3")),
+        Ok(token) => Ok(axum::Json(token)),
+        Err(_) => Err(Error::code(StatusCode::INTERNAL_SERVER_ERROR)),
     }
 }
-
-pub async fn user_register(login: Login, pool: Pool) -> Result<impl Reply, Rejection> {
+#[debug_handler]
+pub async fn user_register(
+    State((pool, _)): State<(Pool, Key)>,
+    Json(login): Json<Login>,
+) -> Result<impl IntoResponse, Error> {
     GameUser::create(pool.clone(), &login.name, &login.password).await?;
-    Ok(warp::reply::with_status(
-        "CREATED".to_owned(),
-        StatusCode::CREATED,
-    ))
-}
-
-pub async fn restricted_handler(_player: UserIdentification) -> Result<impl Reply, Rejection> {
-    Ok(warp::reply::with_status(
-        "Authorized".to_owned(),
-        StatusCode::OK,
-    ))
+    Ok((StatusCode::CREATED, "CREATED".to_owned()))
 }

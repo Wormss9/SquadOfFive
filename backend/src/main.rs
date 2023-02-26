@@ -1,30 +1,28 @@
-use database::connect;
-use filters::{game, room, signing};
-use handlers::authorization::get_key;
-use serde_derive::{Deserialize, Serialize};
-use warp::Filter;
-use websocket::WsPlayers;
-
+use std::net::SocketAddr;
 mod database;
-mod filters;
+use authorization::get_key;
+use database::get_pool;
+use layers::cors;
+use websocket::WsPlayers;
+mod authorization;
+mod error;
 mod game_logic;
 mod handlers;
+mod layers;
+mod routes;
 mod websocket;
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-struct Name {
-    name: String,
-}
 
 #[tokio::main]
 async fn main() {
-    let db_pool = connect().await;
+    let pool = get_pool().await;
     let key = get_key();
-    let rooms = WsPlayers::default();
+    let players = WsPlayers::default();
 
-    let routes = signing::signing(db_pool.clone(), key.clone())
-        .or(room::room(db_pool.clone(), key.clone()))
-        .or(game::game(db_pool.clone(), key.clone(), rooms));
+    let app = routes::routes(pool, key, players).layer(cors());
 
-    warp::serve(routes).run(([127, 0, 0, 1], 7878)).await;
+    let addr = SocketAddr::from(([127, 0, 0, 1], 7878));
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }

@@ -81,7 +81,7 @@ impl FromSql<'_> for Card {
         _: &tokio_postgres::types::Type,
         raw: &'_ [u8],
     ) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
-        serde_json::from_slice(raw).map_err(|e| Box::from(e))
+        serde_json::from_slice(raw).map_err(Box::from)
     }
 
     accepts!(JSON);
