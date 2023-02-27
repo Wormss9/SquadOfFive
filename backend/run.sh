@@ -1,2 +1,2 @@
-export $(grep -v '^#' ../.env.2.local | xargs)
+export $(grep -v '^#' ../.env.local | xargs)
 cargo run

@@ -106,6 +106,15 @@ impl GameUser {
             steam_id: self.steam_id,
         }
     }
+    pub fn get_public(self) -> PublicUser {
+        PublicUser {
+            id: self.id,
+            name: self.name,
+            steam_id: self.steam_id,
+            nick: self.nick,
+            avatar: self.avatar,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -115,6 +124,15 @@ pub struct UserIdentification {
     pub steam_id: Option<i32>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct PublicUser {
+    pub id: i32,
+    pub name: Option<String>,
+    pub steam_id: Option<i32>,
+    pub nick: String,
+    pub avatar: String,
+}
+
 impl UserIdentification {
     pub async fn is_part_of(&self, pool: Pool, room: &Room) -> Result<Player, Error> {
         let players = room.get_players(pool).await?;
@@ -122,5 +140,15 @@ impl UserIdentification {
             .into_iter()
             .find(|player| player.game_user == Some(self.id))
             .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))
+    }
+    pub async fn get_game_user(self, pool: Pool)->Result<GameUser, Error> {
+        let row = initialize_client(pool)
+            .await?
+            .query_opt("SELECT * FROM game_user WHERE id = ($1);", &[&self.id])
+            .await
+            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?
+            .ok_or_else(|| Error::code(StatusCode::INTERNAL_SERVER_ERROR))?;
+
+        Ok(GameUser::from(row))
     }
 }

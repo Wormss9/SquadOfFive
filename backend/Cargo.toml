@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.64"
+axum = { version = "0.6.8", features = ["http2","macros","ws","tower-log","headers"] }
 deadpool-postgres = "0.10.5"
 futures = "0.3.26"
 hmac = "0.12.1"
@@ -20,4 +21,4 @@ tokio = { version = "1", features = ["full"] }
 tokio-postgres = "0.7.2"
 tokio-stream = "0.1.12"
 ulid = { version = "1", features = ["serde"] }
-warp = { version = "0.3.3", features = ["websocket"] }
+tower-http = { version = "0.4.0", features = ["cors", "add-extension"] }

@@ -1,6 +1,6 @@
 use crate::{
     authorization::Key,
-    handlers::{game, room, signing},
+    handlers::{game, room, signing, user},
     websocket::WsPlayers,
 };
 use axum::{
@@ -52,9 +52,16 @@ fn game(pool: Pool, key: Key, players: WsPlayers) -> Router {
         .with_state((pool, players))
 }
 
+fn user(pool: Pool, key: Key) -> Router {
+    Router::new()
+        .route("/api/user", get(user::get).layer(Extension(key)))
+        .with_state(pool)
+}
+
 pub fn routes(pool: Pool, key: Key, players: WsPlayers) -> Router {
     singning(pool.clone(), key.clone())
         .merge(rooms(pool.clone(), key.clone()))
         .merge(room(pool.clone(), key.clone()))
-        .merge(game(pool, key, players))
+        .merge(game(pool.clone(), key.clone(), players))
+        .merge(user(pool, key))
 }

@@ -6,7 +6,7 @@ services:
   backend:
     build: ./backend
     env_file:
-      - .env.2.local
+      - .env.local
     depends_on:
       [db]
     ports:
@@ -14,14 +14,6 @@ services:
   db:
     image: postgres:alpine
     env_file:
-      - .env.2.local
+      - .env.local
     ports:
       - "5432:5432"
-  # pgadmin:
-  #   image: dpage/pgadmin4
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: root
-  #   ports:
-  #     - "5050:80"
