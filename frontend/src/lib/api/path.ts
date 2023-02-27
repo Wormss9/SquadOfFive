@@ -1,1 +1,0 @@
-export const PATH = "http://localhost:7878/api"

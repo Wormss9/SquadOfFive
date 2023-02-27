@@ -18,9 +18,9 @@ impl Error {
     pub fn code_fn<T: std::fmt::Debug>(code: StatusCode) -> impl Fn(T) -> Self {
         move |_| -> Self { Self::code(code) }
     }
-    pub fn from_db(x: tokio_postgres::Error) -> Self {
+    pub fn from_db(e: tokio_postgres::Error) -> Self {
         let code = StatusCode::INTERNAL_SERVER_ERROR;
-        let state = match x.code() {
+        let state = match e.code() {
             Some(s) => s,
             None => return Self::code(code),
         };

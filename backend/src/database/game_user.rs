@@ -48,7 +48,7 @@ impl Database for GameUser {
         client
             .batch_execute(&create_query)
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
+            .map_err(Error::from_db)
     }
 }
 
@@ -76,14 +76,14 @@ impl GameUser {
                 &[&steam_id, &nick, &avatar],
             )
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
+            .map_err(Error::from_db)
     }
     pub async fn get(pool: Pool, name: &str) -> Result<Option<Self>, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt("SELECT * FROM game_user WHERE name = ($1);", &[&name])
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::from_db)?;
 
         Ok(row.map(GameUser::from))
     }
@@ -95,9 +95,19 @@ impl GameUser {
                 &[&steam_id],
             )
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::from_db)?;
 
         Ok(row.map(GameUser::from))
+    }
+    pub async fn get_by_id(pool: Pool, id: i32) -> Result<Self, Error> {
+        let row = initialize_client(pool)
+            .await?
+            .query_opt("SELECT * FROM game_user WHERE id = ($1);", &[&id])
+            .await
+            .map_err(Error::from_db)?
+            .ok_or_else(|| Error::code(StatusCode::NOT_FOUND))?;
+
+        Ok(GameUser::from(row))
     }
     pub fn get_identification(&self) -> UserIdentification {
         UserIdentification {
@@ -109,8 +119,6 @@ impl GameUser {
     pub fn get_public(self) -> PublicUser {
         PublicUser {
             id: self.id,
-            name: self.name,
-            steam_id: self.steam_id,
             nick: self.nick,
             avatar: self.avatar,
         }
@@ -127,8 +135,6 @@ pub struct UserIdentification {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct PublicUser {
     pub id: i32,
-    pub name: Option<String>,
-    pub steam_id: Option<i32>,
     pub nick: String,
     pub avatar: String,
 }
@@ -141,12 +147,12 @@ impl UserIdentification {
             .find(|player| player.game_user == Some(self.id))
             .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))
     }
-    pub async fn get_game_user(self, pool: Pool)->Result<GameUser, Error> {
+    pub async fn get_game_user(self, pool: Pool) -> Result<GameUser, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt("SELECT * FROM game_user WHERE id = ($1);", &[&self.id])
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?
+            .map_err(Error::from_db)?
             .ok_or_else(|| Error::code(StatusCode::INTERNAL_SERVER_ERROR))?;
 
         Ok(GameUser::from(row))

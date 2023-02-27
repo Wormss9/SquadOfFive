@@ -2,7 +2,6 @@ use super::{initialize_client, Database};
 use crate::{error::Error, game_logic::play::Card};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
-use http::StatusCode;
 use serde_derive::{Deserialize, Serialize};
 use tokio_postgres::Row;
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -46,7 +45,7 @@ impl Database for Player {
                 CREATE INDEX IF NOT EXISTS room_index ON player(room);",
             )
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
+            .map_err(Error::from_db)
     }
 }
 
@@ -64,7 +63,7 @@ impl Player {
                 &[&room, cards, &turn],
             )
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::from_db)?;
         Ok(Player::from(row))
     }
     pub async fn get(pool: Pool, room: &str, user: &str) -> Result<Option<Self>, Error> {
@@ -75,7 +74,7 @@ impl Player {
                 &[&room, &user],
             )
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::from_db)?;
 
         Ok(row.map(Player::from))
     }
@@ -88,7 +87,7 @@ impl Player {
                 &[&user, &self.id, &self.turn],
             )
             .await
-            .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))?;
+            .map_err(Error::from_db)?;
         Ok(())
     }
     pub fn public(&self) -> PublicPlayer {

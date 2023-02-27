@@ -1,5 +1,5 @@
 use crate::{
-    database::{game_user::UserIdentification, Player, Room},
+    database::{game_user::UserIdentification, player::PublicPlayer, Player, Room},
     error::Error,
     game_logic::play::deal_cards,
 };
@@ -71,23 +71,18 @@ pub async fn join(
     Ok(Json(room))
 }
 
-// pub async fn get_players(
-//     ulid: String,
-//     user: UserIdentification,
-//     pool: Pool,
-// ) -> Result<impl IntoResponse, Error> {
-//     let room = Room::get(pool.clone(), &ulid).await?;
-//     let players = room.get_players(pool).await?;
-//     players
-//         .iter()
-//         .find(|p| p.game_user == Some(user.id))
-//         .ok_or(Error::code(StatusCode::UNAUTHORIZED))?;
-//     let public_players: Vec<PublicPlayer> = players.iter().map(|p| p.public()).collect();
-//     Ok(warp::reply::json(&public_players))
-// }
+pub async fn get_players(
+    Path(ulid): Path<String>,
+    user: UserIdentification,
+    State(pool): State<Pool>,
+) -> Result<impl IntoResponse, Error> {
+    let room = Room::get(pool.clone(), &ulid).await?;
+    let players = room.get_players(pool).await?;
+    players
+        .iter()
+        .find(|p| p.game_user == Some(user.id))
+        .ok_or(Error::code(StatusCode::UNAUTHORIZED))?;
+    let public_players: Vec<PublicPlayer> = players.iter().map(|p| p.public()).collect();
+    Ok(Json(public_players))
+}
 
-// pub async fn get_one(ulid: String, user: UserIdentification, pool: Pool) -> Result<impl IntoResponse, Error> {
-//     let room = Room::get(pool.clone(), &ulid).await?;
-//     user.is_part_of(pool, &room).await?;
-//     Ok(warp::reply::json(&room))
-// }

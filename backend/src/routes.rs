@@ -40,10 +40,22 @@ fn room(pool: Pool, key: Key) -> Router {
                 .layer(Extension(key.clone()))
                 .with_state(pool.clone()),
         )
-        .merge(Router::new().route(
-            "/api/room",
-            put(room::create).layer(Extension(key)).with_state(pool),
-        ))
+        .merge(
+            Router::new().route(
+                "/api/room",
+                put(room::create)
+                    .layer(Extension(key.clone()))
+                    .with_state(pool.clone()),
+            ),
+        )
+        .merge(
+            Router::new().route(
+                "/api/room/:id/players",
+                get(room::get_players)
+                    .layer(Extension(key))
+                    .with_state(pool),
+            ),
+        )
 }
 
 fn game(pool: Pool, key: Key, players: WsPlayers) -> Router {
@@ -54,8 +66,16 @@ fn game(pool: Pool, key: Key, players: WsPlayers) -> Router {
 
 fn user(pool: Pool, key: Key) -> Router {
     Router::new()
-        .route("/api/user", get(user::get).layer(Extension(key)))
-        .with_state(pool)
+        .route(
+            "/api/user",
+            get(user::get_self).layer(Extension(key.clone())),
+        )
+        .with_state(pool.clone())
+        .merge(
+            Router::new()
+                .route("/api/user/:id", get(user::get).layer(Extension(key)))
+                .with_state(pool),
+        )
 }
 
 pub fn routes(pool: Pool, key: Key, players: WsPlayers) -> Router {
