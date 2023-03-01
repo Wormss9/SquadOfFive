@@ -1,7 +1,7 @@
 use crate::{
     database::{game_user::UserIdentification, player::PublicPlayer, Player, Room},
-    error::Error,
     game_logic::play::deal_cards,
+    utils::error::Error,
 };
 use axum::{
     debug_handler,
@@ -85,4 +85,3 @@ pub async fn get_players(
     let public_players: Vec<PublicPlayer> = players.iter().map(|p| p.public()).collect();
     Ok(Json(public_players))
 }
-

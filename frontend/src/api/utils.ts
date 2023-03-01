@@ -28,6 +28,12 @@ export async function get_rooms_with_users() {
   };
 }
 
+export async function get_room_with_users(ulid: string) {
+  const mockRoom = { ulid, turn: 0 };
+  const rooms = await rooms_to_rooms_with_users([mockRoom as Room]);
+  return rooms[0];
+}
+
 async function rooms_to_rooms_with_users(rooms: Room[]) {
   const playersTurnsPromises = rooms.map(async (room) => {
     const turn = room.turn;
@@ -45,7 +51,7 @@ async function rooms_to_rooms_with_users(rooms: Room[]) {
   });
   const playersTurns = await Promise.all(playersTurnsPromises);
 
-  const x = playersTurns.map(([turn, players]) => {
+  const sorted = playersTurns.map(([turn, players]) => {
     return players.sort((a, b) => {
       const x = a.turn < turn ? a.turn + 4 : a.turn;
       const y = b.turn < turn ? b.turn + 4 : b.turn;
@@ -53,6 +59,28 @@ async function rooms_to_rooms_with_users(rooms: Room[]) {
     });
   });
 
-  console.log(x);
-  return x;
+  return sorted;
+}
+
+const value_map = {
+  One: "01",
+  Two: "02",
+  Three: "03",
+  Four: "04",
+  Five: "05",
+  Six: "06",
+  Seven: "07",
+  Eight: "08",
+  Nine: "09",
+  Ten: "10",
+  Diamond: "11",
+};
+
+export function be_to_to_value(value?: string) {
+  if (!value) return "01";
+  return value_map[value as keyof typeof value_map];
+}
+export function be_to_to_color(color?: string) {
+  if (!color) return "r";
+  return color[0].toLowerCase();
 }

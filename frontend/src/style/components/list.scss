@@ -1,0 +1,38 @@
+.rooms {
+  display: flex;
+  flex-direction: column;
+  margin: 1em;
+  list-style-type: none;
+  // background-color: #333;
+}
+
+.room {
+  display: flex;
+  flex-direction: row;
+  margin: 1em;
+  background-color: #333;
+}
+.room * {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+}
+
+.room a {
+  margin-left: auto;
+  align-self: right;
+}
+
+.room a {
+  float: left;
+  color: #000;
+  background-color: #555;
+  padding: 1em;
+  text-decoration: none;
+}
+
+.room a:hover {
+  background-color: #000;
+  color: #fff;
+}

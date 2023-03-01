@@ -1,15 +1,13 @@
-use std::net::SocketAddr;
-mod database;
-use authorization::get_key;
 use database::get_pool;
-use layers::cors;
+use std::net::SocketAddr;
+use utils::{authorization::get_key, layers::cors};
 use websocket::WsPlayers;
-mod authorization;
-mod error;
+
+mod database;
 mod game_logic;
 mod handlers;
-mod layers;
 mod routes;
+mod utils;
 mod websocket;
 
 #[tokio::main]

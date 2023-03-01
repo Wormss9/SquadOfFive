@@ -1,9 +1,10 @@
 use super::{initialize_client, Database};
-use crate::{error::Error, game_logic::play::Card};
+use crate::{utils::error::Error, game_logic::play::Card};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use serde_derive::{Deserialize, Serialize};
 use tokio_postgres::Row;
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Player {
     pub id: i32,

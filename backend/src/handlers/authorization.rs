@@ -1,3 +1,10 @@
+use crate::{
+    database::game_user::UserIdentification,
+    utils::{
+        authorization::{authorize_token, Key},
+        error::Error,
+    },
+};
 use axum::{
     async_trait,
     extract::{Extension, FromRequestParts, Query, TypedHeader},
@@ -6,12 +13,6 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use serde::{Deserialize, Serialize};
-
-use crate::{
-    authorization::{authorize_token, Key},
-    database::game_user::UserIdentification,
-    error::Error,
-};
 
 #[async_trait]
 impl<S> FromRequestParts<S> for UserIdentification

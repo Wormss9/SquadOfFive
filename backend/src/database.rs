@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::utils::error::Error;
 
 pub use self::{game_user::GameUser, player::Player, room::Room};
 use axum::async_trait;

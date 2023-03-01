@@ -4,18 +4,15 @@
       <ul class="room">
         <li v-for="player in room" :key="player.id">
           <ul>
-            {{
-              player.nick
-            }}
+            <div>{{ player.nick }}</div>
             <img
               v-bind:src="'data:image/png;base64,' + player.avatar"
               class="avatar"
             />
-            {{
-              player.points
-            }}
+            <div>{{ player.points }}</div>
           </ul>
         </li>
+        <router-link :to="'/game/' + room[0].room">Join</router-link>
       </ul>
     </li>
   </ul>

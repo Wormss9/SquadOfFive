@@ -1,0 +1,12 @@
+form {
+    display: flex;
+    position: fixed; /* or absolute */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    flex-direction: column;
+}
+form *{
+    height: 2em;
+    margin: 1em;
+}

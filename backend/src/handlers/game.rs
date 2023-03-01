@@ -32,12 +32,7 @@ pub async fn join(
     players: WsPlayers,
     mut socket: WebSocket,
 ) {
-    if socket.send(Message::Ping(vec![1, 2, 3])).await.is_ok() {
-        println!("Pinged {}...", user.id);
-    } else {
-        println!("Could not send ping {}!", user.id);
-        // no Error here since the only thing we can do is to close the connection.
-        // If we can not send messages, there is no way to salvage the statemachine anyway.
+    if socket.send(Message::Ping(vec![1, 2, 3])).await.is_err() {
         return;
     }
     let room = match Room::get(pool.clone(), &room).await {

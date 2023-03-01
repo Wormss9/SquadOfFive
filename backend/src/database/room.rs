@@ -1,5 +1,5 @@
 use super::{initialize_client, Database, Player};
-use crate::{error::Error, game_logic::play::Card};
+use crate::{utils::error::Error, game_logic::play::Card};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use http::StatusCode;

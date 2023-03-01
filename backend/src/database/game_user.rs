@@ -1,5 +1,5 @@
 use super::{default_image::IMAGE, initialize_client, Database, Player, Room};
-use crate::{authorization::hash_password, error::Error};
+use crate::utils::{authorization::hash_password, error::Error};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use http::StatusCode;

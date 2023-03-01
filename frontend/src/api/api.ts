@@ -19,6 +19,13 @@ export async function login(login: Login) {
   return data as Token;
 }
 
+// export async function login_steam(login: Login) {
+//   const { data } = await client.get(
+//     `/signing/steam?name=${login.name}&password=${login.password}`
+//   );
+//   return data as Token;
+// }
+
 export async function register(login: Login) {
   const { data } = await client.put(`/signing/user`, login);
   return data;
@@ -48,7 +55,7 @@ export async function get_room_players(ulid: string) {
   const { data } = await client.get(`/room/${ulid}/players`);
   return data as Player[];
 }
-export async function join_room(id: string) {
-  const socket = new WebSocket(`ws://${path}/game/${id}?token=${token}`);
+export function join_room(ulid: string) {
+  const socket = new WebSocket(`ws://${path}/game/${ulid}?token=${token}`);
   return socket;
 }

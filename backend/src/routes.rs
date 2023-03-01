@@ -1,6 +1,6 @@
 use crate::{
-    authorization::Key,
     handlers::{game, room, signing, user},
+    utils::authorization::Key,
     websocket::WsPlayers,
 };
 use axum::{

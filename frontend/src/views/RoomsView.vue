@@ -1,6 +1,8 @@
 <template>
-  <RoomsList v-bind:rooms="rooms.owned" />
-  <RoomsList v-bind:rooms="rooms.joined" />
+  <div>
+    <RoomsList v-bind:rooms="rooms.owned" />
+    <RoomsList v-bind:rooms="rooms.joined" />
+  </div>
 </template>
 
 <script lang="ts">

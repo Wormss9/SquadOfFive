@@ -1,6 +1,6 @@
 use crate::{
     database::{game_user::UserIdentification, GameUser},
-    error::Error,
+    utils::error::Error,
 };
 use axum::{
     debug_handler,

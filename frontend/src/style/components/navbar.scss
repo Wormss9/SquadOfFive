@@ -1,0 +1,42 @@
+nav {
+  background-color: #222;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+.main {
+  margin-top: 50px;
+}
+
+nav a {
+  float: left;
+  color: #f2f2f2;
+  padding: 1em;
+  text-decoration: none;
+}
+
+nav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+
+nav .profile {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    float: right;
+    color: #f2f2f2;
+}
+
+nav .profile * {
+    padding: 0 1em;
+    align-self: center;
+}
+
+.avatar {
+  height: 3em;
+  padding: 0;
+}

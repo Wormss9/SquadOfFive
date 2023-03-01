@@ -32,4 +32,6 @@ export type Token = {
   Authorization: string;
 };
 
-export type Rooms = (User & Player)[][];
+export type Gamer = User & Player;
+
+export type Rooms = Gamer[][];

@@ -1,0 +1,31 @@
+.oponents {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  flex-flow: row wrap;
+}
+
+.oponents li {
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+  align-items: center;
+}
+
+// .blank_cards {
+//   display: flex;
+//   flex-direction: row;
+//   align-items: center;
+// }
+
+// .enemy {
+//     display: flex;
+//     flex-direction: row;
+// }
+
+// .blank_cards img {
+//     height: 5rem;
+//     width: 2rem;
+// }

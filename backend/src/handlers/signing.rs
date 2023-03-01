@@ -1,6 +1,10 @@
-use crate::authorization::{create_token, verify_password, Key, Login};
-use crate::database::GameUser;
-use crate::error::Error;
+use crate::{
+    database::GameUser,
+    utils::{
+        authorization::{create_token, verify_password, Key, Login},
+        error::Error,
+    },
+};
 use axum::extract::{Query, State};
 use axum::response::IntoResponse;
 use axum::{debug_handler, Json};
