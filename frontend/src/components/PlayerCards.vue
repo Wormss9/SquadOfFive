@@ -5,13 +5,14 @@
         :card="card"
         :selected="selected"
         v-on:click="toggleCardPlus(number)"
+        :style="cardStyle(number, cardsPlus.length, selected)"
       ></CardImage>
     </li>
   </ul>
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from "vue";
+import { defineComponent, PropType, StyleValue } from "vue";
 import { Card } from "@/api/types";
 import CardImage from "./CardImage.vue";
 export default defineComponent({
@@ -49,6 +50,21 @@ export default defineComponent({
         "cardSelected",
         this.cardsPlus.filter(([, state]) => state).map(([, , card]) => card)
       );
+    },
+    cardStyle(position: number, am: number, selected: boolean): StyleValue {
+      const amount = am - 1;
+      const max_rotation = 10;
+      const move = 17.5;
+      return {
+        zIndex: position,
+        transform: ` translateX(${(amount / 2 - position) * move}px) rotate(${
+          (max_rotation * 2 * position) / amount - max_rotation
+        }deg) translateY(${selected ? -25 : 0}px)`,
+        "box-shadow":
+          "rgba(0, 0, 0, 0.09) 0px 8px 4px,\
+          rgba(0, 0, 0, 0.09) 0px 16px 8px,\
+          rgba(0, 0, 0, 0.09) 0px 32px 16px",
+      };
     },
   },
   watch: {
