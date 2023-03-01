@@ -18,9 +18,15 @@ body {
 .cards {
   display: flex;
   list-style-type: none;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 .cards * {
+  flex: 1 1 auto;
   height: 8em;
   margin: 1px;
+  //TODO change when all card sizer are the same
 }

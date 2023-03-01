@@ -32,8 +32,7 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
     tokio::spawn(rx.forward(user_tx));
     players.write().await.insert(player.public(), tx.clone());
 
-    broadcast(MyMessage::joined(player.id), &ulid, &players).await;
-    handle_join(ulid, &player, players.clone(), &tx).await;
+    handle_join(ulid, &player, pool.clone(), players.clone(), &tx).await;
 
     while let Some(result) = user_rx.next().await {
         let me = match match result {
@@ -53,11 +52,12 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
 
 pub async fn broadcast(msg: MyMessage, room: &str, players: &WsPlayers) {
     let players = players.read().await;
-    for (receiver, tx) in players.iter().clone() {
-        if room == receiver.room {
-            tx.send(Ok(msg.as_message()))
-                .expect("Failed to send message");
-        }
+    for (receiver, tx) in players
+        .iter()
+        .filter(|(player, _)| player.room == room)
+    {
+        tx.send(Ok(msg.as_message()))
+            .expect("Failed to send message");
     }
 }
 

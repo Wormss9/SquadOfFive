@@ -3,7 +3,7 @@ use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
 
-use crate::{utils::error::Error, game_logic::play::Card};
+use crate::{game_logic::play::Card, utils::error::Error};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MyMessage {
@@ -20,6 +20,7 @@ enum MessageType {
     String(String),
     Vec(Vec<String>),
     Cards(Vec<Card>),
+    NumbersNumbers((i32, i32)),
 }
 
 impl MyMessage {
@@ -37,7 +38,7 @@ impl MyMessage {
     }
     pub fn disconnect(id: i32) -> Self {
         Self {
-            kind: "joined".to_owned(),
+            kind: "left".to_owned(),
             message: MessageType::Number(id),
         }
     }
@@ -51,6 +52,24 @@ impl MyMessage {
         Self {
             kind: "cards".to_owned(),
             message: MessageType::Cards(id),
+        }
+    }
+    pub fn table(id: Vec<Card>) -> Self {
+        Self {
+            kind: "table".to_owned(),
+            message: MessageType::Cards(id),
+        }
+    }
+    pub fn turn(id: i32) -> Self {
+        Self {
+            kind: "turn".to_owned(),
+            message: MessageType::Number(id),
+        }
+    }
+    pub fn card_amount(id: i32, amount: i32) -> Self {
+        Self {
+            kind: "card_amount".to_owned(),
+            message: MessageType::NumbersNumbers((id, amount)),
         }
     }
 }

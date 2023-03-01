@@ -1,6 +1,7 @@
 <template>
   <div>
     <OponentsSomethig :players="players" :ownId="ownId"></OponentsSomethig>
+    <TableCards :cards="table"></TableCards>
     <PlayerCards :cards="cards" v-on:cardSelected="updateCards"></PlayerCards>
   </div>
 </template>
@@ -10,6 +11,7 @@ import { get_user, join_room } from "@/api/api";
 import { Card, Gamer } from "@/api/types";
 import { WsMessage, WsType } from "@/api/messenges";
 import PlayerCards from "../components/PlayerCards.vue";
+import TableCards from "../components/OponentsSomethig.vue";
 import OponentsSomethig from "../components/OponentsSomethig.vue";
 import { get_room_with_users } from "@/api/utils";
 import { defineComponent } from "vue";
@@ -18,6 +20,7 @@ export default defineComponent({
   components: {
     PlayerCards,
     OponentsSomethig,
+    TableCards,
   },
   data() {
     return {
@@ -38,6 +41,21 @@ export default defineComponent({
         }
       });
     },
+    setOffline(id: number) {
+      this.players.forEach((player) => {
+        if (player.id === id) {
+          player.online = false;
+        }
+      });
+    },
+    setCardAmount(p: [number, number]) {
+      const [id, cards] = p;
+      this.players.forEach((player) => {
+        if (player.id === id) {
+          player.cards = cards;
+        }
+      });
+    },
     setWebsocket() {
       this.websocket = join_room(this.$route.params.ulid as string);
       this.websocket.onmessage = this.handleMessage;
@@ -53,7 +71,21 @@ export default defineComponent({
           break;
         case WsType.Cards:
           this.cards = data.message;
-        // this.setCards(data.message);
+          break;
+        case WsType.Table:
+          this.table = data.message;
+          break;
+        case WsType.Turn:
+          this.turn = data.message;
+          break;
+        case WsType.Left:
+          this.setOffline(data.message);
+          break;
+        case WsType.CardAmmount:
+          this.setCardAmount(data.message);
+          break;
+        default:
+          console.log(data);
       }
       console.log("Message from server ", JSON.parse(event.data));
     },
