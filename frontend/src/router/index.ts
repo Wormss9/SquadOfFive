@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import RoomsView from "../views/RoomsView.vue";
-import LoginView from "../views/LoginView.vue";
-import RegisterView from "../views/RegisterView.vue";
+import SigningView from "../views/SigningView.vue";
 import GameView from "../views/GameView.vue";
 import UserView from "../views/UserView.vue";
 
@@ -17,11 +16,13 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: "/login",
-    component: LoginView,
+    component: SigningView,
+    props: { login: true },
   },
   {
     path: "/register",
-    component: RegisterView,
+    component: SigningView,
+    props: { login: false },
   },
   {
     path: "/game/:ulid",

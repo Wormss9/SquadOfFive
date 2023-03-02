@@ -1,10 +1,14 @@
 <template>
-  <div>
+  <div class="game">
     <OponentsSomethig :players="players" :ownId="ownId"></OponentsSomethig>
     <TableCards :cards="table"></TableCards>
-    <PlayerCards :cards="cards" v-on:cardSelected="updateCards"></PlayerCards>
-    <button v-on:click="sendPlay">Play</button>
-    <button v-on:click="sendSkip">Skip</button>
+    <div>
+      <PlayerCards :cards="cards" v-on:cardSelected="updateCards"></PlayerCards>
+      <div class="buttons">
+        <button v-on:click="sendPlay">Play</button>
+        <button v-on:click="sendSkip">Skip</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -122,3 +126,15 @@ export default defineComponent({
   },
 });
 </script>
+<style lang="scss">
+.game {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-around;
+}
+.game * {
+  margin: auto 0;
+  align-self: auto;
+}
+</style>

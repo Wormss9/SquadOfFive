@@ -5,6 +5,7 @@ body {
   padding: 0;
   background-color: #111;
   font-family: "Fira Sans";
+  height: calc(100vh - 50px);
 }
 
 @font-face {
@@ -13,6 +14,10 @@ body {
   font-weight: 400;
   src: url(https://fonts.gstatic.com/s/firasans/v16/va9E4kDNxMZdWfMOD5VvmojLeTY.woff2)
     format("woff2");
+}
+
+#app {
+  height: 100%;
 }
 
 .cards {
