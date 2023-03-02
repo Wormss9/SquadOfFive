@@ -8,48 +8,55 @@ export enum WsType {
   Turn = "turn",
   Left = "left",
   CardAmmount = "card_amount",
+  Error = "error",
 }
 
-type JoinedMessage = {
+type Joined = {
   type: WsType.Joined;
   message: number;
 };
 
-type OnlineMessage = {
+type Online = {
   type: WsType.Online;
   message: number[];
 };
 
-type CardMessage = {
+type Cards = {
   type: WsType.Cards;
   message: Card[];
 };
 
-type TableMessage = {
+type Table = {
   type: WsType.Table;
   message: Card[];
 };
 
-type TurnMessage = {
+type Turn = {
   type: WsType.Turn;
   message: number;
 };
 
-type LeftMessage = {
+type Left = {
   type: WsType.Left;
   message: number;
 };
 
-type CardAmmountMessage = {
+type CardAmmount = {
   type: WsType.CardAmmount;
   message: [number, number];
 };
 
+type Error = {
+  type: WsType.Error;
+  message: string;
+};
+
 export type WsMessage =
-  | JoinedMessage
-  | OnlineMessage
-  | CardMessage
-  | TableMessage
-  | TurnMessage
-  | LeftMessage
-  | CardAmmountMessage;
+  | Joined
+  | Online
+  | Cards
+  | Table
+  | Turn
+  | Left
+  | CardAmmount
+  | Error;

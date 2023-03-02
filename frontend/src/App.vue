@@ -12,6 +12,7 @@
 import { defineComponent } from "vue";
 import LoggedInBar from "./components/LoggedInBar.vue";
 import "./style/style.scss";
+import "vue3-toastify/dist/index.css";
 export default defineComponent({
   components: {
     LoggedInBar,

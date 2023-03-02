@@ -116,10 +116,7 @@ pub async fn handle_message(
             .await;
             send(MyMessage::cards(new_hand), tx)
         } else {
-            send(
-                MyMessage::error(format!("Play too weak {}", table.value().to_u8())),
-                tx,
-            );
+            send(MyMessage::error("Play too weak"), tx);
         }
     };
 }

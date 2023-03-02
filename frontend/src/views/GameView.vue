@@ -18,6 +18,7 @@ import TableCards from "../components/TableCards.vue";
 import OponentsSomethig from "../components/OponentsSomethig.vue";
 import { get_room_with_users } from "@/api/utils";
 import { defineComponent } from "vue";
+import { toast } from "vue3-toastify";
 
 export default defineComponent({
   components: {
@@ -92,6 +93,9 @@ export default defineComponent({
           break;
         case WsType.CardAmmount:
           this.setCardAmount(data.message);
+          break;
+        case WsType.Error:
+          toast.error(data.message.slice(1, -1));
           break;
         default:
           console.log(data);

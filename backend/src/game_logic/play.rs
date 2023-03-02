@@ -18,7 +18,7 @@ impl Play {
 
     pub fn beats(&self, other: &Self) -> bool {
         match other.value() {
-            Value::None => true,
+            Value::None => self.value() > Value::None,
             Value::Single | Value::Pair | Value::Three => {
                 self.compare_same_value(other) == Ordering::Greater
             }
