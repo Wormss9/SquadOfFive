@@ -10,7 +10,7 @@ RUN npm install
 COPY . .
 
 # build app for production with minification
-RUN npm run build
+RUN npm run build --omit=dev
 
 FROM alpine:latest
 RUN apk update && apk upgrade

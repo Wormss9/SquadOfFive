@@ -33,7 +33,11 @@ export default defineComponent({
   data() {
     return {
       websocket: undefined as unknown as WebSocket,
-      players: [] as (Gamer & { cards?: number; online?: boolean })[],
+      players: [] as (Gamer & {
+        userId: number;
+        cards?: number;
+        online?: boolean;
+      })[],
       table: [] as Card[],
       cards: [] as Card[],
       selected: [] as Card[],
@@ -112,16 +116,15 @@ export default defineComponent({
       );
     },
     async getOwnId() {
-      const me = await get_user();
-      this.ownId = me.id;
+      this.ownId = (await get_user()).id;
     },
     updateCards(cards: Card[]) {
       this.selected = cards;
     },
   },
   async beforeMount() {
-    await this.getOwnId();
     await this.getRoom();
+    await this.getOwnId();
     this.setWebsocket();
   },
 });

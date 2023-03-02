@@ -1,6 +1,9 @@
 <template>
   <ul class="oponents">
-    <li v-for="player in players.filter((p) => p.id != ownId)" :key="player.id">
+    <li
+      v-for="player in players.filter((p) => p.userId != ownId)"
+      :key="player.id"
+    >
       <div class="enemy">
         <div>{{ player.nick }}</div>
         <img
@@ -25,7 +28,9 @@ export default defineComponent({
   },
   props: {
     players: {
-      type: Array as PropType<(Gamer & { cards?: number; online?: boolean })[]>,
+      type: Array as PropType<
+        (Gamer & { userId: number; cards?: number; online?: boolean })[]
+      >,
       default: () => [],
     },
     ownId: Number,

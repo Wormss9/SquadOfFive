@@ -1,6 +1,6 @@
 <template>
   <div>
-    <form @submit.prevent="login ? doLogin : doRegister">
+    <form @submit.prevent="login ? doLogin() : doRegister()">
       <input v-model="name" type="text" placeholder="User name" required />
       <input
         v-model="password"

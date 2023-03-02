@@ -3,12 +3,14 @@ services:
     build: ./frontend
     ports:
       - "8080:8080"
+    env_file:
+      - .env
+
   backend:
     build: ./backend
     env_file:
       - .env.local
-    depends_on:
-      [db]
+    depends_on: [ db ]
     ports:
       - "7878:7878"
   db:

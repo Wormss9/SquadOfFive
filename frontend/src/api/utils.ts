@@ -44,10 +44,11 @@ async function rooms_to_rooms_with_users(rooms: Room[]) {
         .filter((player) => player.game_user)
         .map(async (player) => {
           const user = await get_other_user(player.game_user);
-          return { ...player, ...user } as User & Player;
+          return { ...user, ...player, userId: user.id } as User &
+            Player & { userId: number };
         })
     );
-    return [turn, nroom] as [number, (User & Player)[]];
+    return [turn, nroom] as [number, (User & Player & { userId: number })[]];
   });
   const playersTurns = await Promise.all(playersTurnsPromises);
 
