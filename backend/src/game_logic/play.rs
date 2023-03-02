@@ -11,7 +11,7 @@ pub struct Play {
 }
 
 impl Play {
-    fn new(mut cards: Vec<Card>) -> Self {
+    pub fn new(mut cards: Vec<Card>) -> Self {
         cards.sort_unstable_by(|a, b| b.cmp(a));
         Self { cards }
     }

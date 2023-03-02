@@ -37,25 +37,27 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
     while let Some(result) = user_rx.next().await {
         let me = match match result {
             Ok(r) => MyMessage::try_from(r),
-            Err(_) => return,
+            Err(x) => {
+                send(MyMessage::error(x), &tx);
+                continue;
+            }
         } {
             Ok(m) => m,
-            Err(_) => return,
+            Err(x) => {
+                send(MyMessage::error(x), &tx);
+                continue;
+            }
         };
-
         handle_message(me, ulid, &player, pool.clone(), players.clone(), &tx).await
     }
 
     disconnect(player.public(), &players).await;
-    broadcast(MyMessage::disconnect(player.id), &ulid, &players).await;
+    broadcast(MyMessage::disconnect(player.id), ulid, &players).await;
 }
 
 pub async fn broadcast(msg: MyMessage, room: &str, players: &WsPlayers) {
     let players = players.read().await;
-    for (receiver, tx) in players
-        .iter()
-        .filter(|(player, _)| player.room == room)
-    {
+    for (_receiver, tx) in players.iter().filter(|(player, _)| player.room == room) {
         tx.send(Ok(msg.as_message()))
             .expect("Failed to send message");
     }

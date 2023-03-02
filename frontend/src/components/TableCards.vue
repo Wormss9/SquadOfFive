@@ -1,5 +1,5 @@
 <template>
-  <ul class="cards">
+  <ul class="table">
     <li v-for="[i, card] in cards?.entries()" :key="i">
       <CardImage :card="card"></CardImage>
     </li>

@@ -14,6 +14,23 @@
   align-items: center;
 }
 
+
+.table {
+  display: flex;
+  list-style-type: none;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.table * {
+  height: 8em;
+  margin: 1px;
+  //TODO change when all card sizer are the same
+}
+
+
 // .blank_cards {
 //   display: flex;
 //   flex-direction: row;

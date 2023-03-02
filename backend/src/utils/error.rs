@@ -18,6 +18,14 @@ impl Error {
     pub fn code_fn<T: std::fmt::Debug>(code: StatusCode) -> impl Fn(T) -> Self {
         move |_| -> Self { Self::code(code) }
     }
+    pub fn message_fn<T: std::fmt::Debug>(code: StatusCode, message: String) -> impl Fn(T) -> Self {
+        move |_| -> Self {
+            Self {
+                code,
+                message: Some(message.clone()),
+            }
+        }
+    }
     pub fn from_db(e: tokio_postgres::Error) -> Self {
         let code = StatusCode::INTERNAL_SERVER_ERROR;
         let state = match e.code() {

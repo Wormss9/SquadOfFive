@@ -1,26 +1,27 @@
+use crate::{game_logic::play::Card, utils::error::Error};
 use axum::extract::ws::Message;
 use http::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
-
-use crate::{game_logic::play::Card, utils::error::Error};
+use std::fmt::Debug;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MyMessage {
     #[serde(rename = "type")]
-    kind: String,
-    message: MessageType,
+    pub kind: String,
+    pub message: MessageType,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
-enum MessageType {
+pub enum MessageType {
     Number(i32),
     Numbers(Vec<i32>),
     String(String),
     Vec(Vec<String>),
     Cards(Vec<Card>),
     NumbersNumbers((i32, i32)),
+    Empty(Option<bool>),
 }
 
 impl MyMessage {
@@ -72,17 +73,23 @@ impl MyMessage {
             message: MessageType::NumbersNumbers((id, amount)),
         }
     }
+    pub fn error<T: Debug>(message: T) -> Self {
+        Self {
+            kind: "error".to_owned(),
+            message: MessageType::String(format!("{:?}", message)),
+        }
+    }
 }
 
 impl TryFrom<Message> for MyMessage {
     fn try_from(message: Message) -> Result<Self, Error> {
-        serde_json::from_str(
-            message
-                .to_text()
-                .map_err(Error::code_fn(StatusCode::IM_A_TEAPOT))?,
-        )
-        .map_err(Error::code_fn(StatusCode::IM_A_TEAPOT))
+        let message = message
+            .to_text()
+            .map_err(Error::code_fn(StatusCode::IM_A_TEAPOT))?;
+        serde_json::from_str(message).map_err(Error::message_fn(
+            StatusCode::IM_A_TEAPOT,
+            message.to_owned(),
+        ))
     }
-
     type Error = Error;
 }

@@ -21,9 +21,6 @@ impl Card {
             color: Color::from_u8(color),
         }
     }
-    pub fn to_path(&self) -> String {
-        format!("{:}{:02}", self.color.to_char(), self.value.to_u8())
-    }
 }
 
 impl PartialEq for Card {
@@ -104,13 +101,5 @@ mod tests {
         assert!(Card::new(2, 3) > Card::new(1, 3));
         assert!(Card::new(1, 2) > Card::new(3, 1));
         assert!(Card::new(2, 2) > Card::new(1, 1));
-    }
-
-    #[test]
-    fn path() {
-        assert_eq!(Card::new(1, 1).to_path(), "r01".to_string());
-        assert_eq!(Card::new(2, 5).to_path(), "g05".to_string());
-        assert_eq!(Card::new(3, 11).to_path(), "b11".to_string());
-        assert_eq!(Card::new(4, 1).to_path(), "w01".to_string());
     }
 }

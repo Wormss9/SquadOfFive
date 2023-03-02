@@ -1,5 +1,5 @@
 use super::{initialize_client, Database, Player};
-use crate::{utils::error::Error, game_logic::play::Card};
+use crate::{game_logic::play::Card, utils::error::Error};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use http::StatusCode;
@@ -36,7 +36,7 @@ impl Database for Room {
                     ulid            VARCHAR(26) PRIMARY KEY,
                     host            INT REFERENCES game_user(id),
                     play            JSON[] DEFAULT array[]::JSON[],
-                    turn            INT DEFAULT 1
+                    turn            INT DEFAULT 0
                 );",
             )
             .await
@@ -91,5 +91,27 @@ impl Room {
             .map_err(Error::from_db)?;
 
         Ok(rows.into_iter().map(Player::from).collect())
+    }
+    pub async fn update_turn(&self, pool: Pool, turn: i32) -> Result<(), Error> {
+        initialize_client(pool)
+            .await?
+            .execute(
+                "UPDATE room SET turn = $1 WHERE ulid = $2",
+                &[&turn, &self.ulid],
+            )
+            .await
+            .map_err(Error::from_db)?;
+        Ok(())
+    }
+    pub async fn update_play(&self, pool: Pool, play: Vec<Card>) -> Result<(), Error> {
+        initialize_client(pool)
+            .await?
+            .execute(
+                "UPDATE room SET play = $1 WHERE ulid = $2",
+                &[&play, &self.ulid],
+            )
+            .await
+            .map_err(Error::from_db)?;
+        Ok(())
     }
 }

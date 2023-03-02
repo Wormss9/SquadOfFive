@@ -1,5 +1,5 @@
 use super::{initialize_client, Database};
-use crate::{utils::error::Error, game_logic::play::Card};
+use crate::{game_logic::play::Card, utils::error::Error};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
 use serde_derive::{Deserialize, Serialize};
@@ -79,13 +79,23 @@ impl Player {
 
         Ok(row.map(Player::from))
     }
-
     pub async fn set_user(&self, pool: Pool, user: i32) -> Result<(), Error> {
         initialize_client(pool)
             .await?
             .execute(
                 "UPDATE player SET game_user = $1 WHERE id = $2 AND turn = $3",
                 &[&user, &self.id, &self.turn],
+            )
+            .await
+            .map_err(Error::from_db)?;
+        Ok(())
+    }
+    pub async fn update_hand(&self, pool: Pool, cards: Vec<Card>) -> Result<(), Error> {
+        initialize_client(pool)
+            .await?
+            .execute(
+                "UPDATE player SET cards = $1 WHERE id = $2 AND turn = $3",
+                &[&cards, &self.id, &self.turn],
             )
             .await
             .map_err(Error::from_db)?;

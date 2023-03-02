@@ -81,7 +81,7 @@ pub async fn get_players(
     players
         .iter()
         .find(|p| p.game_user == Some(user.id))
-        .ok_or(Error::code(StatusCode::UNAUTHORIZED))?;
+        .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))?;
     let public_players: Vec<PublicPlayer> = players.iter().map(|p| p.public()).collect();
     Ok(Json(public_players))
 }

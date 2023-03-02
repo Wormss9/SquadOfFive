@@ -3,15 +3,18 @@
     <OponentsSomethig :players="players" :ownId="ownId"></OponentsSomethig>
     <TableCards :cards="table"></TableCards>
     <PlayerCards :cards="cards" v-on:cardSelected="updateCards"></PlayerCards>
+    <button v-on:click="sendPlay">Play</button>
+    <button v-on:click="sendSkip">Skip</button>
   </div>
 </template>
 
 <script lang="ts">
 import { get_user, join_room } from "@/api/api";
 import { Card, Gamer } from "@/api/types";
-import { WsMessage, WsType } from "@/api/messenges";
+import { WsMessage, WsType } from "@/api/receivedMessenges";
+import { playMessage, skipMessage } from "@/api/sendMessages";
 import PlayerCards from "../components/PlayerCards.vue";
-import TableCards from "../components/OponentsSomethig.vue";
+import TableCards from "../components/TableCards.vue";
 import OponentsSomethig from "../components/OponentsSomethig.vue";
 import { get_room_with_users } from "@/api/utils";
 import { defineComponent } from "vue";
@@ -59,6 +62,12 @@ export default defineComponent({
     setWebsocket() {
       this.websocket = join_room(this.$route.params.ulid as string);
       this.websocket.onmessage = this.handleMessage;
+    },
+    sendPlay() {
+      this.websocket.send(JSON.stringify(playMessage(this.selected)));
+    },
+    sendSkip() {
+      this.websocket.send(JSON.stringify(skipMessage()));
     },
     handleMessage(event: MessageEvent) {
       const data = JSON.parse(event.data) as WsMessage;
