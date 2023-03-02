@@ -5,11 +5,11 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.64"
-axum = { version = "0.6.8", features = ["http2","macros","ws","tower-log","headers"] }
+axum = { version = "0.6.9", features = ["http2","macros","ws","tower-log","headers"] }
 deadpool-postgres = "0.10.5"
 futures = "0.3.26"
 hmac = "0.12.1"
-http = "0.2.8"
+http = "0.2.9"
 jwt = "0.16.0"
 pwhash = "1"
 rand = "0.8.5"
@@ -18,7 +18,7 @@ serde_derive = "1.0.152"
 sha2 = "0.10.6"
 serde_json = { version = "1.0.93", features = ["std"] }
 tokio = { version = "1", features = ["full"] }
-tokio-postgres = "0.7.2"
+tokio-postgres = "0.7.7"
 tokio-stream = "0.1.12"
 ulid = { version = "1", features = ["serde"] }
 tower-http = { version = "0.4.0", features = ["cors", "add-extension"] }

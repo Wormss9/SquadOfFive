@@ -36,15 +36,20 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
 
     while let Some(result) = user_rx.next().await {
         let me = match match result {
-            Ok(r) => MyMessage::try_from(r),
+            Ok(r) => {
+                if let Message::Pong(_) = r {
+                    continue;
+                }
+                MyMessage::try_from(r)
+            }
             Err(x) => {
-                send(MyMessage::error(x), &tx);
+                send(MyMessage::error(("Report 1", x)), &tx);
                 continue;
             }
         } {
             Ok(m) => m,
             Err(x) => {
-                send(MyMessage::error(x), &tx);
+                send(MyMessage::error(("Report 2", x)), &tx);
                 continue;
             }
         };

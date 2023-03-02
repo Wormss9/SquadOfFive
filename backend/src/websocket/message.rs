@@ -85,9 +85,9 @@ impl TryFrom<Message> for MyMessage {
     fn try_from(message: Message) -> Result<Self, Error> {
         let message = message
             .to_text()
-            .map_err(Error::code_fn(StatusCode::IM_A_TEAPOT))?;
+            .map_err(Error::code_fn(StatusCode::BAD_REQUEST))?;
         serde_json::from_str(message).map_err(Error::message_fn(
-            StatusCode::IM_A_TEAPOT,
+            StatusCode::BAD_REQUEST,
             message.to_owned(),
         ))
     }
