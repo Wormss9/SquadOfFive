@@ -18,7 +18,7 @@ async fn main() {
 
     let app = routes::routes(pool, key, players).layer(cors());
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 7878));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 7878));
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
