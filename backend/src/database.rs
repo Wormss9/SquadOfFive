@@ -35,10 +35,16 @@ pub async fn get_pool() -> Pool {
     config.password = Some(env::var("POSTGRES_PASSWORD").expect("Missing POSTGRES_PASSWORD"));
     let dbname = env::var("POSTGRES_DB").expect("Missing POSTGRES_DB");
     config.dbname = Some(dbname.clone());
-    config.host = Some("localhost".to_owned());
     config.manager = Some(ManagerConfig {
         recycling_method: RecyclingMethod::Fast,
     });
+    
+    let host =  match env::var("DOCKERIZED"){
+        Ok(_) => "db",
+        Err(_) => "localhost",
+    }.to_owned();
+    
+    config.host = Some(host);
 
     let pool = config
         .create_pool(Some(Runtime::Tokio1), NoTls)

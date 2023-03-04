@@ -9,9 +9,13 @@ services:
     build: ./backend
     env_file:
       - .env.local
-    depends_on: [ db ]
+    environment:
+      - DOCKERIZED=true
+    depends_on:
+      - db
     ports:
       - "7878:7878"
+    restart: 'unless-stopped'
   db:
     image: postgres:alpine
     env_file:
