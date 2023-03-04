@@ -3,11 +3,8 @@ import { Login, Player, Room, Token, User } from "./types";
 
 const token = document.cookie.split("=")[1];
 
-const path = process.env.BASE_URL;
-const secure = process.env.SECURE;
-
 const client = axios.create({
-  baseURL: `http${secure ? "s" : ""}://${path}`,
+  baseURL: `http://localhost:7878/`,
   headers: {
     Authorization: `Bearer ${token}`,
   },
@@ -15,7 +12,7 @@ const client = axios.create({
 
 export async function login(login: Login) {
   const { data } = await client.get(
-    `/signing/user?name=${login.name}&password=${login.password}`
+    `/api/signing/user?name=${login.name}&password=${login.password}`
   );
   return data as Token;
 }
@@ -28,37 +25,38 @@ export async function login(login: Login) {
 // }
 
 export async function register(login: Login) {
-  const { data } = await client.put(`/signing/user`, login);
+  const { data } = await client.put(`/api/signing/user`, login);
   return data;
 }
 
 export async function get_user() {
-  const { data } = await client.get(`/user`);
+  const { data } = await client.get(`/api/user`);
   return data as User;
 }
 
 export async function get_other_user(id: number) {
-  const { data } = await client.get(`/user/${id}`);
+  const { data } = await client.get(`/api/user/${id}`);
   return data as User;
 }
 
 export async function get_joined_rooms() {
-  const { data } = await client.get(`/rooms/joined`);
+  const { data } = await client.get(`/api/rooms/joined`);
   return data as Room[];
 }
 
 export async function get_owned_rooms() {
-  const { data } = await client.get(`/rooms/owned`);
+  const { data } = await client.get(`/api/rooms/owned`);
   return data as Room[];
 }
 
 export async function get_room_players(ulid: string) {
-  const { data } = await client.get(`/room/${ulid}/players`);
+  const { data } = await client.get(`/api/room/${ulid}/players`);
   return data as Player[];
 }
 export function join_room(ulid: string) {
-  const socket = new WebSocket(
-    `ws${secure}://${path}/game/${ulid}?token=${token}`
-  );
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const port = window.location.protocol === "https:" ? "" : ":7878";
+  const url = `${protocol}//${window.location.hostname}${port}/api/game/${ulid}?token=${token}`;
+  const socket = new WebSocket(url);
   return socket;
 }
