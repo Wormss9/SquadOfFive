@@ -10,6 +10,19 @@
 			"item": [
 				{
 					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();",
+									"var bodyToken = responseJson.Authorization;",
+									"pm.collectionVariables.set(\"Authorization\", bodyToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -18,7 +31,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Wormss9\",\n    \"password\": \"12345asd\"\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -26,16 +39,24 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:7878/api/login/user",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/signing/user?name=&password=",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
-								"login",
+								"signing",
 								"user"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": ""
+								},
+								{
+									"key": "password",
+									"value": ""
+								}
 							]
 						}
 					},
@@ -48,7 +69,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Wormss9\",\n    \"password\": \"12345asd\"\n}",
+							"raw": "{\n    \"name\": \"\",\n    \"password\": \"\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -56,45 +77,14 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:7878/api/register/user",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/signing/user",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
-								"register",
+								"signing",
 								"user"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Restricted",
-					"protocolProfileBehavior": {
-						"disabledSystemHeaders": {
-							"connection": true,
-							"accept-encoding": true,
-							"accept": true,
-							"user-agent": true,
-							"host": true
-						}
-					},
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:7878/api/restricted",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "7878",
-							"path": [
-								"api",
-								"restricted"
 							]
 						}
 					},
@@ -104,7 +94,75 @@
 		},
 		{
 			"name": "User",
-			"item": []
+			"item": [
+				{
+					"name": "Me",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/user",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Other",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/user/:id",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "Room",
@@ -115,22 +173,13 @@
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:7878/api/room",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/room",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
 								"room"
-							],
-							"query": [
-								{
-									"key": null,
-									"value": "",
-									"disabled": true
-								}
 							]
 						}
 					},
@@ -146,19 +195,18 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Wormss9\",\n    \"password\": \"123abc\"\n}"
+							"raw": ""
 						},
 						"url": {
-							"raw": "http://localhost:7878/api/room/:id",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/room/:id/players",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
 								"room",
-								":id"
+								":id",
+								"players"
 							],
 							"variable": [
 								{
@@ -174,23 +222,15 @@
 					"name": "Join",
 					"request": {
 						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Wormss9\",\n    \"password\": \"123abc\"\n}"
-						},
 						"url": {
-							"raw": "http://localhost:7878/api/room/:id/join",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/room/:id",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
 								"room",
-								":id",
-								"join"
+								":id"
 							],
 							"variable": [
 								{
@@ -208,12 +248,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:7878/api/room/:id/players",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/room/:id/players",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
 								"room",
@@ -239,14 +277,11 @@
 					"name": "Owned",
 					"request": {
 						"method": "GET",
-						"header": [],
 						"url": {
-							"raw": "http://localhost:7878/api/rooms/owned",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/rooms/owned",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
 								"rooms",
@@ -262,12 +297,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:7878/api/rooms/joined",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/rooms/joined",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
 								"rooms",
@@ -291,6 +324,9 @@
 						}
 					},
 					"request": {
+						"auth": {
+							"type": "noauth"
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -314,21 +350,21 @@
 								"type": "default"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Wormss9\",\n    \"password\": \"123abc\"\n}"
-						},
 						"url": {
-							"raw": "http://localhost:7878/api/game/:id",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/api/game/:id?token={{Authorization}}",
 							"host": [
-								"localhost"
+								"{{BASE_URL}}"
 							],
-							"port": "7878",
 							"path": [
 								"api",
 								"game",
 								":id"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{Authorization}}"
+								}
 							],
 							"variable": [
 								{
@@ -341,6 +377,28 @@
 					"response": []
 				}
 			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{Authorization}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "Authorization",
+			"value": "eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwibmFtZSI6Ildvcm1zczkiLCJzdGVhbV9pZCI6bnVsbH0.pq5LnaaURNzH07qP8WoJWA-xoALy2Dv5gbDX82uXncT68qpjFOg7s-dG7kicu5ilLS8bQ601H-Th6SaPyUMONg",
+			"type": "default"
+		},
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:7878",
+			"type": "default"
 		}
 	]
 }
