@@ -3,10 +3,11 @@ import { Login, Player, Room, Token, User } from "./types";
 
 const token = document.cookie.split("=")[1];
 
-const path = "localhost:7878/api";
+const path = process.env.BASE_URL;
+const secure = process.env.SECURE;
 
 const client = axios.create({
-  baseURL: `http://${path}`,
+  baseURL: `http${secure ? "s" : ""}://${path}`,
   headers: {
     Authorization: `Bearer ${token}`,
   },
@@ -56,6 +57,8 @@ export async function get_room_players(ulid: string) {
   return data as Player[];
 }
 export function join_room(ulid: string) {
-  const socket = new WebSocket(`ws://${path}/game/${ulid}?token=${token}`);
+  const socket = new WebSocket(
+    `ws${secure}://${path}/game/${ulid}?token=${token}`
+  );
   return socket;
 }
