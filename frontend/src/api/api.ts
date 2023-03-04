@@ -3,8 +3,13 @@ import { Login, Player, Room, Token, User } from "./types";
 
 const token = document.cookie.split("=")[1];
 
+const baseURL =
+  window.location.protocol === "https:"
+    ? window.location.origin
+    : `http://localhost:7878/`;
+
 const client = axios.create({
-  baseURL: `http://localhost:7878/`,
+  baseURL,
   headers: {
     Authorization: `Bearer ${token}`,
   },
