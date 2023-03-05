@@ -11,10 +11,8 @@
             />
             <div>{{ player.points }}</div>
           </ul>
-          <ul v-if="owned && room.length !== 4">
-            <button v-on:click="copyLink(player.room)">Join link</button>
-          </ul>
         </li>
+        <button v-on:click="copyLink(room[0].room)">Join link</button>
         <router-link :to="'/game/' + room[0].room">Join</router-link>
       </ul>
     </li>

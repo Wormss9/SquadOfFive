@@ -58,6 +58,11 @@ export async function get_room_players(ulid: string) {
   const { data } = await client.get(`/api/room/${ulid}/players`);
   return data as Player[];
 }
+
+export async function create_room() {
+  await client.put(`/api/room`);
+}
+
 export function join_game(ulid: string) {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const port = window.location.protocol === "https:" ? "" : ":7878";
