@@ -74,7 +74,7 @@ const value_map = {
   Eight: "08",
   Nine: "09",
   Ten: "10",
-  Aquamarine: "11",
+  Alexandrite: "11",
   Diamond: "12",
 };
 

@@ -12,7 +12,7 @@ pub enum Value {
     Eight = 8,
     Nine = 9,
     Ten = 10,
-    Aquamarine = 11,
+    Alexandrite = 11,
     Diamond = 12,
 }
 
@@ -29,7 +29,7 @@ impl Value {
             Self::Eight => 8,
             Self::Nine => 9,
             Self::Ten => 10,
-            Self::Aquamarine => 11,
+            Self::Alexandrite => 11,
             Self::Diamond => 12,
         }
     }
@@ -45,7 +45,7 @@ impl Value {
             8 => Self::Eight,
             9 => Self::Nine,
             10 => Self::Ten,
-            11 => Self::Aquamarine,
+            11 => Self::Alexandrite,
             12 => Self::Diamond,
             _ => panic!("Max value is 12"),
         }
