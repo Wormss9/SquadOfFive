@@ -58,10 +58,14 @@ export async function get_room_players(ulid: string) {
   const { data } = await client.get(`/api/room/${ulid}/players`);
   return data as Player[];
 }
-export function join_room(ulid: string) {
+export function join_game(ulid: string) {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const port = window.location.protocol === "https:" ? "" : ":7878";
   const url = `${protocol}//${window.location.hostname}${port}/api/game/${ulid}?token=${token}`;
   const socket = new WebSocket(url);
   return socket;
+}
+
+export async function join_room(ulid: string) {
+  await client.patch(`/api/room/${ulid}`);
 }

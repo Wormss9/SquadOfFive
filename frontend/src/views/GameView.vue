@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts">
-import { get_user, join_room } from "@/api/api";
+import { get_user, join_game } from "@/api/api";
 import { Card, Gamer } from "@/api/types";
 import { WsMessage, WsType } from "@/api/receivedMessenges";
 import { playMessage, skipMessage } from "@/api/sendMessages";
@@ -73,7 +73,7 @@ export default defineComponent({
       });
     },
     setWebsocket() {
-      this.websocket = join_room(this.$route.params.ulid as string);
+      this.websocket = join_game(this.$route.params.ulid as string);
       this.websocket.onmessage = this.handleMessage;
     },
     sendPlay() {

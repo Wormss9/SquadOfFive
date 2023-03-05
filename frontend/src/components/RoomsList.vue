@@ -1,4 +1,5 @@
 <template>
+  <JoinPrompt></JoinPrompt>
   <ul class="rooms">
     <li v-for="room in rooms" :key="room[0].room">
       <ul class="room">
@@ -21,7 +22,9 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import { Rooms } from "@/api/types";
+import JoinPrompt from "../components/JoinPrompt.vue";
 export default defineComponent({
+  components: { JoinPrompt },
   props: {
     rooms: Object as PropType<Rooms>,
   },
