@@ -1,6 +1,10 @@
 <template>
   <div class="game">
-    <OponentsSomethig :players="players" :ownId="ownId"></OponentsSomethig>
+    <OponentsSomethig
+      :players="players"
+      :ownId="ownId"
+      :turn="turn"
+    ></OponentsSomethig>
     <TableCards :cards="table"></TableCards>
     <div>
       <PlayerCards :cards="cards" v-on:cardSelected="updateCards"></PlayerCards>
@@ -118,6 +122,16 @@ export default defineComponent({
     async getOwnId() {
       this.ownId = (await get_user()).id;
     },
+    sortPlayers() {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const turn = this.players.find((p) => p.userId == this.ownId)!.turn;
+
+      this.players = this.players.sort((a, b) => {
+        const x = a.turn < turn ? a.turn + 4 : a.turn;
+        const y = b.turn < turn ? b.turn + 4 : b.turn;
+        return x - y;
+      });
+    },
     updateCards(cards: Card[]) {
       this.selected = cards;
     },
@@ -125,6 +139,7 @@ export default defineComponent({
   async beforeMount() {
     await this.getRoom();
     await this.getOwnId();
+    this.sortPlayers();
     this.setWebsocket();
   },
 });

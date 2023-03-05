@@ -60,7 +60,7 @@ pub async fn handle_message(
         Err(_) => return,
     };
 
-    if room.turn == player.turn {
+    if room.turn != player.turn {
         send(MyMessage::error("Not your turn"), tx);
         return;
     }

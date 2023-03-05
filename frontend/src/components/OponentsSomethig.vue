@@ -4,7 +4,7 @@
       v-for="player in players.filter((p) => p.userId != ownId)"
       :key="player.id"
     >
-      <div class="enemy">
+      <div class="enemy" :style="enemyStyle(player.turn == turn)">
         <div>{{ player.nick }}</div>
         <img
           v-bind:src="'data:image/png;base64,' + player.avatar"
@@ -20,7 +20,7 @@
 <script lang="ts">
 import { Gamer } from "@/api/types";
 import EnemyCards from "../components/EnemyCards.vue";
-import { defineComponent, PropType } from "vue";
+import { defineComponent, PropType, StyleValue } from "vue";
 
 export default defineComponent({
   components: {
@@ -34,6 +34,20 @@ export default defineComponent({
       default: () => [],
     },
     ownId: Number,
+    turn: Number,
+  },
+  methods: {
+    enemyStyle(current: boolean): StyleValue {
+      return current
+        ? {
+            backgroundColor: "green",
+            color: "black",
+          }
+        : {
+            backgroundColor: "black",
+            color: "green",
+          };
+    },
   },
 });
 </script>
