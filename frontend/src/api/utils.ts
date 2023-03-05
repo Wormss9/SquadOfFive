@@ -74,7 +74,8 @@ const value_map = {
   Eight: "08",
   Nine: "09",
   Ten: "10",
-  Diamond: "11",
+  Aquamarine: "11",
+  Diamond: "12",
 };
 
 export function be_to_to_value(value?: string) {

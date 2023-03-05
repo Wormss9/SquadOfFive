@@ -12,7 +12,8 @@ pub enum Value {
     Eight = 8,
     Nine = 9,
     Ten = 10,
-    Diamond = 11,
+    Aquamarine = 11,
+    Diamond = 12,
 }
 
 impl Value {
@@ -28,7 +29,8 @@ impl Value {
             Self::Eight => 8,
             Self::Nine => 9,
             Self::Ten => 10,
-            Self::Diamond => 11,
+            Self::Aquamarine => 11,
+            Self::Diamond => 12,
         }
     }
     pub fn from_u8(value: u8) -> Self {
@@ -43,8 +45,9 @@ impl Value {
             8 => Self::Eight,
             9 => Self::Nine,
             10 => Self::Ten,
-            11 => Self::Diamond,
-            _ => panic!("Max value is 11"),
+            11 => Self::Aquamarine,
+            12 => Self::Diamond,
+            _ => panic!("Max value is 12"),
         }
     }
 }

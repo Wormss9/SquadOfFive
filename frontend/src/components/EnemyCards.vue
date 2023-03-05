@@ -21,7 +21,6 @@ export default defineComponent({
       const max_rotation = 30;
       const move = 17.5;
       return {
-        zIndex: position,
         height: "3rem",
         transform: ` translateX(${(amount / 2 - position) * move}px) rotate(${
           (max_rotation * 2 * position) / amount - max_rotation

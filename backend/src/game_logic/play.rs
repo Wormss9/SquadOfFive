@@ -211,8 +211,10 @@ pub fn deal_cards() -> [Vec<Card>; 4] {
             deck.push(Card::new(color, value));
             deck.push(Card::new(color, value));
         }
-        deck.push(Card::new(color, 11));
     }
+    deck.push(Card::new(1, 11));
+    deck.push(Card::new(2, 11));
+    deck.push(Card::new(3, 12));
     deck.push(Card::new(4, 1));
     let mut rng = thread_rng();
     deck.shuffle(&mut rng);
