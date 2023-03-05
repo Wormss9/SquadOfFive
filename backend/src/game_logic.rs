@@ -1,6 +1,6 @@
 use self::play::Card;
 use crate::{
-    database::{player, Player, Room},
+    database::{Player, Room},
     websocket::{
         broadcast,
         message::{MessageType, MyMessage},
@@ -66,7 +66,7 @@ pub async fn handle_message(
     }
 
     if &result.kind == "skip" {
-        update_turn(room, pool, players, tx).await;
+        update_turn(room, pool, &players, tx).await;
         return;
     };
 
@@ -89,16 +89,11 @@ pub async fn handle_message(
         let table = Play::new(room.play.clone());
         let play = Play::new(cards.clone());
         if play.beats(&table) {
-            let turn = if room.turn == 3 { 0 } else { room.turn + 1 };
-            match room.update_play(pool.clone(), cards.clone()).await {
-                Ok(_) => (),
-                Err(_) => send(MyMessage::error("Error updating play"), tx),
-            };
+            update_play(&room, cards.clone(), pool.clone(), &players, tx).await;
             match player.update_hand(pool.clone(), new_hand.clone()).await {
                 Ok(_) => (),
                 Err(_) => send(MyMessage::error("Error updating hand"), tx),
             };
-            broadcast(MyMessage::table(cards), &room.ulid, &players).await;
             broadcast(
                 MyMessage::card_amount(player.id, new_hand.len() as i32),
                 &room.ulid,
@@ -106,7 +101,7 @@ pub async fn handle_message(
             )
             .await;
             send(MyMessage::cards(new_hand), tx);
-            update_turn(room, pool, players, tx).await;
+            update_turn(room, pool, &players, tx).await;
         } else {
             send(MyMessage::error("Wrong play"), tx);
         }
@@ -128,7 +123,7 @@ fn subtract(subtrahends: &[Card], minuends: &Vec<Card>) -> Result<Vec<Card>, ()>
 async fn update_turn(
     room: Room,
     pool: Pool,
-    players: WsPlayers,
+    players: &WsPlayers,
     tx: &UnboundedSender<Result<Message, axum::Error>>,
 ) {
     let turn = if room.turn == 3 { 0 } else { room.turn + 1 };
@@ -136,5 +131,22 @@ async fn update_turn(
         Ok(_) => (),
         Err(_) => send(MyMessage::error("Error updating turn"), tx),
     };
-    broadcast(MyMessage::turn(turn), &room.ulid, &players).await;
+    if room.last_turn == turn {
+        update_play(&room, vec![], pool.clone(), players, tx).await;
+    }
+    broadcast(MyMessage::turn(turn), &room.ulid, players).await;
+}
+
+async fn update_play(
+    room: &Room,
+    cards: Vec<Card>,
+    pool: Pool,
+    players: &WsPlayers,
+    tx: &UnboundedSender<Result<Message, axum::Error>>,
+) {
+    match room.update_play(pool.clone(), cards.clone()).await {
+        Ok(_) => (),
+        Err(_) => send(MyMessage::error("Error updating play"), tx),
+    };
+    broadcast(MyMessage::table(cards), &room.ulid, players).await;
 }

@@ -63,21 +63,21 @@ impl GameUser {
             .await
             .map_err(Error::from_db)
     }
-    pub async fn create_steam(
-        pool: Pool,
-        steam_id: &str,
-        nick: &str,
-        avatar: &str,
-    ) -> Result<u64, Error> {
-        initialize_client(pool)
-            .await?
-            .execute(
-                "INSERT INTO game_user (steamId, nick, avatar) VALUES ($1, $2, $3)",
-                &[&steam_id, &nick, &avatar],
-            )
-            .await
-            .map_err(Error::from_db)
-    }
+    // pub async fn create_steam(
+    //     pool: Pool,
+    //     steam_id: &str,
+    //     nick: &str,
+    //     avatar: &str,
+    // ) -> Result<u64, Error> {
+    //     initialize_client(pool)
+    //         .await?
+    //         .execute(
+    //             "INSERT INTO game_user (steamId, nick, avatar) VALUES ($1, $2, $3)",
+    //             &[&steam_id, &nick, &avatar],
+    //         )
+    //         .await
+    //         .map_err(Error::from_db)
+    // }
     pub async fn get(pool: Pool, name: &str) -> Result<Option<Self>, Error> {
         let row = initialize_client(pool)
             .await?
@@ -87,18 +87,17 @@ impl GameUser {
 
         Ok(row.map(GameUser::from))
     }
-    pub async fn get_steam(pool: Pool, steam_id: &str) -> Result<Option<Self>, Error> {
-        let row = initialize_client(pool)
-            .await?
-            .query_opt(
-                "SELECT * FROM game_user WHERE steamId = ($1);",
-                &[&steam_id],
-            )
-            .await
-            .map_err(Error::from_db)?;
-
-        Ok(row.map(GameUser::from))
-    }
+    // pub async fn get_steam(pool: Pool, steam_id: &str) -> Result<Option<Self>, Error> {
+    //     let row = initialize_client(pool)
+    //         .await?
+    //         .query_opt(
+    //             "SELECT * FROM game_user WHERE steamId = ($1);",
+    //             &[&steam_id],
+    //         )
+    //         .await
+    //         .map_err(Error::from_db)?;
+    //     Ok(row.map(GameUser::from))
+    // }
     pub async fn get_by_id(pool: Pool, id: i32) -> Result<Self, Error> {
         let row = initialize_client(pool)
             .await?

@@ -13,6 +13,7 @@ pub struct Room {
     pub host: i32,
     pub play: Vec<Card>,
     pub turn: i32,
+    pub last_turn: i32,
 }
 
 impl From<Row> for Room {
@@ -22,6 +23,7 @@ impl From<Row> for Room {
             host: row.get("host"),
             play: row.get("play"),
             turn: row.get("turn"),
+            last_turn: row.get("last_turn"),
         }
     }
 }
@@ -37,6 +39,7 @@ impl Database for Room {
                     host            INT REFERENCES game_user(id),
                     play            JSON[] DEFAULT array[]::JSON[],
                     turn            INT DEFAULT 0
+                    last_turn            INT DEFAULT 0
                 );",
             )
             .await
