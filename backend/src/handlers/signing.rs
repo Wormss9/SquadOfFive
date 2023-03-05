@@ -28,7 +28,7 @@ pub async fn user_login(
         None => return Err(Error::code(http::StatusCode::INTERNAL_SERVER_ERROR)),
     };
     if !verify_password(login.password, player_password) {
-        return Err(Error::code(http::StatusCode::BAD_REQUEST));
+        return Err(Error::code(http::StatusCode::UNAUTHORIZED));
     }
     match create_token(player, key) {
         Ok(token) => Ok(axum::Json(token)),

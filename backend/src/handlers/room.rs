@@ -55,7 +55,7 @@ pub async fn join(
     let players = room.get_players(pool.clone()).await?;
     let exists = players.iter().any(|p| p.game_user == Some(user.id));
     if exists {
-        return Err(Error::code(StatusCode::CONFLICT));
+        return Ok(Json(room));
     }
     let players: Vec<Player> = players
         .into_iter()
