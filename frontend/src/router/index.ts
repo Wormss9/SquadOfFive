@@ -5,6 +5,7 @@ import RegisterView from "../views/RegisterView.vue";
 import LoginView from "../views/LoginView.vue";
 import GameView from "../views/GameView.vue";
 import UserView from "../views/UserView.vue";
+import JoinView from "../views/JoinView.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -26,6 +27,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/game/:ulid",
     component: GameView,
+  },
+  {
+    path: "/join/:ulid",
+    component: JoinView,
   },
   {
     path: "/user",

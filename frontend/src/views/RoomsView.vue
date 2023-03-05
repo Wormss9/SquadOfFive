@@ -1,6 +1,6 @@
 <template>
   <div>
-    <RoomsList v-bind:rooms="rooms.owned" />
+    <RoomsList :owned="true" v-bind:rooms="rooms.owned" />
     <RoomsList v-bind:rooms="rooms.joined" />
   </div>
 </template>
