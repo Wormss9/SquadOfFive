@@ -38,8 +38,8 @@ impl Database for Room {
                     ulid            VARCHAR(26) PRIMARY KEY,
                     host            INT REFERENCES game_user(id),
                     play            JSON[] DEFAULT array[]::JSON[],
-                    turn            INT DEFAULT 0
-                    last_turn            INT DEFAULT 0
+                    turn            INT DEFAULT 0,
+                    last_turn       INT DEFAULT 0
                 );",
             )
             .await
