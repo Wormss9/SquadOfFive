@@ -94,6 +94,10 @@ pub async fn handle_message(
                 Ok(_) => (),
                 Err(_) => send(MyMessage::error("Error updating hand"), tx),
             };
+            match room.update_last_turn(pool.clone(), player.turn).await {
+                Ok(_) => (),
+                Err(_) => send(MyMessage::error("Error updating last turn"), tx),
+            };
             broadcast(
                 MyMessage::card_amount(player.id, new_hand.len() as i32),
                 &room.ulid,
