@@ -9,12 +9,14 @@
     <div
       :style="{
         height: 'calc(calc(100% - 50px) / 3',
+        display: 'flex',
+        flexDirection: 'row',
       }"
     >
       <PlayerCards :cards="cards" v-on:cardSelected="updateCards"></PlayerCards>
-      <div class="buttons">
-        <button v-on:click="sendPlay">Play</button>
-        <button v-on:click="sendSkip">Skip</button>
+      <div class="play-buttons">
+        <button class="link-like-button" v-on:click="sendPlay">Play</button>
+        <button class="link-like-button" v-on:click="sendSkip">Skip</button>
       </div>
     </div>
   </div>

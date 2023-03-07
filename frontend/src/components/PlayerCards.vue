@@ -54,16 +54,18 @@ export default defineComponent({
     cardStyle(position: number, am: number, selected: boolean): StyleValue {
       const amount = am - 1;
       const max_rotation = 10;
-      const move = 17.5;
       return {
         zIndex: position,
-        transform: ` translateX(${(amount / 2 - position) * move}px) rotate(${
+        transform: ` translateX(${(amount / 2 - position) * 10}%) rotate(${
           (max_rotation * 2 * position) / amount - max_rotation
         }deg) translateY(${selected ? -25 : 0}px)`,
-        "box-shadow":
+        boxShadow:
           "rgba(0, 0, 0, 0.09) 0px 8px 4px,\
           rgba(0, 0, 0, 0.09) 0px 16px 8px,\
           rgba(0, 0, 0, 0.09) 0px 32px 16px",
+        width: "calc(120%)",
+        marginLeft: "calc(-10%)",
+        marginRight: "calc(-10%)",
       };
     },
   },
