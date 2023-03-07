@@ -21,8 +21,13 @@ pub mod message;
 pub type WsPlayers =
     Arc<RwLock<HashMap<PublicPlayer, UnboundedSender<Result<Message, axum::Error>>>>>;
 
-pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, socket: WebSocket) {
-    let ulid = &room.ulid;
+pub async fn join(
+    room: &Room,
+    player: &Player,
+    pool: &Pool,
+    players: &WsPlayers,
+    socket: WebSocket,
+) {
     // Establishing a connection
     let (user_tx, mut user_rx) = socket.split();
     let (tx, rx) = unbounded_channel();
@@ -32,7 +37,7 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
     tokio::spawn(rx.forward(user_tx));
     players.write().await.insert(player.public(), tx.clone());
 
-    handle_join(ulid, &player, pool.clone(), players.clone(), &tx).await;
+    handle_join(pool, room, player, players, &tx).await;
 
     while let Some(result) = user_rx.next().await {
         let me = match match result {
@@ -53,20 +58,21 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
                 continue;
             }
         };
-        if let Err(message) =
-            handle_message(me, ulid, &player, pool.clone(), players.clone(), &tx).await
-        {
+        if let Err(message) = handle_message(pool, room, player, me, players, &tx).await {
             send(MyMessage::error(message), &tx);
         }
     }
 
-    disconnect(player.public(), &players).await;
-    broadcast(MyMessage::disconnect(player.id), ulid, &players).await;
+    disconnect(player.public(), players).await;
+    broadcast(MyMessage::disconnect(player.id), room, players).await;
 }
 
-pub async fn broadcast(msg: MyMessage, room: &str, players: &WsPlayers) {
+pub async fn broadcast(msg: MyMessage, room: &Room, players: &WsPlayers) {
     let players = players.read().await;
-    for (_receiver, tx) in players.iter().filter(|(player, _)| player.room == room) {
+    for (_receiver, tx) in players
+        .iter()
+        .filter(|(player, _)| player.room == room.ulid)
+    {
         tx.send(Ok(msg.as_message()))
             .expect("Failed to send message");
     }

@@ -92,6 +92,7 @@ mod tests {
         assert_eq!(Card::new(1, 1), Card::new(1, 1));
         assert_ne!(Card::new(1, 1), Card::new(1, 2));
         assert_ne!(Card::new(1, 1), Card::new(2, 1));
+        assert_eq!(Card::new(2, 3), Card::new(2, 3));
     }
 
     #[test]

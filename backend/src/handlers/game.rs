@@ -43,5 +43,5 @@ pub async fn join(
         Ok(r) => r,
         Err(_) => return,
     };
-    websocket::join(room, player, pool, players, socket).await
+    websocket::join(&room, &player, &pool, &players, socket).await
 }
