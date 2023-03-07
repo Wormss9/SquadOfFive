@@ -21,14 +21,14 @@ export default defineComponent({
       const max_rotation = 30;
       const move = 17.5;
       return {
-        height: "3rem",
         transform: ` translateX(${(amount / 2 - position) * move}px) rotate(${
           (max_rotation * 2 * position) / amount - max_rotation
         }deg)`,
-        "box-shadow":
+        boxShadow:
           "rgba(0, 0, 0, 0.09) 0px 8px 4px,\
           rgba(0, 0, 0, 0.09) 0px 16px 8px,\
           rgba(0, 0, 0, 0.09) 0px 32px 16px",
+        width: "100%",
       };
     },
   },
@@ -39,5 +39,6 @@ export default defineComponent({
   display: flex;
   flex-direction: row;
   align-items: center;
+  width: 100%;
 }
 </style>

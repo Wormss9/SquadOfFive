@@ -53,7 +53,11 @@ pub async fn join(room: Room, player: Player, pool: Pool, players: WsPlayers, so
                 continue;
             }
         };
-        handle_message(me, ulid, &player, pool.clone(), players.clone(), &tx).await
+        if let Err(message) =
+            handle_message(me, ulid, &player, pool.clone(), players.clone(), &tx).await
+        {
+            send(MyMessage::error(message), &tx);
+        }
     }
 
     disconnect(player.public(), &players).await;

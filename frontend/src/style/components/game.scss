@@ -5,6 +5,7 @@
   padding: 0;
   margin: 0;
   flex-flow: row wrap;
+  height: calc(calc(100% - 50px) / 3);
 }
 
 .oponents li {
@@ -14,7 +15,6 @@
   align-items: center;
 }
 
-
 .table {
   display: flex;
   list-style-type: none;
@@ -22,27 +22,15 @@
   margin: 0;
   padding: 0;
   width: 100%;
+  height: calc(calc(100% - 50px) / 3);
 }
 
-.table * {
-  height: 8em;
+.table li {
+  height: 100%;
+}
+
+.table * * {
+  max-height: 100%;
+  max-width: 100%;
   margin: 1px;
-  //TODO change when all card sizer are the same
 }
-
-
-// .blank_cards {
-//   display: flex;
-//   flex-direction: row;
-//   align-items: center;
-// }
-
-// .enemy {
-//     display: flex;
-//     flex-direction: row;
-// }
-
-// .blank_cards img {
-//     height: 5rem;
-//     width: 2rem;
-// }

@@ -12,7 +12,9 @@
             <div>{{ player.points }}</div>
           </ul>
         </li>
-        <button v-on:click="copyLink(room[0].room)">Join link</button>
+        <button class="link-like-button" v-on:click="copyLink(room[0].room)">
+          Join link
+        </button>
         <router-link :to="'/game/' + room[0].room">Join</router-link>
       </ul>
     </li>
@@ -37,7 +39,7 @@ export default defineComponent({
       const { toClipboard } = useClipboard();
       console.log(ulid);
       await toClipboard(`${window.location.origin}/join/${ulid}`);
-      toast.info("Link copied to clippboard");
+      toast.info("Link copied to clipboard");
     },
   },
 });

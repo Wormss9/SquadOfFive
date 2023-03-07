@@ -597,7 +597,7 @@ mod tests {
         assert!(plays.single2.beats(&plays.single1));
         assert!(plays.pair1.beats(&plays.empty));
 
-        ////////////////////////////
+        /////////////////////////////////////////////
 
         assert!(!plays.soak1.beats(&plays.seoak));
         assert!(!plays.fioak1.beats(&plays.seoak));

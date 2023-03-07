@@ -3,6 +3,7 @@
     <li
       v-for="player in players.filter((p) => p.userId != ownId)"
       :key="player.id"
+      style="width: calc(100% / 3)"
     >
       <div class="enemy" :style="enemyStyle(player.turn == turn)">
         <div>{{ player.nick }}</div>
@@ -38,7 +39,7 @@ export default defineComponent({
   },
   methods: {
     enemyStyle(current: boolean): StyleValue {
-      return current
+      const color: StyleValue = current
         ? {
             backgroundColor: "green",
             color: "black",
@@ -47,6 +48,13 @@ export default defineComponent({
             backgroundColor: "black",
             color: "green",
           };
+      const style: StyleValue = {
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        borderRadius: "50%",
+      };
+      return { ...color, ...style };
     },
   },
 });

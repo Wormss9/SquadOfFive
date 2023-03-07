@@ -16,10 +16,6 @@ body {
     format("woff2");
 }
 
-#app {
-  height: 100%;
-}
-
 .cards {
   display: flex;
   list-style-type: none;
@@ -30,8 +26,8 @@ body {
 }
 
 .cards * {
-  // flex: 1 1 auto;
-  height: 8em;
-  margin: 1px;
-  //TODO change when all card sizer are the same
+  flex: 1;
+}
+.cards * * {
+  width: 100%;
 }

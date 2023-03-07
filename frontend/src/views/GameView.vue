@@ -6,7 +6,11 @@
       :turn="turn"
     ></OponentsSomethig>
     <TableCards :cards="table"></TableCards>
-    <div>
+    <div
+      :style="{
+        height: 'calc(calc(100% - 50px) / 3',
+      }"
+    >
       <PlayerCards :cards="cards" v-on:cardSelected="updateCards"></PlayerCards>
       <div class="buttons">
         <button v-on:click="sendPlay">Play</button>
@@ -82,7 +86,7 @@ export default defineComponent({
     sendSkip() {
       this.websocket.send(JSON.stringify(skipMessage()));
     },
-    handleMessage(event: MessageEvent) {
+    async handleMessage(event: MessageEvent) {
       const data = JSON.parse(event.data) as WsMessage;
       switch (data.type) {
         case WsType.Online:
@@ -90,6 +94,9 @@ export default defineComponent({
           break;
         case WsType.Joined:
           this.setOnline(data.message);
+          await this.getRoom();
+          await this.getOwnId();
+          this.sortPlayers();
           break;
         case WsType.Cards:
           this.cards = data.message;
@@ -142,13 +149,15 @@ export default defineComponent({
     this.sortPlayers();
     this.setWebsocket();
   },
+  onBeforeUnmount() {
+    this.websocket.close();
+  },
 });
 </script>
 <style lang="scss">
 .game {
   display: flex;
   flex-direction: column;
-  height: 100%;
   justify-content: space-around;
 }
 .game * {

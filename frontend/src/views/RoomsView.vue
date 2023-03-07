@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button v-on:click="createRoom()">Create</button>
+    <button v-on:click="createRoom()" class="link-like-button">Create</button>
     <RoomsList :owned="true" v-bind:rooms="rooms.owned" />
     <RoomsList v-bind:rooms="rooms.joined" />
   </div>

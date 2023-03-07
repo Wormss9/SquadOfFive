@@ -19,20 +19,22 @@
 
 }
 
-.room a {
+.link-like-button {
+  all: unset;
   margin-left: auto;
-  align-self: right;
+  margin-right: 1em;
 }
 
-.room a {
+.room a, .link-like-button {
   float: left;
   color: #000;
   background-color: #555;
   padding: 1em;
   text-decoration: none;
+  align-self: right;
 }
 
-.room a:hover {
+.room a:hover , .link-like-button:hover {
   background-color: #000;
   color: #fff;
 }
