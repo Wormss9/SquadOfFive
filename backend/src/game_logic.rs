@@ -64,7 +64,7 @@ pub async fn handle_message(
     }
 
     if &result.kind == "skip" {
-        return update_turn(&room, &pool, &player, &players).await;
+        return update_turn(&room, &pool, player, &players).await;
     };
 
     if &result.kind == "play" {
@@ -81,7 +81,7 @@ pub async fn handle_message(
         let play = Play::new(old_hand.clone());
         if play.beats(&table) {
             update_play(&room, old_hand.clone(), &pool, player, &players).await?;
-            update_hand(&room, &player, &pool, new_hand, &players, tx).await?;
+            update_hand(&room, player, &pool, new_hand, &players, tx).await?;
         } else {
             send(MyMessage::error("Wrong play"), tx);
         }
@@ -133,7 +133,7 @@ async fn update_hand(
     broadcast(
         MyMessage::card_amount(player.id, new_hand.len() as i32),
         &room.ulid,
-        &players,
+        players,
     )
     .await;
     send(MyMessage::cards(new_hand), tx);
@@ -152,7 +152,7 @@ async fn update_turn(
         Err(_) => return Err("Error updating turn".to_owned()),
     }
     if room.last_turn == turn {
-        update_play(&room, vec![], pool, player, players).await?;
+        update_play(room, vec![], pool, player, players).await?;
     }
     broadcast(MyMessage::turn(turn), &room.ulid, players).await;
     Ok(())
