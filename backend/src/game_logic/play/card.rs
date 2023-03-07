@@ -15,7 +15,7 @@ pub struct Card {
 }
 
 impl Card {
-    pub fn new(color: u8, value: u8) -> Self {
+    pub fn new(value: u8, color: u8) -> Self {
         Self {
             value: Value::from_u8(value),
             color: Color::from_u8(color),
@@ -90,16 +90,16 @@ mod tests {
     #[test]
     fn eq() {
         assert_eq!(Card::new(1, 1), Card::new(1, 1));
-        assert_ne!(Card::new(1, 1), Card::new(2, 1));
         assert_ne!(Card::new(1, 1), Card::new(1, 2));
+        assert_ne!(Card::new(1, 1), Card::new(2, 1));
     }
 
     #[test]
     fn ord() {
-        assert!(Card::new(2, 2) > Card::new(2, 1));
         assert!(Card::new(2, 2) > Card::new(1, 2));
-        assert!(Card::new(2, 3) > Card::new(1, 3));
-        assert!(Card::new(1, 2) > Card::new(3, 1));
+        assert!(Card::new(2, 2) > Card::new(2, 1));
+        assert!(Card::new(3, 2) > Card::new(3, 1));
+        assert!(Card::new(2, 1) > Card::new(1, 3));
         assert!(Card::new(2, 2) > Card::new(1, 1));
     }
 }
