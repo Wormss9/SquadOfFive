@@ -82,6 +82,7 @@ pub async fn handle_message(
         if play.beats(&table) {
             update_play(&room, old_hand.clone(), &pool, player, &players).await?;
             update_hand(&room, player, &pool, new_hand, &players, tx).await?;
+            update_turn(&room, &pool, player, &players).await?;
         } else {
             send(MyMessage::error("Wrong play"), tx);
         }
