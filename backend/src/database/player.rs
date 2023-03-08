@@ -68,17 +68,16 @@ impl Player {
             .map_err(Error::from_db)?;
         Ok(Player::from(row))
     }
-    // pub async fn get(pool: Pool, room: &str, user: &str) -> Result<Option<Self>, Error> {
-    //     let row = initialize_client(pool)
-    //         .await?
-    //         .query_opt(
-    //             "SELECT * FROM player WHERE room = ($1) AND game_user = ($2);",
-    //             &[&room, &user],
-    //         )
-    //         .await
-    //         .map_err(Error::from_db)?;
-    //     Ok(row.map(Player::from))
-    // }
+    pub async fn get(pool: Pool, id: &i32) -> Result<Self, Error> {
+        let row = initialize_client(pool)
+            .await?
+            .query_opt("SELECT * FROM player WHERE id = ($1);", &[&id])
+            .await
+            .map_err(Error::from_db)?;
+        row
+            .map(Player::from)
+            .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))
+    }
     pub async fn set_user(&self, pool: Pool, user: i32) -> Result<(), Error> {
         let row = initialize_client(pool)
             .await?

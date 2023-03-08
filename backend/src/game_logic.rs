@@ -45,18 +45,24 @@ pub async fn handle_join(
 
 pub async fn handle_message(
     pool: &Pool,
-    room: &Room,
+    room: &str,
     player: &Player,
     result: MyMessage,
     players: &WsPlayers,
     tx: &UnboundedSender<Result<Message, axum::Error>>,
 ) -> Result<(), String> {
+    let room = Room::get(pool.clone(), room)
+        .await
+        .map_err(|_| "Room update error".to_owned())?;
+    let player = Player::get(pool.clone(), &player.id)
+        .await
+        .map_err(|_| "Player update error".to_owned())?;
     if room.turn != player.turn {
         return Err("Not your turn".to_owned());
     }
 
     if &result.kind == "skip" {
-        return update_turn(pool, room, players).await;
+        return update_turn(pool, &room, players).await;
     };
 
     if &result.kind == "play" {
@@ -72,10 +78,10 @@ pub async fn handle_message(
         let table = Play::new(room.play.clone());
         let play = Play::new(old_hand.clone());
         if play.beats(&table) {
-            update_play(pool, room, &old_hand, players).await?;
-            update_last_turn(pool, room, player).await?;
-            update_hand(pool, room, player, &new_hand, players, tx).await?;
-            update_turn(pool, room, players).await?;
+            update_play(pool, &room, &old_hand, players).await?;
+            update_last_turn(pool, &room, &player).await?;
+            update_hand(pool, &room, &player, &new_hand, players, tx).await?;
+            update_turn(pool, &room, players).await?;
         } else {
             send(MyMessage::error("Wrong play"), tx);
         }

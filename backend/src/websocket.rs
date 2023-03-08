@@ -58,7 +58,7 @@ pub async fn join(
                 continue;
             }
         };
-        if let Err(message) = handle_message(pool, room, player, me, players, &tx).await {
+        if let Err(message) = handle_message(pool, &room.ulid, player, me, players, &tx).await {
             send(MyMessage::error(message), &tx);
         }
     }
