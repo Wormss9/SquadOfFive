@@ -2,6 +2,7 @@ use super::{initialize_client, Database};
 use crate::{game_logic::play::Card, utils::error::Error};
 use async_trait::async_trait;
 use deadpool_postgres::Pool;
+use http::StatusCode;
 use serde_derive::{Deserialize, Serialize};
 use tokio_postgres::Row;
 
@@ -79,25 +80,37 @@ impl Player {
     //     Ok(row.map(Player::from))
     // }
     pub async fn set_user(&self, pool: Pool, user: i32) -> Result<(), Error> {
-        initialize_client(pool)
+        let row = initialize_client(pool)
             .await?
             .execute(
-                "UPDATE player SET game_user = $1 WHERE id = $2 AND turn = $3",
-                &[&user, &self.id, &self.turn],
+                "UPDATE player SET game_user = $1 WHERE id = $2",
+                &[&user, &self.id],
             )
             .await
             .map_err(Error::from_db)?;
+        if row != 1 {
+            return Err(Error::message(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Updated {} rows", row),
+            ));
+        }
         Ok(())
     }
     pub async fn update_hand(&self, pool: Pool, cards: Vec<Card>) -> Result<(), Error> {
-        initialize_client(pool)
+        let row = initialize_client(pool)
             .await?
             .execute(
-                "UPDATE player SET cards = $1 WHERE id = $2 AND turn = $3",
-                &[&cards, &self.id, &self.turn],
+                "UPDATE player SET cards = $1 WHERE id = $2",
+                &[&cards, &self.id],
             )
             .await
             .map_err(Error::from_db)?;
+        if row != 1 {
+            return Err(Error::message(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Updated {} rows", row),
+            ));
+        }
         Ok(())
     }
     pub fn public(&self) -> PublicPlayer {

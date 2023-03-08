@@ -96,7 +96,7 @@ impl Room {
         Ok(rows.into_iter().map(Player::from).collect())
     }
     pub async fn update_turn(&self, pool: Pool, turn: i32) -> Result<(), Error> {
-        initialize_client(pool)
+        let row = initialize_client(pool)
             .await?
             .execute(
                 "UPDATE room SET turn = $1 WHERE ulid = $2",
@@ -104,10 +104,16 @@ impl Room {
             )
             .await
             .map_err(Error::from_db)?;
+        if row != 1 {
+            return Err(Error::message(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Updated {} rows", row),
+            ));
+        }
         Ok(())
     }
     pub async fn update_last_turn(&self, pool: Pool, turn: i32) -> Result<(), Error> {
-        initialize_client(pool)
+        let row = initialize_client(pool)
             .await?
             .execute(
                 "UPDATE room SET last_turn = $1 WHERE ulid = $2",
@@ -115,10 +121,16 @@ impl Room {
             )
             .await
             .map_err(Error::from_db)?;
+        if row != 1 {
+            return Err(Error::message(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Updated {} rows", row),
+            ));
+        }
         Ok(())
     }
     pub async fn update_play(&self, pool: Pool, play: Vec<Card>) -> Result<(), Error> {
-        initialize_client(pool)
+        let row = initialize_client(pool)
             .await?
             .execute(
                 "UPDATE room SET play = $1 WHERE ulid = $2",
@@ -126,6 +138,12 @@ impl Room {
             )
             .await
             .map_err(Error::from_db)?;
+        if row != 1 {
+            return Err(Error::message(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Updated {} rows", row),
+            ));
+        }
         Ok(())
     }
 }
