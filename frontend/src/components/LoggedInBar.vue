@@ -23,7 +23,12 @@ export default defineComponent({
   },
   methods: {
     getUser: async function () {
-      this.user = await get_user();
+      try {
+        this.user = await get_user();
+      } catch (_) {
+        this.$cookies.remove("Authorization");
+        location.assign("");
+      }
     },
   },
   beforeMount() {

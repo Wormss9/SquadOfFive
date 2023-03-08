@@ -10,8 +10,7 @@ import { defineComponent } from "vue";
 export default defineComponent({
   methods: {
     logout() {
-      const x = this.$cookies.remove("Authorization");
-      console.log(x);
+      this.$cookies.remove("Authorization");
       location.assign("login");
     },
   },
