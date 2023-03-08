@@ -62,6 +62,9 @@ pub async fn handle_message(
     }
 
     if &result.kind == "skip" {
+        if room.play.len() == 0 {
+            return Err("Empty table".to_owned());
+        }
         return update_turn(pool, &room, players).await;
     };
 
