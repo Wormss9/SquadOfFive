@@ -3,6 +3,7 @@ services:
     build: ./frontend
     ports:
       - "8080:8080"
+    restart: 'unless-stopped'
   backend:
     build: ./backend
     env_file:
@@ -20,3 +21,4 @@ services:
       - .env.local
     ports:
       - "5432:5432"
+    restart: 'unless-stopped'
