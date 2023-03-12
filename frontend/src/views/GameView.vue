@@ -166,4 +166,9 @@ export default defineComponent({
   margin: auto 0;
   align-self: auto;
 }
+.play-buttons {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 0;
+}
 </style>
