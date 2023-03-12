@@ -35,11 +35,11 @@ pub async fn join(
     if socket.send(Message::Ping(vec![1, 2, 3])).await.is_err() {
         return;
     }
-    let room = match Room::get(pool.clone(), &room).await {
+    let room = match Room::get(&pool, &room).await {
         Ok(r) => r,
         Err(_) => return,
     };
-    let player = match user.is_part_of(pool.clone(), &room).await {
+    let player = match user.is_part_of(&pool, &room).await {
         Ok(r) => r,
         Err(_) => return,
     };

@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.64"
-axum = { version = "0.6.9", features = ["http2","macros","ws","tower-log","headers"] }
+axum = { version = "0.6.10", features = ["http2","macros","ws","tower-log","headers"] }
 deadpool-postgres = "0.10.5"
 futures = "0.3.26"
 hmac = "0.12.1"

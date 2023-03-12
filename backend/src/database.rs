@@ -14,16 +14,16 @@ pub mod room;
 
 #[async_trait]
 pub trait Database {
-    async fn create_table(pool: Pool) -> Result<(), Error>;
+    async fn create_table(pool: &Pool) -> Result<(), Error>;
 }
 
-async fn initialize(pool: Pool) -> Result<(), Error> {
-    GameUser::create_table(pool.clone()).await?;
-    Room::create_table(pool.clone()).await?;
+async fn initialize(pool: &Pool) -> Result<(), Error> {
+    GameUser::create_table(pool).await?;
+    Room::create_table(pool).await?;
     Player::create_table(pool).await
 }
 
-async fn initialize_client(pool: Pool) -> Result<Object, Error> {
+async fn initialize_client(pool: &Pool) -> Result<Object, Error> {
     pool.get()
         .await
         .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
@@ -38,19 +38,18 @@ pub async fn get_pool() -> Pool {
     config.manager = Some(ManagerConfig {
         recycling_method: RecyclingMethod::Fast,
     });
-    
-    let host =  match env::var("DOCKERIZED"){
+
+    let host = match env::var("DOCKERIZED") {
         Ok(_) => "db",
         Err(_) => "localhost",
-    }.to_owned();
-    
+    }
+    .to_owned();
+
     config.host = Some(host);
 
     let pool = config
         .create_pool(Some(Runtime::Tokio1), NoTls)
         .unwrap_or_else(|_| panic!("Failed to connect to {dbname}"));
-    initialize(pool.clone())
-        .await
-        .expect("Failed to initialize db");
+    initialize(&pool).await.expect("Failed to initialize db");
     pool
 }

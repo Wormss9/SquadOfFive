@@ -30,7 +30,7 @@ pub async fn handle_join(
         .map(|(player, _)| player.id)
         .collect();
 
-    match room.get_players(pool.clone()).await {
+    match room.get_players(&pool).await {
         Ok(p) => p,
         Err(_) => return,
     }
@@ -51,98 +51,67 @@ pub async fn handle_message(
     players: &WsPlayers,
     tx: &UnboundedSender<Result<Message, axum::Error>>,
 ) -> Result<(), String> {
-    let room = Room::get(pool.clone(), room)
+    let mut room = Room::get(&pool, room)
         .await
         .map_err(|_| "Room update error".to_owned())?;
-    let player = Player::get(pool.clone(), &player.id)
+    let mut player = Player::get(&pool, &player.id)
         .await
         .map_err(|_| "Player update error".to_owned())?;
     if room.turn != player.turn {
         return Err("Not your turn".to_owned());
     }
 
-    if &result.kind == "skip" {
-        if room.play.len() == 0 {
-            return Err("Empty table".to_owned());
+    match &result.kind as &str {
+        "skip" => {
+            if room.play.len() == 0 {
+                return Err("Empty table".to_owned());
+            }
+            update_turn(pool, &mut room, players).await
         }
-        return update_turn(pool, &room, players).await;
-    };
+        "play" => {
+            let play_cards = if let MessageType::Cards(cards) = result.message {
+                cards
+            } else {
+                return Err("Bad cards".to_owned());
+            };
 
-    if &result.kind == "play" {
-        let old_hand = if let MessageType::Cards(cards) = result.message {
-            cards
-        } else {
-            return Err("Bad cards".to_owned());
-        };
+            let new_hand =
+                subtract(&player.cards, &play_cards).map_err(|_| "Not your cards".to_owned())?;
 
-        let new_hand =
-            subtract(&player.cards, &old_hand).map_err(|_| "Not your cards".to_owned())?;
-
-        let table = Play::new(room.play.clone());
-        let play = Play::new(old_hand.clone());
-        if play.beats(&table) {
-            update_play(pool, &room, &old_hand, players).await?;
-            update_last_turn(pool, &room, &player).await?;
-            update_hand(pool, &room, &player, &new_hand, players, tx).await?;
-            update_turn(pool, &room, players).await?;
-        } else {
-            send(MyMessage::error("Wrong play"), tx);
+            let table = Play::new(room.play.clone());
+            let play = Play::new(play_cards.clone());
+            if play.beats(&table) {
+                room.play = play_cards.clone();
+                room.last_turn = player.turn;
+                broadcast(MyMessage::table(play_cards), &room, players).await;
+                player.cards = new_hand;
+                send(MyMessage::cards(player.cards.clone()), tx);
+                player
+                    .update(pool)
+                    .await
+                    .map_err(|_| "Player update error".to_owned())?;
+                room.increment_turn()
+                    .update(pool)
+                    .await
+                    .map_err(|_| "Room update error".to_owned())
+            } else {
+                Err("Wrong play".to_owned())
+            }
         }
-    };
-    Ok(())
-}
-
-async fn update_play(
-    pool: &Pool,
-    room: &Room,
-    cards: &[Card],
-    players: &WsPlayers,
-) -> Result<(), String> {
-    room.update_play(pool.clone(), cards.to_vec())
-        .await
-        .map_err(|_| "Error updating play".to_owned())?;
-    broadcast(MyMessage::table(cards.to_vec()), room, players).await;
-    Ok(())
-}
-
-async fn update_last_turn(pool: &Pool, room: &Room, player: &Player) -> Result<(), String> {
-    room.update_last_turn(pool.clone(), player.turn)
-        .await
-        .map_err(|_| "Error updating last turn".to_owned())
-}
-
-async fn update_hand(
-    pool: &Pool,
-    room: &Room,
-    player: &Player,
-    new_hand: &Vec<Card>,
-    players: &WsPlayers,
-    tx: &UnboundedSender<Result<Message, axum::Error>>,
-) -> Result<(), String> {
-    player
-        .update_hand(pool.clone(), new_hand.clone())
-        .await
-        .map_err(|_| "Error updating hand".to_owned())?;
-    broadcast(
-        MyMessage::card_amount(player.id, new_hand.len() as i32),
-        room,
-        players,
-    )
-    .await;
-    send(MyMessage::cards(new_hand.clone()), tx);
-    Ok(())
-}
-
-async fn update_turn(pool: &Pool, room: &Room, players: &WsPlayers) -> Result<(), String> {
-    let turn = if room.turn == 3 { 0 } else { room.turn + 1 };
-    match room.update_turn(pool.clone(), turn).await {
-        Ok(_) => (),
-        Err(_) => return Err("Error updating turn".to_owned()),
+        _ => Err("Unknown message".to_owned()),
     }
-    if room.last_turn == turn {
-        update_play(pool, room, &[], players).await?;
+}
+
+async fn update_turn(pool: &Pool, room: &mut Room, players: &WsPlayers) -> Result<(), String> {
+    room.increment_turn();
+    if room.last_turn == room.turn {
+        room.play = vec![];
+        broadcast(MyMessage::table(vec![]), room, players).await;
     }
-    broadcast(MyMessage::turn(turn), room, players).await;
+    room.update(pool)
+        .await
+        .map_err(|_| "Error updating turn".to_owned())?;
+    broadcast(MyMessage::turn(room.turn), room, players).await;
     Ok(())
 }
 

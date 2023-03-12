@@ -15,7 +15,9 @@
 
 <script lang="ts">
 import { login } from "@/api/api";
+import { AxiosError } from "axios";
 import { defineComponent } from "vue";
+import { toast } from "vue3-toastify";
 
 export default defineComponent({
   data() {
@@ -26,9 +28,14 @@ export default defineComponent({
   },
   methods: {
     doLogin: async function () {
-      const token = await login({ name: this.name, password: this.password });
-      this.$cookies.set("Authorization", token.Authorization);
-      location.assign("rooms");
+      try {
+        const token = await login({ name: this.name, password: this.password });
+        this.$cookies.set("Authorization", token.Authorization);
+        location.assign("rooms");
+      } catch (e) {
+        const error = e as AxiosError;
+        toast.error(error.response?.data as string);
+      }
     },
   },
 });

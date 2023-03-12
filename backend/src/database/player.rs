@@ -31,7 +31,7 @@ impl From<Row> for Player {
 
 #[async_trait]
 impl Database for Player {
-    async fn create_table(pool: Pool) -> Result<(), Error> {
+    async fn create_table(pool: &Pool) -> Result<(), Error> {
         let client = pool.get().await.expect("Failed to connect to db");
         client
             .batch_execute(
@@ -53,7 +53,7 @@ impl Database for Player {
 
 impl Player {
     pub async fn create(
-        pool: Pool,
+        pool: &Pool,
         room: &str,
         cards: &Vec<Card>,
         turn: i32,
@@ -68,42 +68,24 @@ impl Player {
             .map_err(Error::from_db)?;
         Ok(Player::from(row))
     }
-    pub async fn get(pool: Pool, id: &i32) -> Result<Self, Error> {
+    pub async fn get(pool: &Pool, id: &i32) -> Result<Self, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt("SELECT * FROM player WHERE id = ($1);", &[&id])
             .await
             .map_err(Error::from_db)?;
-        row
-            .map(Player::from)
+        row.map(Player::from)
             .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))
     }
-    pub async fn set_user(&self, pool: Pool, user: i32) -> Result<(), Error> {
+    pub async fn update(&self, pool: &Pool) -> Result<(), Error> {
         let row = initialize_client(pool)
             .await?
             .execute(
-                "UPDATE player SET game_user = $1 WHERE id = $2",
-                &[&user, &self.id],
+                "UPDATE player SET game_user = $1, cards = $2, points = $3, turn = $4 WHERE id = $5",
+                &[&self.game_user,&self.cards,&self.points,&self.turn, &self.id],
             )
             .await
-            .map_err(Error::from_db)?;
-        if row != 1 {
-            return Err(Error::message(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Updated {} rows", row),
-            ));
-        }
-        Ok(())
-    }
-    pub async fn update_hand(&self, pool: Pool, cards: Vec<Card>) -> Result<(), Error> {
-        let row = initialize_client(pool)
-            .await?
-            .execute(
-                "UPDATE player SET cards = $1 WHERE id = $2",
-                &[&cards, &self.id],
-            )
-            .await
-            .map_err(Error::from_db)?;
+            .map_err( Error::from_db)?;
         if row != 1 {
             return Err(Error::message(
                 StatusCode::INTERNAL_SERVER_ERROR,

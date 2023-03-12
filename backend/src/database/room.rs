@@ -30,7 +30,7 @@ impl From<Row> for Room {
 
 #[async_trait]
 impl Database for Room {
-    async fn create_table(pool: Pool) -> Result<(), Error> {
+    async fn create_table(pool: &Pool) -> Result<(), Error> {
         let client = pool.get().await.expect("Failed to connect to db");
         client
             .batch_execute(
@@ -48,45 +48,45 @@ impl Database for Room {
 }
 
 impl Room {
-    pub async fn create(pool: Pool, host: i32) -> Result<Room, Error> {
-        let id = Ulid::new().to_string();
+    pub async fn create(pool: &Pool, host_id: i32) -> Result<Room, Error> {
+        let ulid = Ulid::new().to_string();
         let row = initialize_client(pool)
             .await?
             .query_one(
                 "INSERT INTO room (ulid, host) VALUES ($1, $2) RETURNING *;",
-                &[&id, &host],
+                &[&ulid, &host_id],
             )
             .await
             .map_err(Error::from_db)?;
         Ok(Room::from(row))
     }
-    pub async fn get(pool: Pool, id: &str) -> Result<Self, Error> {
+    pub async fn get(pool: &Pool, ulid: &str) -> Result<Self, Error> {
         let row = initialize_client(pool)
             .await?
-            .query_opt("SELECT * FROM room WHERE ulid = ($1);", &[&id])
+            .query_opt("SELECT * FROM room WHERE ulid = ($1);", &[&ulid])
             .await
             .map_err(Error::from_db)?;
         row.map(Room::from)
             .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))
     }
-    pub async fn get_my(pool: Pool, host: i32) -> Result<Vec<Self>, Error> {
+    pub async fn get_owned(pool: &Pool, host_id: i32) -> Result<Vec<Self>, Error> {
         let rows = initialize_client(pool)
             .await?
-            .query("SELECT * FROM room WHERE host = ($1);", &[&host])
+            .query("SELECT * FROM room WHERE host = ($1);", &[&host_id])
             .await
             .map_err(Error::from_db)?;
 
         Ok(rows.into_iter().map(Room::from).collect())
     }
-    pub async fn get_joined(pool: Pool, host: i32) -> Result<Vec<Self>, Error> {
+    pub async fn get_joined(pool: &Pool, host_id: i32) -> Result<Vec<Self>, Error> {
         let rows = initialize_client(pool)
             .await?
-            .query("select * from room where ulid in (select room from player where game_user = ($1)) and host != ($1);", &[&host])
+            .query("select * from room where ulid in (select room from player where game_user = ($1)) and host != ($1);", &[&host_id])
             .await
             .map_err(Error::from_db)?;
         Ok(rows.into_iter().map(Room::from).collect())
     }
-    pub async fn get_players(&self, pool: Pool) -> Result<Vec<Player>, Error> {
+    pub async fn get_players(&self, pool: &Pool) -> Result<Vec<Player>, Error> {
         let rows = initialize_client(pool)
             .await?
             .query("SELECT * FROM player WHERE room = ($1);", &[&self.ulid])
@@ -95,12 +95,12 @@ impl Room {
 
         Ok(rows.into_iter().map(Player::from).collect())
     }
-    pub async fn update_turn(&self, pool: Pool, turn: i32) -> Result<(), Error> {
+    pub async fn update(&self, pool: &Pool) -> Result<(), Error> {
         let row = initialize_client(pool)
             .await?
             .execute(
-                "UPDATE room SET turn = $1 WHERE ulid = $2",
-                &[&turn, &self.ulid],
+                "UPDATE room SET play = $1, turn = $2, last_turn = $3 WHERE ulid = $4",
+                &[&self.play, &self.turn, &self.last_turn, &self.ulid],
             )
             .await
             .map_err(Error::from_db)?;
@@ -112,38 +112,8 @@ impl Room {
         }
         Ok(())
     }
-    pub async fn update_last_turn(&self, pool: Pool, turn: i32) -> Result<(), Error> {
-        let row = initialize_client(pool)
-            .await?
-            .execute(
-                "UPDATE room SET last_turn = $1 WHERE ulid = $2",
-                &[&turn, &self.ulid],
-            )
-            .await
-            .map_err(Error::from_db)?;
-        if row != 1 {
-            return Err(Error::message(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Updated {} rows", row),
-            ));
-        }
-        Ok(())
-    }
-    pub async fn update_play(&self, pool: Pool, play: Vec<Card>) -> Result<(), Error> {
-        let row = initialize_client(pool)
-            .await?
-            .execute(
-                "UPDATE room SET play = $1 WHERE ulid = $2",
-                &[&play, &self.ulid],
-            )
-            .await
-            .map_err(Error::from_db)?;
-        if row != 1 {
-            return Err(Error::message(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Updated {} rows", row),
-            ));
-        }
-        Ok(())
+    pub fn increment_turn(&mut self) -> &mut Self {
+        self.turn = if self.turn == 3 { 0 } else { self.turn + 1 };
+        self
     }
 }

@@ -55,16 +55,16 @@ impl MyMessage {
             message: MessageType::Cards(id),
         }
     }
-    pub fn table(id: Vec<Card>) -> Self {
+    pub fn table(play: Vec<Card>) -> Self {
         Self {
             kind: "table".to_owned(),
-            message: MessageType::Cards(id),
+            message: MessageType::Cards(play),
         }
     }
-    pub fn turn(id: i32) -> Self {
+    pub fn turn(turn: i32) -> Self {
         Self {
             kind: "turn".to_owned(),
-            message: MessageType::Number(id),
+            message: MessageType::Number(turn),
         }
     }
     pub fn card_amount(id: i32, amount: i32) -> Self {

@@ -15,7 +15,7 @@ pub async fn get_self(
     user: UserIdentification,
     State(pool): State<Pool>,
 ) -> Result<impl IntoResponse, Error> {
-    let player = user.get_game_user(pool).await?.get_public();
+    let player = user.get_game_user(&pool).await?.get_public();
     Ok(Json(player))
 }
 
@@ -25,6 +25,6 @@ pub async fn get(
     _: UserIdentification,
     State(pool): State<Pool>,
 ) -> Result<impl IntoResponse, Error> {
-    let player = GameUser::get_by_id(pool, id).await?.get_public();
+    let player = GameUser::get_by_id(&pool, id).await?.get_public();
     Ok(Json(player))
 }

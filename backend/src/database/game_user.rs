@@ -31,7 +31,7 @@ impl From<Row> for GameUser {
 
 #[async_trait]
 impl Database for GameUser {
-    async fn create_table(pool: Pool) -> Result<(), Error> {
+    async fn create_table(pool: &Pool) -> Result<(), Error> {
         let client = pool.get().await.expect("Failed to connect to db");
         let create_query = format!(
             "CREATE TABLE IF NOT EXISTS game_user (
@@ -53,7 +53,7 @@ impl Database for GameUser {
 }
 
 impl GameUser {
-    pub async fn create(pool: Pool, name: &str, password: &str) -> Result<u64, Error> {
+    pub async fn create(pool: &Pool, name: &str, password: &str) -> Result<u64, Error> {
         initialize_client(pool)
             .await?
             .execute(
@@ -78,7 +78,7 @@ impl GameUser {
     //         .await
     //         .map_err(Error::from_db)
     // }
-    pub async fn get(pool: Pool, name: &str) -> Result<Option<Self>, Error> {
+    pub async fn get(pool: &Pool, name: &str) -> Result<Option<Self>, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt("SELECT * FROM game_user WHERE name = ($1);", &[&name])
@@ -98,7 +98,7 @@ impl GameUser {
     //         .map_err(Error::from_db)?;
     //     Ok(row.map(GameUser::from))
     // }
-    pub async fn get_by_id(pool: Pool, id: i32) -> Result<Self, Error> {
+    pub async fn get_by_id(pool: &Pool, id: i32) -> Result<Self, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt("SELECT * FROM game_user WHERE id = ($1);", &[&id])
@@ -139,14 +139,14 @@ pub struct PublicUser {
 }
 
 impl UserIdentification {
-    pub async fn is_part_of(&self, pool: Pool, room: &Room) -> Result<Player, Error> {
+    pub async fn is_part_of(&self, pool: &Pool, room: &Room) -> Result<Player, Error> {
         let players = room.get_players(pool).await?;
         players
             .into_iter()
             .find(|player| player.game_user == Some(self.id))
             .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))
     }
-    pub async fn get_game_user(self, pool: Pool) -> Result<GameUser, Error> {
+    pub async fn get_game_user(self, pool: &Pool) -> Result<GameUser, Error> {
         let row = initialize_client(pool)
             .await?
             .query_opt("SELECT * FROM game_user WHERE id = ($1);", &[&self.id])

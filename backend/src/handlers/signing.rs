@@ -16,7 +16,7 @@ pub async fn user_login(
     State((pool, key)): State<(Pool, Key)>,
     Query(login): Query<Login>,
 ) -> Result<impl IntoResponse, Error> {
-    let player = match match GameUser::get(pool, &login.name).await {
+    let player = match match GameUser::get(&pool, &login.name).await {
         Ok(p) => p,
         Err(_) => return Err(Error::code(StatusCode::INTERNAL_SERVER_ERROR)),
     } {
@@ -40,6 +40,6 @@ pub async fn user_register(
     State((pool, _)): State<(Pool, Key)>,
     Json(login): Json<Login>,
 ) -> Result<impl IntoResponse, Error> {
-    GameUser::create(pool.clone(), &login.name, &login.password).await?;
+    GameUser::create(&pool, &login.name, &login.password).await?;
     Ok((StatusCode::CREATED, "CREATED".to_owned()))
 }

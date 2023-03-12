@@ -18,16 +18,18 @@ pub async fn create(
     user: UserIdentification,
     State(pool): State<Pool>,
 ) -> Result<impl IntoResponse, Error> {
-    let room = Room::create(pool.clone(), user.id).await?;
+    let room = Room::create(&pool, user.id).await?;
     let deck = deal_cards();
     let mut players: Vec<Player> = Vec::new();
     for (x, cards) in deck.iter().enumerate() {
-        players.push(Player::create(pool.clone(), &room.ulid, cards, x as i32).await?);
+        players.push(Player::create(&pool, &room.ulid, cards, x as i32).await?);
     }
-    let player = players
+    let mut player = players
         .choose_multiple(&mut rand::thread_rng(), 1)
-        .collect::<Vec<_>>()[0];
-    player.set_user(pool, user.id).await?;
+        .collect::<Vec<_>>()[0]
+        .to_owned();
+    player.game_user = Some(user.id);
+    player.update(&pool).await?;
     Ok(Json(room))
 }
 
@@ -35,7 +37,7 @@ pub async fn get_owned(
     user: UserIdentification,
     State(pool): State<Pool>,
 ) -> Result<impl IntoResponse, Error> {
-    let rooms = Room::get_my(pool, user.id).await?;
+    let rooms = Room::get_owned(&pool, user.id).await?;
     Ok(Json(rooms))
 }
 
@@ -43,7 +45,7 @@ pub async fn get_joined(
     user: UserIdentification,
     State(pool): State<Pool>,
 ) -> Result<impl IntoResponse, Error> {
-    let rooms = Room::get_joined(pool, user.id).await?;
+    let rooms = Room::get_joined(&pool, user.id).await?;
     Ok(Json(rooms))
 }
 pub async fn join(
@@ -51,8 +53,8 @@ pub async fn join(
     user: UserIdentification,
     State(pool): State<Pool>,
 ) -> Result<impl IntoResponse, Error> {
-    let room = Room::get(pool.clone(), &ulid).await?;
-    let players = room.get_players(pool.clone()).await?;
+    let room = Room::get(&pool, &ulid).await?;
+    let players = room.get_players(&pool).await?;
     let exists = players.iter().any(|p| p.game_user == Some(user.id));
     if exists {
         return Ok(Json(room));
@@ -64,10 +66,13 @@ pub async fn join(
     let rand = players
         .choose_multiple(&mut rand::thread_rng(), 1)
         .collect::<Vec<_>>();
-    let player = rand
+    let mut player = rand
         .first()
-        .ok_or_else(|| Error::code(StatusCode::CONFLICT))?;
-    player.set_user(pool, user.id).await?;
+        .ok_or_else(|| Error::code(StatusCode::CONFLICT))?
+        .to_owned()
+        .to_owned();
+    player.game_user = Some(user.id);
+    player.update(&pool).await?;
     Ok(Json(room))
 }
 
@@ -76,8 +81,8 @@ pub async fn get_players(
     user: UserIdentification,
     State(pool): State<Pool>,
 ) -> Result<impl IntoResponse, Error> {
-    let room = Room::get(pool.clone(), &ulid).await?;
-    let players = room.get_players(pool).await?;
+    let room = Room::get(&pool, &ulid).await?;
+    let players = room.get_players(&pool).await?;
     players
         .iter()
         .find(|p| p.game_user == Some(user.id))
