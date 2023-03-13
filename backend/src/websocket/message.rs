@@ -73,6 +73,12 @@ impl MyMessage {
             message: MessageType::NumbersNumbers((id, amount)),
         }
     }
+    pub fn end_play<T: Debug>(message: T) -> Self {
+        Self {
+            kind: "end_play".to_owned(),
+            message: MessageType::Empty(None),
+        }
+    }
     pub fn error<T: Debug>(message: T) -> Self {
         Self {
             kind: "error".to_owned(),

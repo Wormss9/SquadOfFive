@@ -1,6 +1,6 @@
-use self::play::Card;
+use self::play::{deal_cards, Card};
 use crate::{
-    database::{Player, Room},
+    database::{player, Player, Room},
     websocket::{
         broadcast,
         message::{MessageType, MyMessage},
@@ -80,22 +80,53 @@ pub async fn handle_message(
 
             let table = Play::new(room.play.clone());
             let play = Play::new(play_cards.clone());
-            if play.beats(&table) {
+            if !play.beats(&table) {
+                return Err("Wrong play".to_owned());
+            }
+            if new_hand.len() > 0 {
                 room.play = play_cards.clone();
                 room.last_turn = player.turn;
                 broadcast(MyMessage::table(play_cards), &room, players).await;
+                broadcast(
+                    MyMessage::card_amount(player.id, player.cards.len() as i32),
+                    &room,
+                    players,
+                )
+                .await;
                 player.cards = new_hand;
                 send(MyMessage::cards(player.cards.clone()), tx);
                 player
                     .update(pool)
                     .await
                     .map_err(|_| "Player update error".to_owned())?;
+                broadcast(MyMessage::turn(room.turn), &room, players).await;
                 room.increment_turn()
                     .update(pool)
                     .await
                     .map_err(|_| "Room update error".to_owned())
             } else {
-                Err("Wrong play".to_owned())
+                let new_cards = deal_cards();
+                let mut players = room
+                    .get_players(pool)
+                    .await
+                    .map_err(|_| "Player update error".to_owned())?;
+                let mut endgame = false;
+                for (player, cards) in players.iter_mut().zip(new_cards) {
+                    player.points += card_amount_to_points(player.cards.len());
+                    if player.points >= 100 {
+                        endgame = true;
+                    }
+                    player.cards = cards;
+                    player
+                        .update(pool)
+                        .await
+                        .map_err(|_| "Player update error".to_owned())?;
+                }
+                broadcast(MyMessage::end_play(None), &room, players);
+                if endgame {
+                    todo!()
+                };
+                Ok(())
             }
         }
         _ => Err("Unknown message".to_owned()),
@@ -130,6 +161,21 @@ fn subtract<T: std::cmp::PartialEq + Clone>(
     Ok(result)
 }
 
+fn card_amount_to_points(cards: usize) -> i32 {
+    if cards == 16 {
+        return 5 * cards as i32;
+    }
+    if cards <= 14 {
+        return 4 * cards as i32;
+    }
+    if cards <= 11 {
+        return 3 * cards as i32;
+    }
+    if cards <= 8 {
+        return 2 * cards as i32;
+    }
+    return cards as i32;
+}
 #[cfg(test)]
 mod tests {
     use super::*;
