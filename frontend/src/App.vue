@@ -1,21 +1,15 @@
 <template>
-  <nav>
-    <LoggedInBar v-if="loggedIn" />
-    <div v-else>
-      <router-link to="/login">Login</router-link>
-      <router-link to="/register">Register</router-link>
-    </div>
-  </nav>
+  <NavBar :loggedIn="loggedIn" />
   <router-view class="main" />
 </template>
 <script lang="ts">
 import { defineComponent } from "vue";
-import LoggedInBar from "./components/LoggedInBar.vue";
+import NavBar from "./components/NavBar.vue";
 import "./style/style.scss";
 import "vue3-toastify/dist/index.css";
 export default defineComponent({
   components: {
-    LoggedInBar,
+    NavBar,
   },
   computed: {
     loggedIn() {
@@ -24,3 +18,9 @@ export default defineComponent({
   },
 });
 </script>
+<style lang="scss">
+.main {
+  margin-top: 50px;
+  height: calc(100vh - 50px);
+}
+</style>
