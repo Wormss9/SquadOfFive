@@ -97,7 +97,6 @@ export default defineComponent({
           break;
         case WsType.Joined:
           this.setOnline(data.message);
-          await this.getRoom();
           await this.getOwnId();
           this.sortPlayers();
           break;
