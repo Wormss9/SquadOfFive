@@ -44,21 +44,22 @@ export default defineComponent({
 });
 </script>
 <style lang="scss">
+@import "../style/variables.scss";
 nav {
   display: flex;
-  background-color: #222;
+  background-color: $light-grey;
   position: fixed;
   top: 0;
   width: 100%;
 
   a {
     float: left;
-    color: #f2f2f2;
+    color: $white;
     padding: 1em;
     text-decoration: none;
     &:hover {
-      background-color: #ddd;
-      color: black;
+      background-color: $white;
+      color: $black;
     }
     &.right {
       margin-left: auto;
