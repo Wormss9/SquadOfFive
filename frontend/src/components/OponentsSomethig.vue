@@ -3,7 +3,7 @@
     <li
       v-for="player in players.filter((p) => p.userId != ownId)"
       :key="player.id"
-      style="width: calc(100% / 3)"
+      :style="{ height: '100%', width: 'calc(100% / 3)' }"
     >
       <div class="enemy" :style="enemyStyle(player.turn == turn)">
         <div>{{ player.nick }}</div>

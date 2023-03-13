@@ -5,7 +5,11 @@ body {
   padding: 0;
   background-color: #111;
   font-family: "Fira Sans";
-  height: calc(100vh - 50px);
+  height: calc(100% - 3em);
+}
+
+.third {
+  height: calc(calc(100% - 3em) / 3);
 }
 
 @font-face {

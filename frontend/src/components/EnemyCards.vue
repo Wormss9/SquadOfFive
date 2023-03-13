@@ -1,10 +1,10 @@
 <template>
   <div class="enemy_cards">
     <img
-      v-for="number in [...Array(amount ? amount : 0).keys()]"
+      v-for="number in [...Array(amount ? amount : 16).keys()]"
       :key="number"
       src="../assets/cards/default.png"
-      :style="cardStyle(number, amount ? amount : 0)"
+      :style="cardStyle(number, amount ? amount : 16)"
     />
   </div>
 </template>
@@ -28,7 +28,7 @@ export default defineComponent({
           "rgba(0, 0, 0, 0.09) 0px 8px 4px,\
           rgba(0, 0, 0, 0.09) 0px 16px 8px,\
           rgba(0, 0, 0, 0.09) 0px 32px 16px",
-        width: "100%",
+        height: "100%",
       };
     },
   },
@@ -38,7 +38,8 @@ export default defineComponent({
 .enemy_cards {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  justify-content: center;
   width: 100%;
+  height: 24%;
 }
 </style>

@@ -4,11 +4,12 @@
       :players="players"
       :ownId="ownId"
       :turn="turn"
-    ></OponentsSomethig>
-    <TableCards :cards="table"></TableCards>
+      class="third"
+    />
+    <TableCards :cards="table" class="third" />
     <div
+      class="third"
       :style="{
-        height: 'calc(calc(100% - 50px) / 3',
         display: 'flex',
         flexDirection: 'row',
       }"

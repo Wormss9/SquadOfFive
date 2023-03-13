@@ -50,6 +50,7 @@ nav {
   background-color: $light-grey;
   position: fixed;
   top: 0;
+  height: 3em;
   width: 100%;
 
   a {

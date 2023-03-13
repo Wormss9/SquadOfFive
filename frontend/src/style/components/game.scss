@@ -5,14 +5,12 @@
   padding: 0;
   margin: 0;
   flex-flow: row wrap;
-  height: calc(calc(100% - 50px) / 3);
-}
-
-.oponents li {
-  display: flex;
-  flex-direction: column;
-  margin: auto;
-  align-items: center;
+  li {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    align-items: center;
+  }
 }
 
 .table {
@@ -22,14 +20,11 @@
   margin: 0;
   padding: 0;
   width: 100%;
-  height: calc(calc(100% - 50px) / 3);
-}
-
-.table li {
-  height: 100%;
-}
-
-.table * * {
-  height: 100%;
-  margin: 1px;
+  li {
+    height: 100%;
+  }
+  * * {
+    height: 100%;
+    margin: 1px;
+  }
 }
