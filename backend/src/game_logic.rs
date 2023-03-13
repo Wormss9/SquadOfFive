@@ -1,6 +1,6 @@
-use self::play::{deal_cards, Card};
+use self::play::{deal_cards};
 use crate::{
-    database::{player, Player, Room},
+    database::{Player, Room},
     websocket::{
         broadcast,
         message::{MessageType, MyMessage},
@@ -30,7 +30,7 @@ pub async fn handle_join(
         .map(|(player, _)| player.id)
         .collect();
 
-    match room.get_players(&pool).await {
+    match room.get_players(pool).await {
         Ok(p) => p,
         Err(_) => return,
     }
@@ -51,10 +51,10 @@ pub async fn handle_message(
     players: &WsPlayers,
     tx: &UnboundedSender<Result<Message, axum::Error>>,
 ) -> Result<(), String> {
-    let mut room = Room::get(&pool, room)
+    let mut room = Room::get(pool, room)
         .await
         .map_err(|_| "Room update error".to_owned())?;
-    let mut player = Player::get(&pool, &player.id)
+    let mut player = Player::get(pool, &player.id)
         .await
         .map_err(|_| "Player update error".to_owned())?;
     if room.turn != player.turn {
@@ -63,7 +63,7 @@ pub async fn handle_message(
 
     match &result.kind as &str {
         "skip" => {
-            if room.play.len() == 0 {
+            if room.play.is_empty(){
                 return Err("Empty table".to_owned());
             }
             update_turn(pool, &mut room, players).await
@@ -83,7 +83,7 @@ pub async fn handle_message(
             if !play.beats(&table) {
                 return Err("Wrong play".to_owned());
             }
-            if new_hand.len() > 0 {
+            if !new_hand.is_empty() {
                 room.play = play_cards.clone();
                 room.last_turn = player.turn;
                 broadcast(MyMessage::table(play_cards), &room, players).await;
@@ -106,12 +106,12 @@ pub async fn handle_message(
                     .map_err(|_| "Room update error".to_owned())
             } else {
                 let new_cards = deal_cards();
-                let mut players = room
+                let mut r_players = room
                     .get_players(pool)
                     .await
                     .map_err(|_| "Player update error".to_owned())?;
                 let mut endgame = false;
-                for (player, cards) in players.iter_mut().zip(new_cards) {
+                for (player, cards) in r_players.iter_mut().zip(new_cards) {
                     player.points += card_amount_to_points(player.cards.len());
                     if player.points >= 100 {
                         endgame = true;
@@ -122,7 +122,7 @@ pub async fn handle_message(
                         .await
                         .map_err(|_| "Player update error".to_owned())?;
                 }
-                broadcast(MyMessage::end_play(None), &room, players);
+                broadcast(MyMessage::end_play(), &room, players).await;
                 if endgame {
                     todo!()
                 };
@@ -174,7 +174,7 @@ fn card_amount_to_points(cards: usize) -> i32 {
     if cards <= 8 {
         return 2 * cards as i32;
     }
-    return cards as i32;
+    cards as i32
 }
 #[cfg(test)]
 mod tests {
