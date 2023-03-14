@@ -103,7 +103,13 @@ impl Room {
             .await?
             .execute(
                 "UPDATE room SET play = $1, turn = $2, last_turn = $3, ended = $4 WHERE ulid = $5",
-                &[&self.play, &self.turn, &self.last_turn, &self.ended, &self.ulid],
+                &[
+                    &self.play,
+                    &self.turn,
+                    &self.last_turn,
+                    &self.ended,
+                    &self.ulid,
+                ],
             )
             .await
             .map_err(Error::from_db)?;
@@ -118,10 +124,7 @@ impl Room {
     pub async fn delete(&self, pool: &Pool) -> Result<(), Error> {
         let row = initialize_client(pool)
             .await?
-            .execute(
-                "DELETE FROM room WHERE ulid = $5",
-                &[&self.play, &self.turn, &self.last_turn, &self.ended, &self.ulid],
-            )
+            .execute("DELETE FROM room WHERE ulid = $1", &[&self.ulid])
             .await
             .map_err(Error::from_db)?;
         if row != 1 {

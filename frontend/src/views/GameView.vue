@@ -129,7 +129,6 @@ export default defineComponent({
         default:
           console.log(data);
       }
-      console.log("Message from server ", JSON.parse(event.data));
     },
     async getRoom() {
       this.players = await get_room_with_users(

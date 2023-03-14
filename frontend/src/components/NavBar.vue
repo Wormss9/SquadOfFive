@@ -3,7 +3,11 @@
     <router-link to="/rooms">Rooms</router-link>
     <router-link class="profile right" to="/user">
       <div>{{ user.nick }}</div>
-      <img v-bind:src="'data:image/png;base64,' + user.avatar" class="avatar" />
+      <img
+        v-if="user.avatar"
+        v-bind:src="'data:image/png;base64,' + user.avatar"
+        class="avatar"
+      />
     </router-link>
   </nav>
   <nav v-else>

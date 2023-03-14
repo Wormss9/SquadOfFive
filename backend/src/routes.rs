@@ -4,7 +4,7 @@ use crate::{
     websocket::WsPlayers,
 };
 use axum::{
-    routing::{get, patch, put, delete},
+    routing::{delete, get, patch, put},
     Extension, Router,
 };
 use deadpool_postgres::Pool;
@@ -37,16 +37,9 @@ fn room(pool: Pool, key: Key) -> Router {
         .route(
             "/api/room/:id",
             patch(room::join)
+                .delete(room::delete)
                 .layer(Extension(key.clone()))
                 .with_state(pool.clone()),
-        )
-        .merge(
-            Router::new().route(
-                "/api/room/:id",
-                delete(room::delete)
-                    .layer(Extension(key.clone()))
-                    .with_state(pool.clone()),
-            ),
         )
         .merge(
             Router::new().route(

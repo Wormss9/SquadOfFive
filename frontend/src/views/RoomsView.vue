@@ -30,7 +30,6 @@ export default defineComponent({
       this.rooms = await get_rooms_with_users();
     },
     createRoom: async function () {
-      console.log("asd");
       await create_room();
       location.assign("rooms");
     },

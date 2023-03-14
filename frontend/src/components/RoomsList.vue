@@ -12,6 +12,13 @@
             <div>{{ player.points }}</div>
           </ul>
         </li>
+        <button
+          v-if="owned"
+          class="link-like-delete-button right"
+          v-on:click="deleteRoom(room[0].room)"
+        >
+          Delete
+        </button>
         <button class="link-like-button" v-on:click="copyLink(room[0].room)">
           Join link
         </button>
@@ -26,6 +33,7 @@ import { defineComponent, PropType } from "vue";
 import { Rooms } from "@/api/types";
 import useClipboard from "vue-clipboard3";
 import { toast } from "vue3-toastify";
+import { delete_room } from "@/api/api";
 export default defineComponent({
   props: {
     rooms: Object as PropType<Rooms>,
@@ -37,9 +45,12 @@ export default defineComponent({
   methods: {
     async copyLink(ulid: string) {
       const { toClipboard } = useClipboard();
-      console.log(ulid);
       await toClipboard(`${window.location.origin}/join/${ulid}`);
       toast.info("Link copied to clipboard");
+    },
+    async deleteRoom(ulid: string) {
+      await delete_room(ulid);
+      location.assign("rooms");
     },
   },
 });

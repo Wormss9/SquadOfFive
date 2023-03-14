@@ -63,6 +63,10 @@ export async function create_room() {
   await client.put(`/api/room`);
 }
 
+export async function delete_room(ulid: string) {
+  await client.delete(`/api/room/${ulid}`);
+}
+
 export function join_game(ulid: string) {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const port = window.location.protocol === "https:" ? "" : ":7878";
