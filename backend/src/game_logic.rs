@@ -175,13 +175,13 @@ fn card_amount_to_points(cards: usize) -> i32 {
     if cards == 16 {
         return 5 * cards as i32;
     }
-    if cards <= 14 {
+    if cards >= 14 {
         return 4 * cards as i32;
     }
-    if cards <= 11 {
+    if cards >= 11 {
         return 3 * cards as i32;
     }
-    if cards <= 8 {
+    if cards >= 8 {
         return 2 * cards as i32;
     }
     cards as i32
