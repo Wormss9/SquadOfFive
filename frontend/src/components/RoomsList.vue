@@ -19,7 +19,11 @@
         >
           Delete
         </button>
-        <button class="link-like-button" v-on:click="copyLink(room[0].room)">
+        <button
+          v-if="room.length < 4"
+          class="link-like-button"
+          v-on:click="copyLink(room[0].room)"
+        >
           Join link
         </button>
         <router-link :to="'/game/' + room[0].room">Join</router-link>
