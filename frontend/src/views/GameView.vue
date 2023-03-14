@@ -115,6 +115,14 @@ export default defineComponent({
         case WsType.CardAmmount:
           this.setCardAmount(data.message);
           break;
+        case WsType.EndPlay:
+          //TODO
+          toast.error("Play End");
+          break;
+        case WsType.EndGame:
+          //TODO
+          toast.error("Game End");
+          break;
         case WsType.Error:
           toast.error(data.message.slice(1, -1));
           break;

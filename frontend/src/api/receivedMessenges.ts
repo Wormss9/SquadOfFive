@@ -8,6 +8,8 @@ export enum WsType {
   Turn = "turn",
   Left = "left",
   CardAmmount = "card_amount",
+  EndPlay = "end_play",
+  EndGame = "end_game",
   Error = "error",
 }
 
@@ -46,6 +48,14 @@ type CardAmmount = {
   message: [number, number];
 };
 
+type EndGame = {
+  type: WsType.EndGame;
+};
+
+type EndPlay = {
+  type: WsType.EndPlay;
+};
+
 type Error = {
   type: WsType.Error;
   message: string;
@@ -59,4 +69,6 @@ export type WsMessage =
   | Turn
   | Left
   | CardAmmount
+  | EndGame
+  | EndPlay
   | Error;
