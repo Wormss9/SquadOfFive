@@ -1,4 +1,4 @@
-use self::play::{deal_cards};
+use self::play::deal_cards;
 use crate::{
     database::{Player, Room},
     websocket::{
@@ -63,7 +63,7 @@ pub async fn handle_message(
 
     match &result.kind as &str {
         "skip" => {
-            if room.play.is_empty(){
+            if room.play.is_empty() {
                 return Err("Empty table".to_owned());
             }
             update_turn(pool, &mut room, players).await
@@ -124,7 +124,7 @@ pub async fn handle_message(
                 }
                 broadcast(MyMessage::end_play(), &room, players).await;
                 if endgame {
-                    todo!()
+                    broadcast(MyMessage::end_game(), &room, players).await;
                 };
                 Ok(())
             }

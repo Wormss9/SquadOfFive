@@ -79,6 +79,12 @@ impl MyMessage {
             message: MessageType::Empty(None),
         }
     }
+    pub fn end_game() -> Self {
+        Self {
+            kind: "end_game".to_owned(),
+            message: MessageType::Empty(None),
+        }
+    }
     pub fn error<T: Debug>(message: T) -> Self {
         Self {
             kind: "error".to_owned(),

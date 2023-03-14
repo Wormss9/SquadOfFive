@@ -1,5 +1,5 @@
 use crate::{
-    database::{game_user::UserIdentification, Room},
+    database::{game_user::UserIdentification, player, Room},
     websocket::{self, WsPlayers},
 };
 use axum::{
@@ -39,6 +39,15 @@ pub async fn join(
         Ok(r) => r,
         Err(_) => return,
     };
+    let r_players = match room.get_players(&pool).await {
+        Ok(r) => r,
+        Err(_) => return,
+    };
+    for player in r_players {
+        if player.points >= 100 {
+            return;
+        }
+    }
     let player = match user.is_part_of(&pool, &room).await {
         Ok(r) => r,
         Err(_) => return,
