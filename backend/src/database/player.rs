@@ -37,8 +37,8 @@ impl Database for Player {
             .batch_execute(
                 "CREATE TABLE IF NOT EXISTS player (
                     id          SERIAL PRIMARY KEY,
-                    game_user   INT REFERENCES game_user(id),
-                    room        TEXT NOT NULL REFERENCES room(ulid),
+                    game_user   INT REFERENCES game_user(id) ON delete set null,
+                    room        TEXT NOT NULL REFERENCES room(ulid) ON delete cascade,
                     cards       JSON[] DEFAULT array[]::JSON[],
                     points      INT DEFAULT 0,
                     turn        INT DEFAULT 0

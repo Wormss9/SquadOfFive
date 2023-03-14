@@ -33,6 +33,19 @@ pub async fn create(
     Ok(Json(room))
 }
 
+pub async fn delete(
+    Path(ulid): Path<String>,
+    user: UserIdentification,
+    State(pool): State<Pool>,
+) -> Result<impl IntoResponse, Error> {
+    let room = Room::get(&pool, &ulid).await?;
+    if room.host != user.id {
+        return Err(Error::code(StatusCode::FORBIDDEN));
+    }
+    room.delete(&pool).await?;
+    Ok(())
+}
+
 pub async fn get_owned(
     user: UserIdentification,
     State(pool): State<Pool>,
@@ -48,6 +61,7 @@ pub async fn get_joined(
     let rooms = Room::get_joined(&pool, user.id).await?;
     Ok(Json(rooms))
 }
+
 pub async fn join(
     Path(ulid): Path<String>,
     user: UserIdentification,

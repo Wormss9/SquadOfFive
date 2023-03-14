@@ -38,7 +38,7 @@ impl Database for Room {
             .batch_execute(
                 "CREATE TABLE IF NOT EXISTS room (
                     ulid            VARCHAR(26) PRIMARY KEY,
-                    host            INT REFERENCES game_user(id),
+                    host            INT REFERENCES game_user(id) ON delete cascade,
                     play            JSON[] DEFAULT array[]::JSON[],
                     turn            INT DEFAULT 0,
                     last_turn       INT DEFAULT 0,
@@ -103,6 +103,23 @@ impl Room {
             .await?
             .execute(
                 "UPDATE room SET play = $1, turn = $2, last_turn = $3, ended = $4 WHERE ulid = $5",
+                &[&self.play, &self.turn, &self.last_turn, &self.ended, &self.ulid],
+            )
+            .await
+            .map_err(Error::from_db)?;
+        if row != 1 {
+            return Err(Error::message(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Updated {} rows", row),
+            ));
+        }
+        Ok(())
+    }
+    pub async fn delete(&self, pool: &Pool) -> Result<(), Error> {
+        let row = initialize_client(pool)
+            .await?
+            .execute(
+                "DELETE FROM room WHERE ulid = $5",
                 &[&self.play, &self.turn, &self.last_turn, &self.ended, &self.ulid],
             )
             .await
