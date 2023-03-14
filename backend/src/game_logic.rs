@@ -86,6 +86,16 @@ pub async fn handle_message(
             if !new_hand.is_empty() {
                 room.play = play_cards.clone();
                 room.last_turn = player.turn;
+                player.cards = new_hand;
+                player
+                    .update(pool)
+                    .await
+                    .map_err(|_| "Player update error".to_owned())?;
+                room.increment_turn()
+                    .update(pool)
+                    .await
+                    .map_err(|_| "Room update error".to_owned())?;
+                send(MyMessage::cards(player.cards.clone()), tx);
                 broadcast(MyMessage::table(play_cards), &room, players).await;
                 broadcast(
                     MyMessage::card_amount(player.id, player.cards.len() as i32),
@@ -93,19 +103,15 @@ pub async fn handle_message(
                     players,
                 )
                 .await;
+                broadcast(MyMessage::turn(room.turn), &room, players).await;
+                Ok(())
+            } else {
+                let new_cards = deal_cards();
                 player.cards = new_hand;
-                send(MyMessage::cards(player.cards.clone()), tx);
                 player
                     .update(pool)
                     .await
                     .map_err(|_| "Player update error".to_owned())?;
-                broadcast(MyMessage::turn(room.turn), &room, players).await;
-                room.increment_turn()
-                    .update(pool)
-                    .await
-                    .map_err(|_| "Room update error".to_owned())
-            } else {
-                let new_cards = deal_cards();
                 let mut r_players = room
                     .get_players(pool)
                     .await
