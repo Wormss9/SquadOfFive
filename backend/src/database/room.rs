@@ -102,7 +102,7 @@ impl Room {
         let row = initialize_client(pool)
             .await?
             .execute(
-                "UPDATE room SET play = $1, turn = $2, last_turn = $3 ended = $4 WHERE ulid = $5",
+                "UPDATE room SET play = $1, turn = $2, last_turn = $3, ended = $4 WHERE ulid = $5",
                 &[&self.play, &self.turn, &self.last_turn, &self.ended, &self.ulid],
             )
             .await
