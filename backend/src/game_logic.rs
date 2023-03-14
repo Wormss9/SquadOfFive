@@ -124,6 +124,10 @@ pub async fn handle_message(
                 }
                 broadcast(MyMessage::end_play(), &room, players).await;
                 if endgame {
+                    room.ended = true;
+                    room.update(pool)
+                        .await
+                        .map_err(|_| "Room update error".to_owned())?;
                     broadcast(MyMessage::end_game(), &room, players).await;
                 };
                 Ok(())

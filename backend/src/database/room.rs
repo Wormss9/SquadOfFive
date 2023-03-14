@@ -14,6 +14,7 @@ pub struct Room {
     pub play: Vec<Card>,
     pub turn: i32,
     pub last_turn: i32,
+    pub ended: bool,
 }
 
 impl From<Row> for Room {
@@ -24,6 +25,7 @@ impl From<Row> for Room {
             play: row.get("play"),
             turn: row.get("turn"),
             last_turn: row.get("last_turn"),
+            ended: row.get("ended"),
         }
     }
 }
@@ -40,6 +42,7 @@ impl Database for Room {
                     play            JSON[] DEFAULT array[]::JSON[],
                     turn            INT DEFAULT 0,
                     last_turn       INT DEFAULT 0
+                    ended           BOOLEAN DEFAULT FALSE
                 );",
             )
             .await
@@ -99,8 +102,8 @@ impl Room {
         let row = initialize_client(pool)
             .await?
             .execute(
-                "UPDATE room SET play = $1, turn = $2, last_turn = $3 WHERE ulid = $4",
-                &[&self.play, &self.turn, &self.last_turn, &self.ulid],
+                "UPDATE room SET play = $1, turn = $2, last_turn = $3 ended = $4 WHERE ulid = $5",
+                &[&self.play, &self.turn, &self.last_turn, &self.ended, &self.ulid],
             )
             .await
             .map_err(Error::from_db)?;
