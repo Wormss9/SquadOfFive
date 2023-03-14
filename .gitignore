@@ -1,12 +1,12 @@
+# Build folders
 node_modules
 dist
+target
 
-# local env files
+# Local env files
 .env.local
 .env.*.local
 
 # Editor directories and files
 .idea
 .vscode
-
-target
