@@ -4,7 +4,7 @@ use crate::{
     websocket::WsPlayers,
 };
 use axum::{
-    routing::{delete, get, patch, put},
+    routing::{get, patch, put},
     Extension, Router,
 };
 use deadpool_postgres::Pool;
