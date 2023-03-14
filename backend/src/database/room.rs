@@ -41,7 +41,7 @@ impl Database for Room {
                     host            INT REFERENCES game_user(id),
                     play            JSON[] DEFAULT array[]::JSON[],
                     turn            INT DEFAULT 0,
-                    last_turn       INT DEFAULT 0
+                    last_turn       INT DEFAULT 0,
                     ended           BOOLEAN DEFAULT FALSE
                 );",
             )
