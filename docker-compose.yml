@@ -1,0 +1,24 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    restart: 'unless-stopped'
+  backend:
+    build: ./backend
+    env_file:
+      - .env.local
+    environment:
+      - DOCKERIZED=true
+    depends_on:
+      - db
+    ports:
+      - "7878:7878"
+    restart: 'unless-stopped'
+  db:
+    image: postgres:alpine
+    env_file:
+      - .env.local
+    ports:
+      - "5432:5432"
+    restart: 'unless-stopped'

@@ -1,0 +1,39 @@
+@import "../variables.scss";
+
+form {
+  display: flex;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  input {
+    font-size: 1em;
+    height: 2em;
+    margin: 0.5em;
+    color: $black;
+    border: 0;
+    &[type="text"],
+    &[type="password"] {
+      background-color: $light-grey;
+      color: $white;
+      padding: 0.5em;
+      &::placeholder {
+        color: $dark-grey;
+        opacity: 1;
+      }
+      &:focus {
+        outline: 0.5em solid $light-grey;
+      }
+    }
+    &[type="submit"] {
+      background-color: $light-grey;
+      color: $white;
+      //   text-decoration: none;
+      &:hover {
+        background-color: $white;
+        color: $black;
+      }
+    }
+  }
+}

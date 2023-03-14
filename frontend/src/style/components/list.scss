@@ -1,0 +1,47 @@
+.rooms {
+  display: flex;
+  flex-direction: column;
+  margin: 1em;
+  list-style-type: none;
+  // background-color: #333;
+}
+
+.room {
+  display: flex;
+  flex-direction: row;
+  margin: 1em;
+  background-color: #333;
+}
+.room * {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.link-like-button,
+.link-like-delete-button {
+  all: unset;
+  margin-right: 1em;
+}
+
+.room a,
+.link-like-button,
+.link-like-delete-button {
+  float: left;
+  color: #000;
+  background-color: #555;
+  padding: 1em;
+  text-decoration: none;
+  align-self: right;
+}
+
+.room a:hover,
+.link-like-button:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+.link-like-delete-button:hover {
+  background-color: #f00;
+  color: #fff;
+}

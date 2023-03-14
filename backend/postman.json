@@ -1,0 +1,404 @@
+{
+	"info": {
+		"_postman_id": "519c0256-d36c-431e-b7c0-6828013075cb",
+		"name": "SquadOfFive",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Signing",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const responseJson = pm.response.json();",
+									"var bodyToken = responseJson.Authorization;",
+									"pm.collectionVariables.set(\"Authorization\", bodyToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/signing/user?name=&password=",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"signing",
+								"user"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": ""
+								},
+								{
+									"key": "password",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"\",\n    \"password\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/signing/user",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"signing",
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Me",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/user",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Other",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/user/:id",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Room",
+			"item": [
+				{
+					"name": "Create",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/room",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"room"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/room/:id/players",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"room",
+								":id",
+								"players"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Join",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{BASE_URL}}/api/room/:id",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"room",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Players",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/room/:id/players",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"room",
+								":id",
+								"players"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rooms",
+			"item": [
+				{
+					"name": "Owned",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{BASE_URL}}/api/rooms/owned",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"rooms",
+								"owned"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Joined",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/rooms/joined",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"rooms",
+								"joined"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Game",
+			"item": [
+				{
+					"name": "JoinGame",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true,
+						"disabledSystemHeaders": {
+							"connection": true
+						}
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Connection",
+								"value": "upgrade",
+								"type": "default"
+							},
+							{
+								"key": "Upgrade",
+								"value": "websocket",
+								"type": "default"
+							},
+							{
+								"key": "sec-websocket-version",
+								"value": "13",
+								"type": "default"
+							},
+							{
+								"key": "sec-websocket-key",
+								"value": "0",
+								"type": "default"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/game/:id?token={{Authorization}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"game",
+								":id"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{Authorization}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{Authorization}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "Authorization",
+			"value": "eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwibmFtZSI6Ildvcm1zczkiLCJzdGVhbV9pZCI6bnVsbH0.pq5LnaaURNzH07qP8WoJWA-xoALy2Dv5gbDX82uXncT68qpjFOg7s-dG7kicu5ilLS8bQ601H-Th6SaPyUMONg",
+			"type": "default"
+		},
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:7878",
+			"type": "default"
+		}
+	]
+}

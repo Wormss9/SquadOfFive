@@ -1,0 +1,30 @@
+.oponents {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  flex-flow: row wrap;
+  li {
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    align-items: center;
+  }
+}
+
+.table {
+  display: flex;
+  list-style-type: none;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  li {
+    height: 100%;
+  }
+  * * {
+    height: 100%;
+    margin: 1px;
+  }
+}

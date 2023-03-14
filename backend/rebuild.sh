@@ -1,0 +1,1 @@
+(cd ..; ./rebuild.sh backend)
