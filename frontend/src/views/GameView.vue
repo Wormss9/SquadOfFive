@@ -21,7 +21,7 @@
       </div>
     </div>
     <PlayEnd
-      v-if="!playEnded"
+      v-if="playEnded"
       :players="players"
       v-on:continue="playEndedFn"
     ></PlayEnd>
