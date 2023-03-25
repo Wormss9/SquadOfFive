@@ -2,7 +2,7 @@ use crate::utils::error::Error;
 
 pub use self::{game_user::GameUser, player::Player, room::Room};
 use axum::async_trait;
-use deadpool_postgres::{ManagerConfig, Object, Pool, RecyclingMethod, Runtime};
+use deadpool_postgres::{ManagerConfig, Object, Pool, RecyclingMethod, Runtime, Transaction};
 use http::StatusCode;
 use std::env;
 use tokio_postgres::NoTls;
@@ -14,17 +14,34 @@ pub mod room;
 
 #[async_trait]
 pub trait Database {
-    async fn create_table(pool: &Pool) -> Result<(), Error>;
+    async fn create_table(transaction: &Transaction<'_>) -> Result<(), Error>;
 }
 
 async fn initialize(pool: &Pool) -> Result<(), Error> {
-    GameUser::create_table(pool).await?;
-    Room::create_table(pool).await?;
-    Player::create_table(pool).await
+    let mut client = initialize_client(pool).await?;
+    let transaction = initialize_transaction(&mut client).await?;
+    GameUser::create_table(&transaction).await?;
+    Room::create_table(&transaction).await?;
+    Player::create_table(&transaction).await?;
+    commit(transaction).await
 }
 
-async fn initialize_client(pool: &Pool) -> Result<Object, Error> {
+pub async fn initialize_client(pool: &Pool) -> Result<Object, Error> {
     pool.get()
+        .await
+        .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
+}
+
+pub async fn initialize_transaction(object: &mut Object) -> Result<Transaction<'_>, Error> {
+    object
+        .transaction()
+        .await
+        .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
+}
+
+pub async fn commit(transaction: Transaction<'_>) -> Result<(), Error> {
+    transaction
+        .commit()
         .await
         .map_err(Error::code_fn(StatusCode::INTERNAL_SERVER_ERROR))
 }

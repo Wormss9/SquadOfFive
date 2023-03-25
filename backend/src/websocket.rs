@@ -24,7 +24,7 @@ pub type WsPlayers =
 pub async fn join(
     room: &Room,
     player: &Player,
-    pool: &Pool,
+    pool: Pool,
     players: &WsPlayers,
     socket: WebSocket,
 ) {
@@ -37,7 +37,7 @@ pub async fn join(
     tokio::spawn(rx.forward(user_tx));
     players.write().await.insert(player.public(), tx.clone());
 
-    handle_join(pool, room, player, players, &tx).await;
+    handle_join(&pool, room, player, players, &tx).await;
 
     while let Some(result) = user_rx.next().await {
         let me = match match result {
@@ -58,7 +58,9 @@ pub async fn join(
                 continue;
             }
         };
-        if let Err(message) = handle_message(pool, &room.ulid, player, me, players, &tx).await {
+        if let Err(message) =
+            handle_message(&pool, &room.ulid, player, me, players, &tx).await
+        {
             send(MyMessage::error(message), &tx);
         }
     }

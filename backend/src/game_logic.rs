@@ -1,6 +1,6 @@
 use self::play::deal_cards;
 use crate::{
-    database::{Player, Room},
+    database::{commit, initialize_client, initialize_transaction, Player, Room},
     websocket::{
         broadcast,
         message::{MessageType, MyMessage},
@@ -8,7 +8,7 @@ use crate::{
     },
 };
 use axum::extract::ws::Message;
-use deadpool_postgres::Pool;
+use deadpool_postgres::{Pool, Transaction};
 use play::Play;
 use tokio::sync::mpsc::UnboundedSender;
 
@@ -30,7 +30,7 @@ pub async fn handle_join(
         .map(|(player, _)| player.id)
         .collect();
 
-    match room.get_players(pool).await {
+    match room.get_players(&pool).await {
         Ok(p) => p,
         Err(_) => return,
     }
@@ -51,22 +51,31 @@ pub async fn handle_message(
     players: &WsPlayers,
     tx: &UnboundedSender<Result<Message, axum::Error>>,
 ) -> Result<(), String> {
-    let mut room = Room::get(pool, room)
+    let mut room = Room::get(&pool, room)
         .await
         .map_err(|_| "Room update error".to_owned())?;
-    let mut player = Player::get(pool, &player.id)
+    let mut player = Player::get(&pool, &player.id)
         .await
         .map_err(|_| "Player update error".to_owned())?;
     if room.turn != player.turn {
         return Err("Not your turn".to_owned());
     }
-
+    let mut client = initialize_client(&pool)
+        .await
+        .map_err(|_| "Error getting client".to_owned())?;
+    let transaction = initialize_transaction(&mut client)
+        .await
+        .map_err(|_| "Error getting transaction".to_owned())?;
     match &result.kind as &str {
         "skip" => {
             if room.play.is_empty() {
                 return Err("Empty table".to_owned());
             }
-            update_turn(pool, &mut room, players).await
+            update_turn(&transaction, &mut room, players).await?;
+            commit(transaction)
+                .await
+                .map_err(|_| "Error commiting transaction".to_owned())?;
+            Ok(())
         }
         "play" => {
             let play_cards = if let MessageType::Cards(cards) = result.message {
@@ -88,11 +97,11 @@ pub async fn handle_message(
                 room.last_turn = player.turn;
                 player.cards = new_hand;
                 player
-                    .update(pool)
+                    .update(&transaction)
                     .await
                     .map_err(|_| "Player update error".to_owned())?;
                 room.increment_turn()
-                    .update(pool)
+                    .update(&transaction)
                     .await
                     .map_err(|_| "Room update error".to_owned())?;
                 send(MyMessage::cards(player.cards.clone()), tx);
@@ -104,16 +113,19 @@ pub async fn handle_message(
                 )
                 .await;
                 broadcast(MyMessage::turn(room.turn), &room, players).await;
+                commit(transaction)
+                    .await
+                    .map_err(|_| "Error commiting transaction".to_owned())?;
                 Ok(())
             } else {
                 let new_cards = deal_cards();
                 player.cards = new_hand;
                 player
-                    .update(pool)
+                    .update(&transaction)
                     .await
                     .map_err(|_| "Player update error".to_owned())?;
                 let mut r_players = room
-                    .get_players(pool)
+                    .get_players(&pool)
                     .await
                     .map_err(|_| "Player update error".to_owned())?;
                 let mut endgame = false;
@@ -124,18 +136,21 @@ pub async fn handle_message(
                     }
                     player.cards = cards;
                     player
-                        .update(pool)
+                        .update(&transaction)
                         .await
                         .map_err(|_| "Player update error".to_owned())?;
                 }
                 broadcast(MyMessage::end_play(), &room, players).await;
                 if endgame {
                     room.ended = true;
-                    room.update(pool)
+                    room.update(&transaction)
                         .await
                         .map_err(|_| "Room update error".to_owned())?;
                     broadcast(MyMessage::end_game(), &room, players).await;
                 };
+                commit(transaction)
+                    .await
+                    .map_err(|_| "Error commiting transaction".to_owned())?;
                 Ok(())
             }
         }
@@ -143,13 +158,17 @@ pub async fn handle_message(
     }
 }
 
-async fn update_turn(pool: &Pool, room: &mut Room, players: &WsPlayers) -> Result<(), String> {
+async fn update_turn(
+    transaction: &Transaction<'_>,
+    room: &mut Room,
+    players: &WsPlayers,
+) -> Result<(), String> {
     room.increment_turn();
     if room.last_turn == room.turn {
         room.play = vec![];
         broadcast(MyMessage::table(vec![]), room, players).await;
     }
-    room.update(pool)
+    room.update(transaction)
         .await
         .map_err(|_| "Error updating turn".to_owned())?;
     broadcast(MyMessage::turn(room.turn), room, players).await;

@@ -1,5 +1,5 @@
 use crate::{
-    database::GameUser,
+    database::{initialize_client, initialize_transaction, GameUser, commit},
     utils::{
         authorization::{create_token, verify_password, Key, Login},
         error::Error,
@@ -40,6 +40,11 @@ pub async fn user_register(
     State((pool, _)): State<(Pool, Key)>,
     Json(login): Json<Login>,
 ) -> Result<impl IntoResponse, Error> {
-    GameUser::create(&pool, &login.name, &login.password).await?;
+    let mut client = initialize_client(&pool).await?;
+    let transaction = initialize_transaction(&mut client).await?;
+
+    GameUser::create(&transaction, &login.name, &login.password).await?;
+
+    commit(transaction).await?;
     Ok((StatusCode::CREATED, "CREATED".to_owned()))
 }

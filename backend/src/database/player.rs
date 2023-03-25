@@ -1,7 +1,7 @@
 use super::{initialize_client, Database};
 use crate::{game_logic::play::Card, utils::error::Error};
 use async_trait::async_trait;
-use deadpool_postgres::Pool;
+use deadpool_postgres::{Pool, Transaction};
 use http::StatusCode;
 use serde_derive::{Deserialize, Serialize};
 use tokio_postgres::Row;
@@ -31,9 +31,8 @@ impl From<Row> for Player {
 
 #[async_trait]
 impl Database for Player {
-    async fn create_table(pool: &Pool) -> Result<(), Error> {
-        let client = pool.get().await.expect("Failed to connect to db");
-        client
+    async fn create_table(transaction: &Transaction<'_>) -> Result<(), Error> {
+        transaction
             .batch_execute(
                 "CREATE TABLE IF NOT EXISTS player (
                     id          SERIAL PRIMARY KEY,
@@ -53,13 +52,12 @@ impl Database for Player {
 
 impl Player {
     pub async fn create(
-        pool: &Pool,
+        transaction: &Transaction<'_>,
         room: &str,
         cards: &Vec<Card>,
         turn: i32,
     ) -> Result<Player, Error> {
-        let row = initialize_client(pool)
-            .await?
+        let row = transaction
             .query_one(
                 "INSERT INTO player (room, cards, turn) VALUES ($1, $2, $3)  RETURNING *;",
                 &[&room, cards, &turn],
@@ -77,9 +75,8 @@ impl Player {
         row.map(Player::from)
             .ok_or_else(|| Error::code(StatusCode::UNAUTHORIZED))
     }
-    pub async fn update(&self, pool: &Pool) -> Result<(), Error> {
-        let row = initialize_client(pool)
-            .await?
+    pub async fn update(&self, transaction: &Transaction<'_>) -> Result<(), Error> {
+        let row = transaction
             .execute(
                 "UPDATE player SET game_user = $1, cards = $2, points = $3, turn = $4 WHERE id = $5",
                 &[&self.game_user,&self.cards,&self.points,&self.turn, &self.id],

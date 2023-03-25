@@ -1,7 +1,7 @@
 use super::{default_image::IMAGE, initialize_client, Database, Player, Room};
 use crate::utils::{authorization::hash_password, error::Error};
 use async_trait::async_trait;
-use deadpool_postgres::Pool;
+use deadpool_postgres::{Pool, Transaction};
 use http::StatusCode;
 use serde_derive::{Deserialize, Serialize};
 use tokio_postgres::Row;
@@ -31,8 +31,7 @@ impl From<Row> for GameUser {
 
 #[async_trait]
 impl Database for GameUser {
-    async fn create_table(pool: &Pool) -> Result<(), Error> {
-        let client = pool.get().await.expect("Failed to connect to db");
+    async fn create_table(transaction: &Transaction<'_>) -> Result<(), Error> {
         let create_query = format!(
             "CREATE TABLE IF NOT EXISTS game_user (
                     id              SERIAL PRIMARY KEY,
@@ -45,7 +44,7 @@ impl Database for GameUser {
             CREATE INDEX IF NOT EXISTS steam_index ON game_user(steam_id);",
             IMAGE
         );
-        client
+        transaction
             .batch_execute(&create_query)
             .await
             .map_err(Error::from_db)
@@ -53,9 +52,12 @@ impl Database for GameUser {
 }
 
 impl GameUser {
-    pub async fn create(pool: &Pool, name: &str, password: &str) -> Result<u64, Error> {
-        initialize_client(pool)
-            .await?
+    pub async fn create(
+        transaction: &Transaction<'_>,
+        name: &str,
+        password: &str,
+    ) -> Result<u64, Error> {
+        transaction
             .execute(
                 "INSERT INTO game_user (name, nick, password) VALUES ($1, $1, $2);",
                 &[&name, &hash_password(password.to_owned())],

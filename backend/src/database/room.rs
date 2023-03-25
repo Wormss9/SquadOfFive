@@ -1,7 +1,7 @@
 use super::{initialize_client, Database, Player};
 use crate::{game_logic::play::Card, utils::error::Error};
 use async_trait::async_trait;
-use deadpool_postgres::Pool;
+use deadpool_postgres::{Pool, Transaction};
 use http::StatusCode;
 use serde_derive::{Deserialize, Serialize};
 use tokio_postgres::Row;
@@ -32,9 +32,8 @@ impl From<Row> for Room {
 
 #[async_trait]
 impl Database for Room {
-    async fn create_table(pool: &Pool) -> Result<(), Error> {
-        let client = pool.get().await.expect("Failed to connect to db");
-        client
+    async fn create_table(transaction: &Transaction<'_>) -> Result<(), Error> {
+        transaction
             .batch_execute(
                 "CREATE TABLE IF NOT EXISTS room (
                     ulid            VARCHAR(26) PRIMARY KEY,
@@ -51,10 +50,9 @@ impl Database for Room {
 }
 
 impl Room {
-    pub async fn create(pool: &Pool, host_id: i32) -> Result<Room, Error> {
+    pub async fn create(transaction: &Transaction<'_>, host_id: i32) -> Result<Room, Error> {
         let ulid = Ulid::new().to_string();
-        let row = initialize_client(pool)
-            .await?
+        let row = transaction
             .query_one(
                 "INSERT INTO room (ulid, host) VALUES ($1, $2) RETURNING *;",
                 &[&ulid, &host_id],
@@ -98,9 +96,8 @@ impl Room {
 
         Ok(rows.into_iter().map(Player::from).collect())
     }
-    pub async fn update(&self, pool: &Pool) -> Result<(), Error> {
-        let row = initialize_client(pool)
-            .await?
+    pub async fn update(&self, transaction: &Transaction<'_>) -> Result<(), Error> {
+        let row = transaction
             .execute(
                 "UPDATE room SET play = $1, turn = $2, last_turn = $3, ended = $4 WHERE ulid = $5",
                 &[
@@ -121,9 +118,8 @@ impl Room {
         }
         Ok(())
     }
-    pub async fn delete(&self, pool: &Pool) -> Result<(), Error> {
-        let row = initialize_client(pool)
-            .await?
+    pub async fn delete(&self, transaction: &Transaction<'_>) -> Result<(), Error> {
+        let row = transaction
             .execute("DELETE FROM room WHERE ulid = $1", &[&self.ulid])
             .await
             .map_err(Error::from_db)?;

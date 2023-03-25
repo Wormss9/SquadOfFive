@@ -1,5 +1,8 @@
 use crate::{
-    database::{game_user::UserIdentification, player::PublicPlayer, Player, Room},
+    database::{
+        commit, game_user::UserIdentification, initialize_client, initialize_transaction,
+        player::PublicPlayer, Player, Room,
+    },
     game_logic::play::deal_cards,
     utils::error::Error,
 };
@@ -18,18 +21,22 @@ pub async fn create(
     user: UserIdentification,
     State(pool): State<Pool>,
 ) -> Result<impl IntoResponse, Error> {
-    let room = Room::create(&pool, user.id).await?;
+    let mut client = initialize_client(&pool).await?;
+    let transaction = initialize_transaction(&mut client).await?;
+
+    let room = Room::create(&transaction, user.id).await?;
     let deck = deal_cards();
     let mut players: Vec<Player> = Vec::new();
     for (x, cards) in deck.iter().enumerate() {
-        players.push(Player::create(&pool, &room.ulid, cards, x as i32).await?);
+        players.push(Player::create(&transaction, &room.ulid, cards, x as i32).await?);
     }
     let mut player = players
         .choose_multiple(&mut rand::thread_rng(), 1)
         .collect::<Vec<_>>()[0]
         .to_owned();
     player.game_user = Some(user.id);
-    player.update(&pool).await?;
+    player.update(&transaction).await?;
+    commit(transaction).await?;
     Ok(Json(room))
 }
 
@@ -42,7 +49,10 @@ pub async fn delete(
     if room.host != user.id {
         return Err(Error::code(StatusCode::FORBIDDEN));
     }
-    room.delete(&pool).await?;
+    let mut client = initialize_client(&pool).await?;
+    let transaction = initialize_transaction(&mut client).await?;
+    room.delete(&transaction).await?;
+    commit(transaction).await?;
     Ok(())
 }
 
@@ -86,7 +96,10 @@ pub async fn join(
         .to_owned()
         .to_owned();
     player.game_user = Some(user.id);
-    player.update(&pool).await?;
+    let mut client = initialize_client(&pool).await?;
+    let transaction = initialize_transaction(&mut client).await?;
+    player.update(&transaction).await?;
+    commit(transaction).await?;
     Ok(Json(room))
 }
 
