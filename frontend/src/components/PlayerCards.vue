@@ -59,7 +59,7 @@ export default defineComponent({
         transform: `translateX(${(amount / 2 - position) * 10}%)\
         rotate(${(max_rotation * 2 * position) / amount - max_rotation}deg)\
         translateY(${selected ? -25 : 0}px)`,
-        boxShadow: "black 0px 16px 8px",
+        boxShadow: "rgba(0, 0, 0, 0.3) 0px 8px 8px",
         margin: "0 calc(-2%)",
       };
     },
