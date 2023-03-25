@@ -24,10 +24,7 @@ export default defineComponent({
         transform: ` translateX(${(amount / 2 - position) * move}px) rotate(${
           (max_rotation * 2 * position) / amount - max_rotation
         }deg)`,
-        boxShadow:
-          "rgba(0, 0, 0, 0.09) 0px 8px 4px,\
-          rgba(0, 0, 0, 0.09) 0px 16px 8px,\
-          rgba(0, 0, 0, 0.09) 0px 32px 16px",
+        boxShadow: "black 0px 8px 8px",
         height: "100%",
       };
     },

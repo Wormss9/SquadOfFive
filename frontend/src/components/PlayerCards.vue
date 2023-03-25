@@ -59,12 +59,8 @@ export default defineComponent({
         transform: `translateX(${(amount / 2 - position) * 10}%)\
         rotate(${(max_rotation * 2 * position) / amount - max_rotation}deg)\
         translateY(${selected ? -25 : 0}px)`,
-        boxShadow:
-          "rgba(0, 0, 0, 0.09) 0px 8px 4px,\
-          rgba(0, 0, 0, 0.09) 0px 16px 8px,\
-          rgba(0, 0, 0, 0.09) 0px 32px 16px",
-        marginLeft: "calc(-2%)",
-        marginRight: "calc(-2%)",
+        boxShadow: "black 0px 16px 8px",
+        margin: "0 calc(-2%)",
       };
     },
   },

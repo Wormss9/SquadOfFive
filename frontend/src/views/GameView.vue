@@ -20,6 +20,11 @@
         <button class="link-like-button" v-on:click="sendSkip">Skip</button>
       </div>
     </div>
+    <PlayEnd
+      v-if="!playEnded"
+      :players="players"
+      v-on:continue="playEndedFn"
+    ></PlayEnd>
   </div>
 </template>
 
@@ -31,6 +36,7 @@ import { playMessage, skipMessage } from "@/api/sendMessages";
 import PlayerCards from "../components/PlayerCards.vue";
 import TableCards from "../components/TableCards.vue";
 import OponentsSomethig from "../components/OponentsSomethig.vue";
+import PlayEnd from "../components/PlayEnd.vue";
 import { get_room_with_users } from "@/api/utils";
 import { defineComponent } from "vue";
 import { toast } from "vue3-toastify";
@@ -40,6 +46,7 @@ export default defineComponent({
     PlayerCards,
     OponentsSomethig,
     TableCards,
+    PlayEnd,
   },
   data() {
     return {
@@ -54,6 +61,7 @@ export default defineComponent({
       selected: [] as Card[],
       turn: 0,
       ownId: 0,
+      playEnded: false,
     };
   },
   methods: {
@@ -116,8 +124,7 @@ export default defineComponent({
           this.setCardAmount(data.message);
           break;
         case WsType.EndPlay:
-          //TODO
-          toast.error("Play End");
+          this.playEnded = true;
           break;
         case WsType.EndGame:
           //TODO
@@ -150,6 +157,9 @@ export default defineComponent({
     },
     updateCards(cards: Card[]) {
       this.selected = cards;
+    },
+    playEndedFn() {
+      window.location.reload();
     },
   },
   async beforeMount() {
