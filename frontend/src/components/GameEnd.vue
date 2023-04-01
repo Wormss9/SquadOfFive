@@ -14,22 +14,7 @@
 <script lang="ts">
 import { defineComponent, PropType } from "vue";
 import { Gamer } from "@/api/types";
-
-const toScore = (ammount: number) => {
-  if (ammount == 16) {
-    return 80;
-  }
-  if (ammount >= 14) {
-    return ammount * 4;
-  }
-  if (ammount >= 11) {
-    return ammount * 3;
-  }
-  if (ammount >= 8) {
-    return ammount * 2;
-  }
-  return ammount;
-};
+import { toScore } from "@/api/utils";
 
 export default defineComponent({
   props: {
@@ -54,20 +39,6 @@ export default defineComponent({
 });
 </script>
 <style lang="scss">
-.gameEnd {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  top: 10%;
-  left: 10%;
-  width: 80%;
-  height: 80%;
-  border-radius: 1em;
-  box-shadow: black 0px 16px 16px;
-  z-index: 1000;
-  background-color: #222;
-}
 .player {
   display: flex;
   align-items: center;

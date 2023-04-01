@@ -86,3 +86,35 @@ export function be_to_to_color(color?: string) {
   if (!color) return "r";
   return color[0].toLowerCase();
 }
+
+export const toScore = (ammount: number) => {
+  if (ammount == 16) {
+    return 80;
+  }
+  if (ammount >= 14) {
+    return ammount * 4;
+  }
+  if (ammount >= 11) {
+    return ammount * 3;
+  }
+  if (ammount >= 8) {
+    return ammount * 2;
+  }
+  return ammount;
+};
+
+export const toColor = (ammount: number) => {
+  if (ammount == 16) {
+    return "#000";
+  }
+  if (ammount >= 14) {
+    return "#00F";
+  }
+  if (ammount >= 11) {
+    return "#0F0";
+  }
+  if (ammount >= 8) {
+    return "#F00";
+  }
+  return "#FFF";
+};

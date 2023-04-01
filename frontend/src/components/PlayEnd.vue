@@ -11,40 +11,9 @@ import { defineComponent, PropType } from "vue";
 import { BarChart, useBarChart } from "vue-chart-3";
 import { Gamer } from "@/api/types";
 import { Chart, ChartData, ChartOptions, registerables } from "chart.js";
+import { toScore, toColor } from "@/api/utils";
 
 Chart.register(...registerables);
-
-const toScore = (ammount: number) => {
-  if (ammount == 16) {
-    return 80;
-  }
-  if (ammount >= 14) {
-    return ammount * 4;
-  }
-  if (ammount >= 11) {
-    return ammount * 3;
-  }
-  if (ammount >= 8) {
-    return ammount * 2;
-  }
-  return ammount;
-};
-
-const toColor = (ammount: number) => {
-  if (ammount == 16) {
-    return "#000";
-  }
-  if (ammount >= 14) {
-    return "#00F";
-  }
-  if (ammount >= 11) {
-    return "#0F0";
-  }
-  if (ammount >= 8) {
-    return "#F00";
-  }
-  return "#FFF";
-};
 
 export default defineComponent({
   components: {
@@ -99,20 +68,6 @@ export default defineComponent({
 });
 </script>
 <style lang="scss">
-.gameEnd {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  top: 10%;
-  left: 10%;
-  width: 80%;
-  height: 80%;
-  border-radius: 1em;
-  box-shadow: black 0px 16px 16px;
-  z-index: 1000;
-  background-color: #222;
-}
 .endChart {
   width: 100%;
   height: 80%;
