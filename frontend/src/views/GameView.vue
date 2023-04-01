@@ -21,10 +21,11 @@
       </div>
     </div>
     <PlayEnd
-      v-if="playEnded"
+      v-if="playEnded && !gameEnded"
       :players="players"
       v-on:continue="playEndedFn"
-    ></PlayEnd>
+    />
+    <GameEnd v-if="gameEnded" :players="players" />
   </div>
 </template>
 
@@ -37,6 +38,7 @@ import PlayerCards from "../components/PlayerCards.vue";
 import TableCards from "../components/TableCards.vue";
 import OponentsSomethig from "../components/OponentsSomethig.vue";
 import PlayEnd from "../components/PlayEnd.vue";
+import GameEnd from "../components/GameEnd.vue";
 import { get_room_with_users } from "@/api/utils";
 import { defineComponent } from "vue";
 import { toast } from "vue3-toastify";
@@ -47,6 +49,7 @@ export default defineComponent({
     OponentsSomethig,
     TableCards,
     PlayEnd,
+    GameEnd,
   },
   data() {
     return {
@@ -62,6 +65,7 @@ export default defineComponent({
       turn: 0,
       ownId: 0,
       playEnded: false,
+      gameEnded: false,
     };
   },
   methods: {
@@ -127,8 +131,7 @@ export default defineComponent({
           this.playEnded = true;
           break;
         case WsType.EndGame:
-          //TODO
-          toast.error("Game End");
+          this.gameEnded = true;
           break;
         case WsType.Error:
           toast.error(data.message.slice(1, -1));
