@@ -1,11 +1,10 @@
-FROM rust:alpine as build
+FROM rust:latest as build
 
 WORKDIR /app
 COPY . .
-RUN apk add --no-cache musl-dev
 RUN cargo install --path .
 
-FROM alpine:latest
+FROM debian:latest
 WORKDIR /app
 COPY --from=build /usr/local/cargo/bin/backend /bin/
 
