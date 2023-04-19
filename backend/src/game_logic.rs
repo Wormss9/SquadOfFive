@@ -30,7 +30,7 @@ pub async fn handle_join(
         .map(|(player, _)| player.id)
         .collect();
 
-    match room.get_players(&pool).await {
+    match room.get_players(pool).await {
         Ok(p) => p,
         Err(_) => return,
     }
@@ -51,16 +51,16 @@ pub async fn handle_message(
     players: &WsPlayers,
     tx: &UnboundedSender<Result<Message, axum::Error>>,
 ) -> Result<(), String> {
-    let mut room = Room::get(&pool, room)
+    let mut room = Room::get(pool, room)
         .await
         .map_err(|_| "Room update error".to_owned())?;
-    let mut player = Player::get(&pool, &player.id)
+    let mut player = Player::get(pool, &player.id)
         .await
         .map_err(|_| "Player update error".to_owned())?;
     if room.turn != player.turn {
         return Err("Not your turn".to_owned());
     }
-    let mut client = initialize_client(&pool)
+    let mut client = initialize_client(pool)
         .await
         .map_err(|_| "Error getting client".to_owned())?;
     let transaction = initialize_transaction(&mut client)
@@ -92,14 +92,14 @@ pub async fn handle_message(
             if !play.beats(&table) {
                 return Err("Wrong play".to_owned());
             }
+            player.cards = new_hand.clone();
+            player
+                .update(&transaction)
+                .await
+                .map_err(|_| "Player update error".to_owned())?;
             if !new_hand.is_empty() {
                 room.play = play_cards.clone();
                 room.last_turn = player.turn;
-                player.cards = new_hand;
-                player
-                    .update(&transaction)
-                    .await
-                    .map_err(|_| "Player update error".to_owned())?;
                 room.increment_turn()
                     .update(&transaction)
                     .await
@@ -119,13 +119,17 @@ pub async fn handle_message(
                 Ok(())
             } else {
                 let new_cards = deal_cards();
+                room.play = vec![];
+                room.update(&transaction)
+                    .await
+                    .map_err(|_| "Room update error".to_owned())?;
                 player.cards = new_hand;
                 player
                     .update(&transaction)
                     .await
                     .map_err(|_| "Player update error".to_owned())?;
                 let mut r_players = room
-                    .get_players(&pool)
+                    .get_players(pool)
                     .await
                     .map_err(|_| "Player update error".to_owned())?;
                 let mut endgame = false;
